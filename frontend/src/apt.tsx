@@ -33,6 +33,11 @@ import { SearchIcon, CubesIcon, LayerGroupIcon, ArrowUpIcon } from '@patternfly/
 import { SearchView } from './views/SearchView';
 import { SectionsView } from './views/SectionsView';
 import { PackageDetailsView } from './views/PackageDetailsView';
+// Import both PatternFly CSS files
+// patternfly-base.css contains design tokens (--pf-t--global--* variables)
+// patternfly.css contains component styles that reference those tokens
+// Both are required for proper styling!
+import '@patternfly/patternfly/patternfly-base.css';
 import '@patternfly/patternfly/patternfly.css';
 
 /**
