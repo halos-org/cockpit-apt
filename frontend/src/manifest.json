@@ -1,0 +1,14 @@
+{
+  "version": 0,
+  "name": "apt",
+  "description": "APT Package Manager",
+  "requires": {
+    "cockpit": "276"
+  },
+  "menu": {
+    "index": {
+      "label": "APT",
+      "order": 50
+    }
+  }
+}

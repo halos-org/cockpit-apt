@@ -1,0 +1,268 @@
+#!/usr/bin/env bash
+#
+# usage: ./run command [argument ...]
+#
+# Commands for cockpit-apt development.
+#
+
+set -o nounset
+set -o pipefail
+set -o errexit
+
+# Change the current directory to the project root.
+PROJECT_ROOT=${0%/*}
+if [[ $0 != $PROJECT_ROOT && $PROJECT_ROOT != "" ]]; then
+  cd "$PROJECT_ROOT"
+fi
+readonly PROJECT_ROOT=$(pwd)
+
+# Store the absolute path to this script (useful for recursion).
+readonly SCRIPT="$PROJECT_ROOT/$(basename "$0")"
+
+################################################################################
+# Backend Development Commands
+
+function test {
+  #@ Run backend tests with pytest
+  #@ Category: Backend
+  echo "🧪 Running backend tests..."
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
+    bash -c "uv sync --extra dev && uv run pytest $*"
+}
+
+function lint {
+  #@ Run ruff linter on backend code
+  #@ Category: Backend
+  echo "🔍 Running ruff linter..."
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
+    uv run ruff check .
+}
+
+function lint:fix {
+  #@ Run ruff linter and fix issues
+  #@ Category: Backend
+  echo "🔧 Running ruff linter with auto-fix..."
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
+    uv run ruff check --fix .
+}
+
+function format {
+  #@ Format backend code with ruff
+  #@ Category: Backend
+  echo "✨ Formatting code with ruff..."
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
+    uv run ruff format .
+}
+
+function typecheck {
+  #@ Run pyright type checker
+  #@ Category: Backend
+  echo "📝 Running pyright type checker..."
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
+    uv run pyright
+}
+
+function shell {
+  #@ Open interactive shell in development container
+  #@ Category: Development
+  echo "🐚 Opening shell in development container..."
+  echo "   Working directory: /workspace/backend"
+  echo "   Exit with: exit or Ctrl+D"
+  echo ""
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools bash
+}
+
+function build {
+  #@ Build backend package
+  #@ Category: Backend
+  echo "📦 Building backend package..."
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
+    uv build
+}
+
+function install:dev {
+  #@ Install backend in development mode
+  #@ Category: Backend
+  echo "📥 Installing backend in development mode..."
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
+    uv pip install -e ".[dev]"
+}
+
+################################################################################
+# Frontend Development Commands
+
+function frontend:build {
+  #@ Build frontend (TypeScript/React)
+  #@ Category: Frontend
+  echo "🏗️  Building frontend..."
+  cd frontend
+  npm run build
+  echo "✅ Frontend build complete"
+}
+
+function frontend:watch {
+  #@ Watch and rebuild frontend on changes
+  #@ Category: Frontend
+  echo "👀 Watching frontend for changes..."
+  cd frontend
+  npm run watch
+}
+
+function frontend:typecheck {
+  #@ Type check frontend code
+  #@ Category: Frontend
+  echo "📝 Type checking frontend..."
+  cd frontend
+  npm run typecheck
+}
+
+function frontend:lint {
+  #@ Lint frontend code
+  #@ Category: Frontend
+  echo "🔍 Linting frontend..."
+  cd frontend
+  npm run lint
+}
+
+function frontend:test {
+  #@ Run frontend tests with vitest
+  #@ Category: Frontend
+  echo "🧪 Running frontend tests..."
+  cd frontend
+  npm run test
+}
+
+################################################################################
+# Docker Management Commands
+
+function docker:build {
+  #@ Build development Docker image
+  #@ Category: Docker
+  echo "🐳 Building development Docker image..."
+  docker compose -f docker/docker-compose.devtools.yml build devtools
+  echo "✅ Docker image built successfully"
+}
+
+function docker:clean {
+  #@ Remove development Docker containers and images
+  #@ Category: Docker
+  echo "🧹 Cleaning Docker containers and images..."
+  docker compose -f docker/docker-compose.devtools.yml down --rmi all --volumes
+  echo "✅ Docker cleanup complete"
+}
+
+################################################################################
+# CI Commands
+
+function ci:test {
+  #@ Run all tests (backend + frontend) for CI
+  #@ Category: CI
+  echo "🚀 Running all tests for CI..."
+  test
+  frontend:test
+  echo "✅ All tests passed"
+}
+
+function ci:lint {
+  #@ Run all linters (backend + frontend) for CI
+  #@ Category: CI
+  echo "🚀 Running all linters for CI..."
+  lint
+  typecheck
+  frontend:lint
+  frontend:typecheck
+  echo "✅ All linters passed"
+}
+
+################################################################################
+# Utility Commands
+
+function clean {
+  #@ Clean build artifacts
+  #@ Category: Utility
+  echo "🧹 Cleaning build artifacts..."
+
+  # Backend
+  rm -rf backend/.pytest_cache
+  rm -rf backend/.ruff_cache
+  rm -rf backend/.coverage
+  rm -rf backend/htmlcov
+  rm -rf backend/dist
+  rm -rf backend/build
+  rm -rf backend/*.egg-info
+  find backend -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+
+  # Frontend
+  rm -rf frontend/node_modules/.cache
+  rm -rf frontend/dist
+
+  echo "✅ Cleanup complete"
+}
+
+################################################################################
+# Help System
+
+function help {
+  #@ Show this help message
+  #@ Category: Core
+  echo "Cockpit APT - Development Commands"
+  echo "===================================="
+  echo ""
+  echo "Available commands:"
+  echo ""
+
+  # Extract function definitions and their help comments
+  awk '/^function / {
+    fname = $2
+    sub(/[({].*/, "", fname)
+    getline
+    if ($0 ~ /#@/) {
+      desc = $0
+      sub(/.*#@ /, "", desc)
+      sub(/ *$/, "", desc)
+      getline
+      if ($0 ~ /#@ Category:/) {
+        cat = $0
+        sub(/.*Category: /, "", cat)
+        sub(/ *$/, "", cat)
+        if (!seen[cat]++) categories[++cat_count] = cat
+        commands[cat, ++cmd_count[cat]] = fname
+        descriptions[cat, cmd_count[cat]] = desc
+      }
+    }
+  }
+  END {
+    for (i = 1; i <= cat_count; i++) {
+      cat = categories[i]
+      print "\n" cat ":"
+      for (j = 1; j <= cmd_count[cat]; j++) {
+        printf "  %-25s %s\n", commands[cat, j], descriptions[cat, j]
+      }
+    }
+  }' "$0"
+
+  echo ""
+  echo "Usage: ./run <command> [arguments...]"
+  echo ""
+  echo "Quick start (Backend):"
+  echo "  1. ./run docker:build      # Build development container"
+  echo "  2. ./run test              # Run backend tests"
+  echo "  3. ./run shell             # Open interactive shell"
+  echo ""
+  echo "Quick start (Frontend):"
+  echo "  1. cd frontend && npm install"
+  echo "  2. ./run frontend:build    # Build frontend"
+  echo "  3. ./run frontend:watch    # Watch for changes"
+  echo ""
+  echo "Development workflow:"
+  echo "  ./run test                 # Run tests after changes"
+  echo "  ./run lint                 # Check code style"
+  echo "  ./run typecheck            # Check types"
+  echo "  ./run format               # Format code"
+}
+
+################################################################################
+# Commands end.
+
+TIMEFORMAT=$'\nTask completed in %3lR'
+time "${@:-help}"

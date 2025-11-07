@@ -1,0 +1,56 @@
+{
+  "name": "Cockpit APT Development",
+  "dockerComposeFile": "../docker/docker-compose.devtools.yml",
+  "service": "devtools",
+  "workspaceFolder": "/workspace/backend",
+
+  // VSCode customizations
+  "customizations": {
+    "vscode": {
+      // Extensions to install
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-python.debugpy"
+      ],
+
+      // Settings
+      "settings": {
+        "python.defaultInterpreterPath": "/home/vscode/.local/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.linting.enabled": true,
+        "python.linting.ruffEnabled": true,
+        "python.formatting.provider": "none",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+          }
+        },
+        "ruff.nativeServer": true,
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/*.pyc": true,
+          ".pytest_cache": true,
+          ".ruff_cache": true,
+          ".coverage": true,
+          "htmlcov": true
+        }
+      }
+    }
+  },
+
+  // Run commands after container is created
+  "postCreateCommand": "uv pip install -e '.[dev]'",
+
+  // Forward ports (none needed for backend-only development)
+  "forwardPorts": [],
+
+  // Use 'postAttachCommand' to run a command each time the container is attached to
+  "postAttachCommand": "echo 'Cockpit APT development environment ready. Run: uv run pytest'"
+}

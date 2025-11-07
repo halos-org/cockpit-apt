@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+backend/lib/
+backend/lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# uv
+.venv/
+.uv/
+
+# Pyright
+pyrightconfig.json.bak
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/build/
+.cache/
+*.tsbuildinfo
+
+# Testing
+test-results/
+playwright-report/
+
+# Build outputs
+apt/
+*.deb
+*.buildinfo
+*.changes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.bak
+.*.swp
