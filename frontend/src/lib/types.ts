@@ -6,28 +6,39 @@
 
 // ==================== Package Types ====================
 
-/** Basic package information */
+/**
+ * Basic package information (from backend list views)
+ * Returned by: search, list-section, list-installed, list-upgradable
+ * Backend: backend/cockpit_apt_bridge/utils/formatters.py:format_package()
+ */
 export interface Package {
   name: string;
-  version: string;
-  architecture?: string;
   summary: string;
+  version: string;
   installed: boolean;
+  section: string;
 }
 
-/** Detailed package information with all metadata */
-export interface PackageDetails extends Package {
+/**
+ * Detailed package information with all metadata
+ * Returned by: details command
+ * Backend: backend/cockpit_apt_bridge/utils/formatters.py:format_package_details()
+ */
+export interface PackageDetails {
+  name: string;
+  summary: string;
   description: string;
   section: string;
-  priority?: string;
-  homepage?: string;
-  maintainer?: string;
-  size?: number;
-  installedSize?: number;
-  dependencies?: Dependency[];
-  reverseDependencies?: string[];
-  installedVersion?: string | null;
-  candidateVersion?: string | null;
+  installed: boolean;
+  installedVersion: string | null;
+  candidateVersion: string | null;
+  priority: string;
+  homepage: string;
+  maintainer: string;
+  size: number;
+  installedSize: number;
+  dependencies: Dependency[];
+  reverseDependencies: string[];
 
   // AppStream metadata (optional - Phase 1.5)
   appstreamId?: string | null;
@@ -41,11 +52,14 @@ export interface PackageDetails extends Package {
   releases?: Release[] | null;
 }
 
-/** Package dependency information */
+/**
+ * Package dependency information
+ * Backend: backend/cockpit_apt_bridge/utils/formatters.py:format_dependency()
+ */
 export interface Dependency {
   name: string;
-  relation?: string; // <, <=, =, >=, >
-  version?: string;
+  relation: string; // >=, <=, =, <<, >>, or empty string
+  version: string; // version constraint or empty string
 }
 
 /** Package with upgrade information */
@@ -58,13 +72,18 @@ export interface UpgradablePackage {
 
 // ==================== Section Types ====================
 
-/** Debian section information */
+/**
+ * Debian section information
+ * Returned by: sections command
+ * Backend: backend/cockpit_apt_bridge/commands/sections.py
+ */
 export interface Section {
   name: string;
-  label: string;
+  count: number;
+  // UI-only fields (added by frontend)
+  label?: string;
   description?: string;
   icon?: string;
-  count: number;
   installedCount?: number;
 }
 
@@ -91,44 +110,26 @@ export interface Release {
 
 // ==================== Operation Types ====================
 
-/** Progress information for package operations */
+/**
+ * Progress information for package operations
+ * Matches: frontend/src/lib/progress-reporter.ts:ProgressInfo
+ */
 export interface OperationProgress {
-  type: "status" | "download";
-  package: string | null;
+  package?: string;
   percentage: number;
   message: string;
+  stage?: string;
+  complete: boolean;
+  cancelled: boolean;
+  error?: string;
 }
 
 /** Callback for operation progress updates */
 export type ProgressCallback = (progress: OperationProgress) => void;
 
 // ==================== Error Types ====================
-
-/** Custom error for APT operations */
-export class APTError extends Error {
-  code: string;
-  details: string | null;
-
-  constructor(message: string, code: string, details: string | null = null) {
-    super(message);
-    this.name = "APTError";
-    this.code = code;
-    this.details = details;
-  }
-}
-
-/** Error codes */
-export const ErrorCodes = {
-  PACKAGE_NOT_FOUND: "PACKAGE_NOT_FOUND",
-  EXEC_ERROR: "EXEC_ERROR",
-  PARSE_ERROR: "PARSE_ERROR",
-  PERMISSION_DENIED: "PERMISSION_DENIED",
-  LOCKED: "LOCKED",
-  LOCK_TIMEOUT: "LOCK_TIMEOUT",
-  NETWORK_ERROR: "NETWORK_ERROR",
-  DISK_FULL: "DISK_FULL",
-  UNKNOWN: "UNKNOWN",
-} as const;
+// Error handling is defined in error-handler.ts
+// Use: import { APTError, translateError, isErrorCode, getUserMessage } from './error-handler';
 
 // ==================== Configuration Types ====================
 
