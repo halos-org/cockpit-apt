@@ -2,7 +2,49 @@
 Details command implementation.
 
 Gets comprehensive information about a single package including dependencies,
-descriptions, maintainer, sizes, etc.
+descriptions, maintainer, sizes, and reverse dependencies.
+
+Features:
+    - Complete package metadata from apt.Package
+    - Direct dependencies with version constraints
+    - Reverse dependencies (limited to 50 for performance)
+    - Installation status and version information
+    - Package size information (download and installed)
+
+Input Validation:
+    - Package name must follow Debian naming rules
+    - Validates against path traversal and injection attacks
+
+Output Format:
+    Dictionary with comprehensive package information:
+        - name, summary, description
+        - section, priority, homepage, maintainer
+        - installed, installedVersion, candidateVersion
+        - size, installedSize (in bytes)
+        - dependencies: List of {name, relation, version}
+        - reverseDependencies: List of package names (max 50)
+
+Error Conditions:
+    - PACKAGE_NOT_FOUND: Package doesn't exist in cache
+    - INVALID_INPUT: Package name validation failed
+    - CACHE_ERROR: Failed to load or query APT cache
+
+Performance:
+    - Target: <200ms for typical packages
+    - Reverse dependency search limited to 50 results
+    - Single cache lookup, single iteration for reverse deps
+
+Example:
+    $ cockpit-apt-bridge details nginx
+    {
+        "name": "nginx",
+        "summary": "HTTP server",
+        "dependencies": [
+            {"name": "libc6", "relation": ">=", "version": "2.34"},
+            ...
+        ],
+        ...
+    }
 """
 
 from typing import Any

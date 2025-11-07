@@ -1,7 +1,33 @@
 """
 Command-line interface for cockpit-apt-bridge.
 
-Parses command-line arguments and dispatches to appropriate command handlers.
+This module provides the main entry point for the cockpit-apt-bridge CLI tool.
+It parses command-line arguments and dispatches to appropriate command handlers,
+handling errors and formatting output as JSON.
+
+Commands:
+    search QUERY                      - Search for packages matching QUERY
+    details PACKAGE                   - Get detailed information about a package
+    sections                          - List all Debian sections with package counts
+    list-section SECTION              - List all packages in a section
+    list-installed                    - List all installed packages
+    list-upgradable                   - List packages with available upgrades
+    dependencies PACKAGE              - Get direct dependencies of a package
+    reverse-dependencies PACKAGE      - Get packages that depend on a package
+
+Exit Codes:
+    0 - Success
+    1 - Expected error (validation, package not found, etc.)
+    2 - Unexpected error
+
+Output Format:
+    - Success: JSON to stdout, exit 0
+    - Error: JSON error to stderr, exit non-zero
+
+Example Usage:
+    $ cockpit-apt-bridge search nginx
+    $ cockpit-apt-bridge details nginx
+    $ cockpit-apt-bridge list-section web
 """
 
 import sys

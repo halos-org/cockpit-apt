@@ -1,7 +1,32 @@
 """
 Input validation utilities for cockpit-apt-bridge.
 
-Provides validation functions for package names, section names, and other inputs.
+Provides validation functions for package names, section names, and other user inputs.
+All validators raise APTBridgeError with code INVALID_INPUT if validation fails.
+
+Security Considerations:
+    - Package names are validated to prevent path traversal attacks
+    - Shell metacharacters are rejected to prevent command injection
+    - Length limits prevent resource exhaustion
+    - Patterns follow Debian policy for package and section naming
+
+Validation Rules:
+    Package names must:
+        - Be non-empty
+        - Contain only: a-z, 0-9, +, -, .
+        - Start with a letter or digit
+        - Not exceed 255 characters
+        - Not contain path separators (/, \\) or shell metacharacters
+
+    Section names must:
+        - Be non-empty
+        - Contain only: a-z, 0-9, -, /, _
+        - Not exceed 100 characters
+        - Not contain uppercase letters or special characters
+
+References:
+    - Debian Policy Manual: Package naming
+    - https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-source
 """
 
 import re

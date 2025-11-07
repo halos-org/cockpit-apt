@@ -1,7 +1,41 @@
 """
 Error handling for cockpit-apt-bridge.
 
-Defines custom exception classes and error formatting utilities.
+Defines custom exception classes and error formatting utilities for consistent
+error reporting. All errors are formatted as JSON and output to stderr.
+
+Exception Hierarchy:
+    APTBridgeError (base)
+    ├── PackageNotFoundError
+    └── CacheError
+
+Error Codes:
+    PACKAGE_NOT_FOUND - Requested package does not exist
+    INVALID_INPUT - User input failed validation
+    CACHE_ERROR - Failed to load or query APT cache
+    UNKNOWN_ERROR - Unexpected or unclassified error
+    UNKNOWN_COMMAND - Invalid command name
+
+Error JSON Format:
+    {
+        "error": "Human-readable error message",
+        "code": "MACHINE_READABLE_CODE",
+        "details": "Optional additional context"
+    }
+
+Usage Example:
+    try:
+        if package_name not in cache:
+            raise PackageNotFoundError(package_name)
+    except APTBridgeError as e:
+        print(format_error(e), file=sys.stderr)
+        sys.exit(1)
+
+Notes:
+    - All APTBridgeError exceptions should be caught by CLI main()
+    - Error messages should be user-friendly (avoid technical jargon)
+    - Details field can contain technical information for debugging
+    - Exit codes: 0 = success, 1 = expected error, 2 = unexpected error
 """
 
 import json

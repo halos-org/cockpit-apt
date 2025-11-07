@@ -1,7 +1,48 @@
 """
 JSON formatting utilities for cockpit-apt-bridge.
 
-Handles serialization of Python objects to JSON for output to stdout.
+Handles serialization of apt.Package objects and other Python objects to JSON
+for output to stdout. All formatters produce dictionaries that are later
+serialized to JSON by the CLI.
+
+Formatting Functions:
+    to_json(data) - Convert any JSON-serializable data to formatted JSON string
+    format_package(pkg) - Format apt.Package for list views (compact)
+    format_package_details(pkg) - Format apt.Package with full details
+    format_dependency(dep_or) - Format dependency OR-group to list of dicts
+
+Output Considerations:
+    - All output uses UTF-8 encoding
+    - Pretty-printed with 2-space indentation for human readability
+    - Sort keys disabled to preserve logical field ordering
+    - Missing/optional fields default to empty string or null
+    - All sizes in bytes
+
+Field Mappings:
+    Package (list view):
+        - name: Package name
+        - summary: One-line description
+        - version: Candidate version
+        - installed: Boolean installation status
+        - section: Debian section (e.g., "web", "python")
+
+    Package (detail view):
+        - All list view fields plus:
+        - description: Full multi-paragraph description
+        - installedVersion: Currently installed version (or null)
+        - candidateVersion: Available version (or null)
+        - priority: Package priority (optional, standard, important, required)
+        - homepage: Project homepage URL
+        - maintainer: Package maintainer name and email
+        - size: Download size in bytes
+        - installedSize: Disk space usage in bytes
+        - dependencies: List of dependency objects
+        - reverseDependencies: List of package names
+
+    Dependency:
+        - name: Package name
+        - relation: Version relation (>=, <=, =, <<, >>, or empty)
+        - version: Version constraint (or empty)
 """
 
 import json

@@ -2,6 +2,37 @@
 Search command implementation.
 
 Searches for packages matching a query string in package names and summaries.
+Results are sorted with name matches prioritized over summary matches.
+
+Search Behavior:
+    - Case-insensitive matching
+    - Searches both package names and summaries
+    - Skips packages without a candidate version
+    - Limits results to 100 packages maximum
+    - Name matches sorted before summary matches
+
+Input Validation:
+    - Query must be at least 2 characters long
+
+Output Format:
+    List of package dictionaries with fields:
+        - name: Package name
+        - summary: One-line description
+        - version: Candidate version
+        - installed: Boolean indicating installation status
+        - section: Debian section
+
+Performance:
+    - Target: <500ms for typical searches
+    - Early termination at 100 results
+    - Single pass through package cache
+
+Example:
+    $ cockpit-apt-bridge search nginx
+    [
+        {"name": "nginx", "summary": "HTTP server", ...},
+        {"name": "nginx-common", "summary": "Nginx common files", ...}
+    ]
 """
 
 import sys
