@@ -37,6 +37,8 @@ import { SectionPackageListView } from './views/SectionPackageListView';
 // Both are required for proper styling!
 import '@patternfly/patternfly/patternfly-base.css';
 import '@patternfly/patternfly/patternfly.css';
+// Import dark theme support (must be after PatternFly CSS)
+import './dark-theme';
 
 /**
  * Route type for type-safe routing
