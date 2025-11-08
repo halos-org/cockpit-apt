@@ -557,7 +557,7 @@ See [CLAUDE.md](CLAUDE.md) for detailed development workflow and guidelines.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+GNU Lesser General Public License v2.1 - see [LICENSE](LICENSE) file for details.
 
 ## Related Projects
 
