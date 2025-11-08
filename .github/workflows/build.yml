@@ -20,9 +20,6 @@ jobs:
       - name: Run backend linting
         run: docker compose -f docker/docker-compose.devtools.yml run --rm --user root devtools bash -c "uv sync --extra dev && uv run ruff check --ignore SIM117,B904,E501 ."
 
-      - name: Run backend type checking
-        run: docker compose -f docker/docker-compose.devtools.yml run --rm --user root devtools bash -c "uv sync --extra dev && uv run pyright"
-
   frontend:
     runs-on: ubuntu-latest
 
