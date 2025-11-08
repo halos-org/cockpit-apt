@@ -6,7 +6,7 @@ Gets direct dependencies of a package.
 
 from typing import Any
 
-from cockpit_apt_bridge.utils.errors import APTBridgeError, CacheError, PackageNotFoundError
+from cockpit_apt_bridge.utils.errors import CacheError, PackageNotFoundError
 from cockpit_apt_bridge.utils.formatters import format_dependency
 from cockpit_apt_bridge.utils.validators import validate_package_name
 
@@ -36,17 +36,14 @@ def execute(package_name: str) -> list[dict[str, Any]]:
     except ImportError:
         raise CacheError(
             "python-apt not available - must run on Debian/Ubuntu system",
-            details="ImportError: No module named 'apt'"
+            details="ImportError: No module named 'apt'",
         )
 
     try:
         # Open APT cache
         cache = apt.Cache()
     except Exception as e:
-        raise CacheError(
-            "Failed to open APT cache",
-            details=str(e)
-        )
+        raise CacheError("Failed to open APT cache", details=str(e))
 
     try:
         # Look up package
@@ -69,7 +66,4 @@ def execute(package_name: str) -> list[dict[str, Any]]:
     except PackageNotFoundError:
         raise
     except Exception as e:
-        raise CacheError(
-            f"Error getting dependencies for '{package_name}'",
-            details=str(e)
-        )
+        raise CacheError(f"Error getting dependencies for '{package_name}'", details=str(e))

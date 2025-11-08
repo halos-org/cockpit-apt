@@ -2,14 +2,11 @@
 Unit tests for CLI command dispatcher.
 """
 
-import sys
-from io import StringIO
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from cockpit_apt_bridge import cli
-from tests.conftest import MockCache
 
 
 class TestCLIDispatcher:
@@ -182,7 +179,9 @@ class TestCLIDispatcher:
         """Test handling of unexpected errors."""
         with patch("sys.argv", ["cockpit-apt-bridge", "search", "test"]):
             # Mock to raise an unexpected error
-            with patch("cockpit_apt_bridge.commands.search.execute", side_effect=RuntimeError("Unexpected")):
+            with patch(
+                "cockpit_apt_bridge.commands.search.execute", side_effect=RuntimeError("Unexpected")
+            ):
                 with pytest.raises(SystemExit) as exc_info:
                     cli.main()
 

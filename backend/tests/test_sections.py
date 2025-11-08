@@ -6,9 +6,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cockpit_apt_bridge.commands import sections, list_section
+from cockpit_apt_bridge.commands import list_section, sections
 from cockpit_apt_bridge.utils.errors import APTBridgeError
-from tests.conftest import MockPackage, MockCache
+from tests.conftest import MockCache
 
 
 def test_sections_success(mock_apt_cache):

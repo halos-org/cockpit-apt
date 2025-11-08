@@ -8,7 +8,7 @@ import pytest
 
 from cockpit_apt_bridge.commands import list_installed, list_upgradable
 from cockpit_apt_bridge.utils.errors import APTBridgeError
-from tests.conftest import MockPackage, MockCache
+from tests.conftest import MockCache, MockPackage
 
 
 def test_list_installed_success(mock_apt_cache):

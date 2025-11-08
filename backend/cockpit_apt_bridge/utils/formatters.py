@@ -124,9 +124,13 @@ def format_package_details(pkg: Any) -> dict[str, Any]:
     if candidate:
         result["priority"] = candidate.priority if hasattr(candidate, "priority") else "optional"
         result["homepage"] = candidate.homepage if candidate.homepage else ""
-        result["maintainer"] = candidate.record.get("Maintainer", "") if hasattr(candidate, "record") else ""
+        result["maintainer"] = (
+            candidate.record.get("Maintainer", "") if hasattr(candidate, "record") else ""
+        )
         result["size"] = candidate.size if hasattr(candidate, "size") else 0
-        result["installedSize"] = candidate.installed_size if hasattr(candidate, "installed_size") else 0
+        result["installedSize"] = (
+            candidate.installed_size if hasattr(candidate, "installed_size") else 0
+        )
     else:
         result["priority"] = "optional"
         result["homepage"] = ""

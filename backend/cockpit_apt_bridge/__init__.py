@@ -7,4 +7,3 @@ outputting JSON for consumption by the Cockpit frontend.
 
 __version__ = "0.1.0"
 __author__ = "Hat Labs"
-

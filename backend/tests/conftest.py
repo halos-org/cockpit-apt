@@ -2,7 +2,6 @@
 Pytest configuration and shared fixtures.
 """
 
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest

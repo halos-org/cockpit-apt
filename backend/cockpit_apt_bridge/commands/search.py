@@ -35,7 +35,6 @@ Example:
     ]
 """
 
-import sys
 from typing import Any
 
 from cockpit_apt_bridge.utils.errors import CacheError
@@ -58,10 +57,8 @@ def execute(query: str) -> list[dict[str, Any]]:
     # Validate query length
     if len(query) < 2:
         from cockpit_apt_bridge.utils.errors import APTBridgeError
-        raise APTBridgeError(
-            "Query must be at least 2 characters",
-            code="INVALID_QUERY"
-        )
+
+        raise APTBridgeError("Query must be at least 2 characters", code="INVALID_QUERY")
 
     try:
         # Import apt here to allow testing without python-apt installed
@@ -70,17 +67,14 @@ def execute(query: str) -> list[dict[str, Any]]:
         # For development on non-Debian systems, provide helpful error
         raise CacheError(
             "python-apt not available - must run on Debian/Ubuntu system",
-            details="ImportError: No module named 'apt'"
+            details="ImportError: No module named 'apt'",
         )
 
     try:
         # Open APT cache
         cache = apt.Cache()
     except Exception as e:
-        raise CacheError(
-            "Failed to open APT cache",
-            details=str(e)
-        )
+        raise CacheError("Failed to open APT cache", details=str(e))
 
     # Search for matching packages
     results: list[dict[str, Any]] = []
@@ -115,9 +109,6 @@ def execute(query: str) -> list[dict[str, Any]]:
         results.sort(key=sort_key)
 
     except Exception as e:
-        raise CacheError(
-            "Error during package search",
-            details=str(e)
-        )
+        raise CacheError("Error during package search", details=str(e))
 
     return results

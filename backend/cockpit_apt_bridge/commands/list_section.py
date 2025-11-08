@@ -36,17 +36,14 @@ def execute(section_name: str) -> list[dict[str, Any]]:
     except ImportError:
         raise CacheError(
             "python-apt not available - must run on Debian/Ubuntu system",
-            details="ImportError: No module named 'apt'"
+            details="ImportError: No module named 'apt'",
         )
 
     try:
         # Open APT cache
         cache = apt.Cache()
     except Exception as e:
-        raise CacheError(
-            "Failed to open APT cache",
-            details=str(e)
-        )
+        raise CacheError("Failed to open APT cache", details=str(e))
 
     try:
         # Find packages in this section
@@ -64,7 +61,4 @@ def execute(section_name: str) -> list[dict[str, Any]]:
         return packages
 
     except Exception as e:
-        raise CacheError(
-            f"Error listing packages in section '{section_name}'",
-            details=str(e)
-        )
+        raise CacheError(f"Error listing packages in section '{section_name}'", details=str(e))

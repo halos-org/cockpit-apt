@@ -8,7 +8,7 @@ import pytest
 
 from cockpit_apt_bridge.commands import details
 from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
-from tests.conftest import MockPackage, MockCache, MockDependency
+from tests.conftest import MockCache, MockPackage
 
 
 def test_details_success(mock_apt_cache):
@@ -153,10 +153,20 @@ def test_details_all_fields_present(mock_apt_cache):
         result = details.execute("nginx")
 
     required_fields = [
-        "name", "summary", "description", "section", "installed",
-        "installedVersion", "candidateVersion", "priority", "homepage",
-        "maintainer", "size", "installedSize", "dependencies",
-        "reverseDependencies"
+        "name",
+        "summary",
+        "description",
+        "section",
+        "installed",
+        "installedVersion",
+        "candidateVersion",
+        "priority",
+        "homepage",
+        "maintainer",
+        "size",
+        "installedSize",
+        "dependencies",
+        "reverseDependencies",
     ]
 
     for field in required_fields:

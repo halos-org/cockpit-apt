@@ -5,12 +5,10 @@ Updates package lists using apt-get update.
 Progress is output as JSON lines to stdout for streaming to frontend.
 """
 
-import subprocess
+import json
 import os
 import re
-import json
-import sys
-from typing import Optional
+import subprocess
 
 from cockpit_apt_bridge.utils.errors import APTBridgeError
 
@@ -43,7 +41,7 @@ def execute() -> dict:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,  # Merge stderr into stdout
             text=True,
-            env={**os.environ, "DEBIAN_FRONTEND": "noninteractive"}
+            env={**os.environ, "DEBIAN_FRONTEND": "noninteractive"},
         )
 
         # Track progress
@@ -51,7 +49,7 @@ def execute() -> dict:
         completed_repos = 0
 
         # Read output line by line
-        for line in iter(process.stdout.readline, ''):
+        for line in iter(process.stdout.readline, ""):
             if not line:
                 break
 
@@ -59,9 +57,9 @@ def execute() -> dict:
 
             # Parse progress from output
             # Look for lines like "Get:1 http://..." or "Hit:1 http://..."
-            if line.startswith(('Get:', 'Hit:', 'Ign:')):
+            if line.startswith(("Get:", "Hit:", "Ign:")):
                 # Extract repository being processed
-                match = re.match(r'(Get|Hit|Ign):(\d+)\s+(.+)', line)
+                match = re.match(r"(Get|Hit|Ign):(\d+)\s+(.+)", line)
                 if match:
                     repo_num = int(match.group(2))
                     repo_url = match.group(3)
@@ -71,7 +69,7 @@ def execute() -> dict:
                         total_repos = repo_num
 
                     # Track completed
-                    if match.group(1) in ('Hit', 'Get'):
+                    if match.group(1) in ("Hit", "Get"):
                         completed_repos = repo_num
 
                     # Calculate percentage
@@ -80,7 +78,7 @@ def execute() -> dict:
                         progress_json = {
                             "type": "progress",
                             "percentage": percentage,
-                            "message": f"Updating: {repo_url[:60]}..."
+                            "message": f"Updating: {repo_url[:60]}...",
                         }
                         print(json.dumps(progress_json), flush=True)
 
@@ -96,34 +94,21 @@ def execute() -> dict:
                 raise APTBridgeError(
                     "Network error: Unable to reach package repositories",
                     code="NETWORK_ERROR",
-                    details=stderr
+                    details=stderr,
                 )
             elif "dpkg was interrupted" in (stderr or ""):
-                raise APTBridgeError(
-                    "Package manager is locked",
-                    code="LOCKED",
-                    details=stderr
-                )
+                raise APTBridgeError("Package manager is locked", code="LOCKED", details=stderr)
             else:
                 raise APTBridgeError(
-                    "Failed to update package lists",
-                    code="UPDATE_FAILED",
-                    details=stderr
+                    "Failed to update package lists", code="UPDATE_FAILED", details=stderr
                 )
 
         # Success - output final progress
-        final_progress = {
-            "type": "progress",
-            "percentage": 100,
-            "message": "Package lists updated"
-        }
+        final_progress = {"type": "progress", "percentage": 100, "message": "Package lists updated"}
         print(json.dumps(final_progress), flush=True)
 
         # Output final result as single-line JSON
-        final_result = {
-            "success": True,
-            "message": "Successfully updated package lists"
-        }
+        final_result = {"success": True, "message": "Successfully updated package lists"}
         print(json.dumps(final_result), flush=True)
 
         # Return None so CLI doesn't print it again
@@ -132,8 +117,4 @@ def execute() -> dict:
     except APTBridgeError:
         raise
     except Exception as e:
-        raise APTBridgeError(
-            "Error updating package lists",
-            code="INTERNAL_ERROR",
-            details=str(e)
-        )
+        raise APTBridgeError("Error updating package lists", code="INTERNAL_ERROR", details=str(e))

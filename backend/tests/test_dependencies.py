@@ -8,7 +8,7 @@ import pytest
 
 from cockpit_apt_bridge.commands import dependencies, reverse_dependencies
 from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
-from tests.conftest import MockPackage, MockCache, MockDependency
+from tests.conftest import MockCache, MockDependency, MockPackage
 
 
 def test_dependencies_success(mock_apt_cache):
@@ -145,10 +145,7 @@ def test_reverse_dependencies_limit():
     # Create 100 packages that all depend on popular_pkg
     packages = [popular_pkg]
     for i in range(100):
-        pkg = MockPackage(
-            f"dependent-{i:03d}",
-            dependencies=[[MockDependency("popular")]]
-        )
+        pkg = MockPackage(f"dependent-{i:03d}", dependencies=[[MockDependency("popular")]])
         packages.append(pkg)
 
     cache = MockCache(packages)

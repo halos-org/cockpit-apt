@@ -2,8 +2,8 @@
 Unit tests for files command.
 """
 
-from unittest.mock import MagicMock, patch
 import subprocess
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -27,10 +27,7 @@ def test_files_success():
 
     # Verify dpkg-query was called correctly
     mock_run.assert_called_once_with(
-        ["dpkg-query", "-L", "nginx"],
-        capture_output=True,
-        text=True,
-        check=True
+        ["dpkg-query", "-L", "nginx"], capture_output=True, text=True, check=True
     )
 
     # Check result
@@ -48,7 +45,7 @@ def test_files_package_not_installed():
     mock_error = subprocess.CalledProcessError(
         1,
         ["dpkg-query", "-L", "nonexistent"],
-        stderr="dpkg-query: package 'nonexistent' is not installed"
+        stderr="dpkg-query: package 'nonexistent' is not installed",
     )
 
     with patch("subprocess.run", side_effect=mock_error):
@@ -78,9 +75,7 @@ def test_files_empty_package_name():
 def test_files_dpkg_query_error():
     """Test that dpkg-query errors are handled."""
     mock_error = subprocess.CalledProcessError(
-        2,
-        ["dpkg-query", "-L", "nginx"],
-        stderr="dpkg-query: some other error"
+        2, ["dpkg-query", "-L", "nginx"], stderr="dpkg-query: some other error"
     )
 
     with patch("subprocess.run", side_effect=mock_error):

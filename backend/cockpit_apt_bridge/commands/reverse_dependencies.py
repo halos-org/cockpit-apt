@@ -4,9 +4,7 @@ Reverse-dependencies command implementation.
 Gets packages that depend on this package (reverse dependencies).
 """
 
-from typing import Any
-
-from cockpit_apt_bridge.utils.errors import APTBridgeError, CacheError, PackageNotFoundError
+from cockpit_apt_bridge.utils.errors import CacheError, PackageNotFoundError
 from cockpit_apt_bridge.utils.validators import validate_package_name
 
 
@@ -35,17 +33,14 @@ def execute(package_name: str) -> list[str]:
     except ImportError:
         raise CacheError(
             "python-apt not available - must run on Debian/Ubuntu system",
-            details="ImportError: No module named 'apt'"
+            details="ImportError: No module named 'apt'",
         )
 
     try:
         # Open APT cache
         cache = apt.Cache()
     except Exception as e:
-        raise CacheError(
-            "Failed to open APT cache",
-            details=str(e)
-        )
+        raise CacheError("Failed to open APT cache", details=str(e))
 
     try:
         # Verify package exists
@@ -81,7 +76,4 @@ def execute(package_name: str) -> list[str]:
     except PackageNotFoundError:
         raise
     except Exception as e:
-        raise CacheError(
-            f"Error getting reverse dependencies for '{package_name}'",
-            details=str(e)
-        )
+        raise CacheError(f"Error getting reverse dependencies for '{package_name}'", details=str(e))

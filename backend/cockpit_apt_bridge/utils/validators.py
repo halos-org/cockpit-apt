@@ -30,6 +30,7 @@ References:
 """
 
 import re
+
 from cockpit_apt_bridge.utils.errors import APTBridgeError
 
 
@@ -50,36 +51,33 @@ def validate_package_name(name: str) -> None:
         APTBridgeError: If package name is invalid
     """
     if not name:
-        raise APTBridgeError(
-            "Package name cannot be empty",
-            code="INVALID_INPUT"
-        )
+        raise APTBridgeError("Package name cannot be empty", code="INVALID_INPUT")
 
     if len(name) > 255:
         raise APTBridgeError(
             "Package name exceeds maximum length of 255 characters",
             code="INVALID_INPUT",
-            details=f"Length: {len(name)}"
+            details=f"Length: {len(name)}",
         )
 
     # Debian package name pattern: lowercase letters, digits, plus, minus, dot
     # Must start with lowercase letter or digit
-    pattern = r'^[a-z0-9][a-z0-9+\-.]*$'
+    pattern = r"^[a-z0-9][a-z0-9+\-.]*$"
     if not re.match(pattern, name):
         raise APTBridgeError(
             f"Invalid package name: {name}",
             code="INVALID_INPUT",
-            details="Package names must contain only: a-z, 0-9, +, -, . and start with a letter or digit"
+            details="Package names must contain only: a-z, 0-9, +, -, . and start with a letter or digit",
         )
 
     # Additional security check: no path separators or shell metacharacters
-    dangerous_chars = ['/', '\\', ';', '&', '|', '$', '`', '(', ')', '<', '>', '\n', '\r']
+    dangerous_chars = ["/", "\\", ";", "&", "|", "$", "`", "(", ")", "<", ">", "\n", "\r"]
     for char in dangerous_chars:
         if char in name:
             raise APTBridgeError(
                 f"Invalid package name: contains forbidden character '{char}'",
                 code="INVALID_INPUT",
-                details="Package names cannot contain path separators or shell metacharacters"
+                details="Package names cannot contain path separators or shell metacharacters",
             )
 
 
@@ -99,24 +97,21 @@ def validate_section_name(name: str) -> None:
         APTBridgeError: If section name is invalid
     """
     if not name:
-        raise APTBridgeError(
-            "Section name cannot be empty",
-            code="INVALID_INPUT"
-        )
+        raise APTBridgeError("Section name cannot be empty", code="INVALID_INPUT")
 
     if len(name) > 100:
         raise APTBridgeError(
             "Section name exceeds maximum length of 100 characters",
             code="INVALID_INPUT",
-            details=f"Length: {len(name)}"
+            details=f"Length: {len(name)}",
         )
 
     # Debian section name pattern: lowercase letters, digits, hyphen, slash, underscore
     # Examples: admin, net, contrib/net, non-free/games
-    pattern = r'^[a-z0-9_\-/]+$'
+    pattern = r"^[a-z0-9_\-/]+$"
     if not re.match(pattern, name):
         raise APTBridgeError(
             f"Invalid section name: {name}",
             code="INVALID_INPUT",
-            details="Section names must contain only: a-z, 0-9, -, /, _"
+            details="Section names must contain only: a-z, 0-9, -, /, _",
         )

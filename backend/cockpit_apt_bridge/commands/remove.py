@@ -5,21 +5,26 @@ Removes a package using apt-get with progress reporting via Status-Fd.
 Progress is output as JSON lines to stdout for streaming to frontend.
 """
 
-import subprocess
-import select
-import os
 import json
-import sys
-from typing import Optional
+import os
+import select
+import subprocess
 
 from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
 from cockpit_apt_bridge.utils.validators import validate_package_name
 
-
 # Essential packages that should never be removed
 ESSENTIAL_PACKAGES = {
-    "dpkg", "apt", "apt-get", "libc6", "init", "systemd",
-    "base-files", "base-passwd", "bash", "coreutils"
+    "dpkg",
+    "apt",
+    "apt-get",
+    "libc6",
+    "init",
+    "systemd",
+    "base-files",
+    "base-passwd",
+    "bash",
+    "coreutils",
 }
 
 
@@ -53,19 +58,13 @@ def execute(package_name: str) -> dict:
         raise APTBridgeError(
             f"Cannot remove essential package '{package_name}'",
             code="ESSENTIAL_PACKAGE",
-            details="Removing this package may break your system"
+            details="Removing this package may break your system",
         )
 
     # Prepare apt-get command with Status-Fd
     # -y: assume yes to prompts
     # -o APT::Status-Fd=3: write status to file descriptor 3
-    cmd = [
-        "apt-get",
-        "remove",
-        "-y",
-        "-o", "APT::Status-Fd=3",
-        package_name
-    ]
+    cmd = ["apt-get", "remove", "-y", "-o", "APT::Status-Fd=3", package_name]
 
     try:
         # Create pipe for Status-Fd (file descriptor 3)
@@ -78,14 +77,14 @@ def execute(package_name: str) -> dict:
             stderr=subprocess.PIPE,
             pass_fds=(status_write,),  # Pass status_write as fd 3
             text=True,
-            env={**os.environ, "DEBIAN_FRONTEND": "noninteractive"}
+            env={**os.environ, "DEBIAN_FRONTEND": "noninteractive"},
         )
 
         # Close write end in parent process
         os.close(status_write)
 
         # Read status updates from pipe
-        status_file = os.fdopen(status_read, 'r')
+        status_file = os.fdopen(status_read, "r")
 
         # Buffer for partial lines
         status_buffer = ""
@@ -104,20 +103,20 @@ def execute(package_name: str) -> dict:
                     status_buffer += chunk
 
                     # Process complete lines
-                    while '\n' in status_buffer:
-                        line, status_buffer = status_buffer.split('\n', 1)
+                    while "\n" in status_buffer:
+                        line, status_buffer = status_buffer.split("\n", 1)
                         line = line.strip()
 
                         if line:
                             # Parse Status-Fd line
                             progress_info = _parse_status_line(line)
-                            if progress_info and progress_info['percentage'] > last_percentage:
-                                last_percentage = progress_info['percentage']
+                            if progress_info and progress_info["percentage"] > last_percentage:
+                                last_percentage = progress_info["percentage"]
                                 # Output progress as JSON line to stdout
                                 progress_json = {
                                     "type": "progress",
-                                    "percentage": progress_info['percentage'],
-                                    "message": progress_info['message']
+                                    "percentage": progress_info["percentage"],
+                                    "message": progress_info["message"],
                                 }
                                 print(json.dumps(progress_json), flush=True)
 
@@ -131,31 +130,23 @@ def execute(package_name: str) -> dict:
             if "Unable to locate package" in stderr or "is not installed" in stderr:
                 raise PackageNotFoundError(package_name)
             elif "dpkg was interrupted" in stderr:
-                raise APTBridgeError(
-                    "Package manager is locked",
-                    code="LOCKED",
-                    details=stderr
-                )
+                raise APTBridgeError("Package manager is locked", code="LOCKED", details=stderr)
             else:
                 raise APTBridgeError(
                     f"Failed to remove package '{package_name}'",
                     code="REMOVE_FAILED",
-                    details=stderr
+                    details=stderr,
                 )
 
         # Success - output final progress
-        final_progress = {
-            "type": "progress",
-            "percentage": 100,
-            "message": "Removal complete"
-        }
+        final_progress = {"type": "progress", "percentage": 100, "message": "Removal complete"}
         print(json.dumps(final_progress), flush=True)
 
         # Output final result as single-line JSON
         final_result = {
             "success": True,
             "message": f"Successfully removed {package_name}",
-            "package_name": package_name
+            "package_name": package_name,
         }
         print(json.dumps(final_result), flush=True)
 
@@ -166,13 +157,11 @@ def execute(package_name: str) -> dict:
         raise
     except Exception as e:
         raise APTBridgeError(
-            f"Error removing '{package_name}'",
-            code="INTERNAL_ERROR",
-            details=str(e)
+            f"Error removing '{package_name}'", code="INTERNAL_ERROR", details=str(e)
         )
 
 
-def _parse_status_line(line: str) -> Optional[dict]:
+def _parse_status_line(line: str) -> dict | None:
     """
     Parse apt-get Status-Fd output line.
 
@@ -189,20 +178,20 @@ def _parse_status_line(line: str) -> Optional[dict]:
     if not line:
         return None
 
-    parts = line.split(':', 3)
+    parts = line.split(":", 3)
     if len(parts) < 4:
         return None
 
     status_type, package, percent_str, message = parts
 
-    if status_type not in ('pmstatus', 'dlstatus'):
+    if status_type not in ("pmstatus", "dlstatus"):
         return None
 
     try:
         percentage = float(percent_str)
         return {
             "percentage": int(percentage),
-            "message": message.strip() or f"Processing {package}..."
+            "message": message.strip() or f"Processing {package}...",
         }
     except ValueError:
         return None

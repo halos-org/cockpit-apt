@@ -5,7 +5,6 @@ Gets list of files installed by a package.
 """
 
 import subprocess
-from typing import Any
 
 from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
 from cockpit_apt_bridge.utils.validators import validate_package_name
@@ -37,14 +36,11 @@ def execute(package_name: str) -> list[str]:
         # Use dpkg-query to list files for installed package
         # -L lists files installed by package
         result = subprocess.run(
-            ["dpkg-query", "-L", package_name],
-            capture_output=True,
-            text=True,
-            check=True
+            ["dpkg-query", "-L", package_name], capture_output=True, text=True, check=True
         )
 
         # Parse output - one file per line
-        files = [line.strip() for line in result.stdout.strip().split('\n') if line.strip()]
+        files = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
 
         return files
 
@@ -52,12 +48,6 @@ def execute(package_name: str) -> list[str]:
         # dpkg-query returns non-zero if package not installed
         if "not installed" in e.stderr or "is not installed" in e.stderr:
             raise PackageNotFoundError(package_name)
-        raise APTBridgeError(
-            f"dpkg-query failed for package '{package_name}'",
-            details=e.stderr
-        )
+        raise APTBridgeError(f"dpkg-query failed for package '{package_name}'", details=e.stderr)
     except Exception as e:
-        raise APTBridgeError(
-            f"Error listing files for '{package_name}'",
-            details=str(e)
-        )
+        raise APTBridgeError(f"Error listing files for '{package_name}'", details=str(e))

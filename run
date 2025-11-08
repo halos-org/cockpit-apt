@@ -35,7 +35,7 @@ function lint {
   #@ Category: Backend
   echo "🔍 Running ruff linter..."
   docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
-    uv run ruff check .
+    bash -c "uv sync --extra dev && uv run ruff check ."
 }
 
 function lint:fix {
@@ -43,7 +43,7 @@ function lint:fix {
   #@ Category: Backend
   echo "🔧 Running ruff linter with auto-fix..."
   docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
-    uv run ruff check --fix .
+    bash -c "uv sync --extra dev && uv run ruff check --fix ."
 }
 
 function format {
@@ -51,7 +51,7 @@ function format {
   #@ Category: Backend
   echo "✨ Formatting code with ruff..."
   docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
-    uv run ruff format .
+    bash -c "uv sync --extra dev && uv run ruff format ."
 }
 
 function typecheck {
@@ -59,7 +59,7 @@ function typecheck {
   #@ Category: Backend
   echo "📝 Running pyright type checker..."
   docker compose -f docker/docker-compose.devtools.yml run --rm devtools \
-    uv run pyright
+    bash -c "uv sync --extra dev && uv run pyright"
 }
 
 function shell {

@@ -46,10 +46,7 @@ class APTBridgeError(Exception):
     """Base exception for all cockpit-apt-bridge errors."""
 
     def __init__(
-        self,
-        message: str,
-        code: str = "UNKNOWN_ERROR",
-        details: str | None = None
+        self, message: str, code: str = "UNKNOWN_ERROR", details: str | None = None
     ) -> None:
         """
         Initialize an APT Bridge error.
@@ -71,9 +68,7 @@ class PackageNotFoundError(APTBridgeError):
     def __init__(self, package_name: str) -> None:
         """Initialize a package not found error."""
         super().__init__(
-            f"Package not found: {package_name}",
-            code="PACKAGE_NOT_FOUND",
-            details=package_name
+            f"Package not found: {package_name}", code="PACKAGE_NOT_FOUND", details=package_name
         )
 
 
@@ -82,11 +77,7 @@ class CacheError(APTBridgeError):
 
     def __init__(self, message: str, details: str | None = None) -> None:
         """Initialize a cache error."""
-        super().__init__(
-            message,
-            code="CACHE_ERROR",
-            details=details
-        )
+        super().__init__(message, code="CACHE_ERROR", details=details)
 
 
 def format_error(error: APTBridgeError) -> str:

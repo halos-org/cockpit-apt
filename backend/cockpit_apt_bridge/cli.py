@@ -34,17 +34,17 @@ import sys
 from typing import NoReturn
 
 from cockpit_apt_bridge.commands import (
-    search,
-    details,
-    sections,
-    list_section,
-    list_installed,
-    list_upgradable,
     dependencies,
-    reverse_dependencies,
+    details,
     files,
     install,
+    list_installed,
+    list_section,
+    list_upgradable,
     remove,
+    reverse_dependencies,
+    search,
+    sections,
     update,
 )
 from cockpit_apt_bridge.utils.errors import APTBridgeError, format_error
@@ -106,8 +106,7 @@ def main() -> NoReturn:
         if command == "search":
             if len(sys.argv) < 3:
                 raise APTBridgeError(
-                    "Search command requires a query argument",
-                    code="INVALID_ARGUMENTS"
+                    "Search command requires a query argument", code="INVALID_ARGUMENTS"
                 )
             query = sys.argv[2]
             result = search.execute(query)
@@ -115,8 +114,7 @@ def main() -> NoReturn:
         elif command == "details":
             if len(sys.argv) < 3:
                 raise APTBridgeError(
-                    "Details command requires a package name argument",
-                    code="INVALID_ARGUMENTS"
+                    "Details command requires a package name argument", code="INVALID_ARGUMENTS"
                 )
             package_name = sys.argv[2]
             result = details.execute(package_name)
@@ -128,7 +126,7 @@ def main() -> NoReturn:
             if len(sys.argv) < 3:
                 raise APTBridgeError(
                     "List-section command requires a section name argument",
-                    code="INVALID_ARGUMENTS"
+                    code="INVALID_ARGUMENTS",
                 )
             section_name = sys.argv[2]
             result = list_section.execute(section_name)
@@ -143,7 +141,7 @@ def main() -> NoReturn:
             if len(sys.argv) < 3:
                 raise APTBridgeError(
                     "Dependencies command requires a package name argument",
-                    code="INVALID_ARGUMENTS"
+                    code="INVALID_ARGUMENTS",
                 )
             package_name = sys.argv[2]
             result = dependencies.execute(package_name)
@@ -152,7 +150,7 @@ def main() -> NoReturn:
             if len(sys.argv) < 3:
                 raise APTBridgeError(
                     "Reverse-dependencies command requires a package name argument",
-                    code="INVALID_ARGUMENTS"
+                    code="INVALID_ARGUMENTS",
                 )
             package_name = sys.argv[2]
             result = reverse_dependencies.execute(package_name)
@@ -160,8 +158,7 @@ def main() -> NoReturn:
         elif command == "files":
             if len(sys.argv) < 3:
                 raise APTBridgeError(
-                    "Files command requires a package name argument",
-                    code="INVALID_ARGUMENTS"
+                    "Files command requires a package name argument", code="INVALID_ARGUMENTS"
                 )
             package_name = sys.argv[2]
             result = files.execute(package_name)
@@ -169,8 +166,7 @@ def main() -> NoReturn:
         elif command == "install":
             if len(sys.argv) < 3:
                 raise APTBridgeError(
-                    "Install command requires a package name argument",
-                    code="INVALID_ARGUMENTS"
+                    "Install command requires a package name argument", code="INVALID_ARGUMENTS"
                 )
             package_name = sys.argv[2]
             result = install.execute(package_name)
@@ -178,8 +174,7 @@ def main() -> NoReturn:
         elif command == "remove":
             if len(sys.argv) < 3:
                 raise APTBridgeError(
-                    "Remove command requires a package name argument",
-                    code="INVALID_ARGUMENTS"
+                    "Remove command requires a package name argument", code="INVALID_ARGUMENTS"
                 )
             package_name = sys.argv[2]
             result = remove.execute(package_name)
@@ -192,10 +187,7 @@ def main() -> NoReturn:
             sys.exit(0)
 
         else:
-            raise APTBridgeError(
-                f"Unknown command: {command}",
-                code="UNKNOWN_COMMAND"
-            )
+            raise APTBridgeError(f"Unknown command: {command}", code="UNKNOWN_COMMAND")
 
         # Output result as JSON to stdout (if not None)
         # Commands that stream progress may print results themselves and return None
@@ -211,9 +203,7 @@ def main() -> NoReturn:
     except Exception as e:
         # Unexpected errors - output generic error to stderr
         error = APTBridgeError(
-            f"Unexpected error: {str(e)}",
-            code="INTERNAL_ERROR",
-            details=type(e).__name__
+            f"Unexpected error: {str(e)}", code="INTERNAL_ERROR", details=type(e).__name__
         )
         print(format_error(error), file=sys.stderr)
         sys.exit(2)

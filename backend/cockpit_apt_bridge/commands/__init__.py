@@ -7,17 +7,17 @@ command logic and returns the result.
 
 # Import all command modules for easy access
 from cockpit_apt_bridge.commands import (
-    search,
-    details,
-    sections,
-    list_section,
-    list_installed,
-    list_upgradable,
     dependencies,
-    reverse_dependencies,
+    details,
     files,
     install,
+    list_installed,
+    list_section,
+    list_upgradable,
     remove,
+    reverse_dependencies,
+    search,
+    sections,
     update,
 )
 

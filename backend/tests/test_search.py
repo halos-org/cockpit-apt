@@ -2,14 +2,13 @@
 Unit tests for search command.
 """
 
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from cockpit_apt_bridge.commands import search
 from cockpit_apt_bridge.utils.errors import APTBridgeError
-from tests.conftest import MockPackage, MockCache
+from tests.conftest import MockCache, MockPackage
 
 
 def test_search_valid_query(mock_apt_cache):
