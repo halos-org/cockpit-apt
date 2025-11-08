@@ -104,13 +104,12 @@ cd cockpit-apt
 # Build frontend
 cd frontend && npm install && npm run build && cd ..
 
-# Install backend
+# Install backend (creates cockpit-apt-bridge command)
 cd backend && pip install -e . && cd ..
 
-# Copy to Cockpit directory
+# Copy frontend to Cockpit directory
 sudo mkdir -p /usr/share/cockpit/apt
 sudo cp -r frontend/dist/* /usr/share/cockpit/apt/
-sudo cp backend/cockpit_apt_bridge/*.py /usr/local/bin/cockpit-apt-bridge
 
 # Restart Cockpit
 sudo systemctl restart cockpit
@@ -503,9 +502,9 @@ We welcome contributions! Please follow these steps:
 1. **Fork and clone** the repository
 2. **Create a feature branch**: `git checkout -b feat/my-feature`
 3. **Make your changes** following the coding standards
-4. **Run all tests**: `./run test && cd frontend && npm test`
-5. **Run linters**: `./run lint && cd frontend && npm run lint`
-6. **Type check**: `./run typecheck && cd frontend && npm run typecheck`
+4. **Run all tests**: `./run test && ./run frontend:test`
+5. **Run linters**: `./run lint && ./run frontend:lint`
+6. **Type check**: `./run typecheck && ./run frontend:typecheck`
 7. **Commit**: Use conventional format `feat(scope): description`
 8. **Create PR**: Target the `main` branch
 9. **Wait for CI**: All checks must pass (includes GitHub Copilot review)
@@ -520,7 +519,7 @@ See [CLAUDE.md](CLAUDE.md) for detailed development workflow and guidelines.
 
 ### Developer Documentation
 - **[CLAUDE.md](CLAUDE.md)** - Development guide and project context
-- **[STATE.md](STATE.md)** - Implementation status (92% complete)
+- **[STATE.md](STATE.md)** - Implementation status (94% complete)
 - **[TECHNICAL_SPEC.md](docs/TECHNICAL_SPEC.md)** - Technical specification
 - **[PROJECT_PLAN.md](docs/PROJECT_PLAN.md)** - Implementation roadmap
 
@@ -534,7 +533,7 @@ See [CLAUDE.md](CLAUDE.md) for detailed development workflow and guidelines.
 ## Project Status
 
 **Version**: 0.1.0 (Beta)
-**Status**: 92% complete - Core functionality implemented and tested
+**Status**: 94% complete - Core functionality implemented and tested
 
 **Completed**:
 - ✅ All backend commands (12 commands, 89% test coverage)
