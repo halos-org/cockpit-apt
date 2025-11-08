@@ -43,7 +43,6 @@ def execute() -> list[dict[str, Any]]:
             if pkg.is_installed:
                 # For installed packages, use the installed version
                 installed_version = pkg.installed
-                candidate = pkg.candidate
 
                 package_dict = {
                     "name": pkg.name,
