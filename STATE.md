@@ -257,7 +257,7 @@ Configuration system intentionally skipped for initial release. The custom views
 
 **Task:** TASK_06_OPERATIONS
 **Status:** IN_PROGRESS
-**Progress:** 8/13 items complete
+**Progress:** 9/13 items complete
 **Estimated Effort:** 1-2 weeks
 **Depends On:** Task 03, Task 04
 
@@ -274,8 +274,8 @@ Configuration system intentionally skipped for initial release. The custom views
 - [ ] Cache invalidation verified
 - [ ] All manual test scenarios completed
 - [ ] Manual test plan documented
-- [ ] Known issues documented
-- [ ] User documentation updated
+- [x] Known issues documented
+- [x] User documentation updated
 
 ### Critical Path
 
@@ -310,9 +310,16 @@ Core operations (install, remove, update) implemented and working. Safety featur
 
 **Remaining work:**
 - Complete manual testing scenarios
-- Document known issues
 - Finalize cache invalidation testing
 - Create comprehensive manual test plan
+
+**Recently completed (2025-11-09):**
+- ✅ User documentation updated with comprehensive usage guide
+- ✅ Known issues documented in README
+- ✅ Added installation instructions (Debian package and from source)
+- ✅ Added troubleshooting section for both users and developers
+- ✅ Documented current limitations and planned features
+- ✅ Added project status summary (92% complete)
 
 ## Overall Project State
 
@@ -325,7 +332,7 @@ Core operations (install, remove, update) implemented and working. Safety featur
 
 ### Current Phase
 
-Phase 6: Operations Implementation (62% complete)
+Phase 6: Operations Implementation (69% complete, 9/13 items)
 
 ### Next Phase
 
@@ -425,16 +432,16 @@ None
 - Phase 3: 100% ✅
 - Phase 4: 100% ✅
 - Phase 5: 0% (Skipped)
-- Phase 6: 62% ⏳
+- Phase 6: 69% ⏳ (9/13 items)
 
 ### Overall Progress Calculation
 
 Overall Progress = (Sum of Phase Progress) / 6
 
-Current: (100 + 100 + 100 + 100 + 0 + 62) / 6 = 77%
+Current: (100 + 100 + 100 + 100 + 0 + 69) / 6 = 78%
 
 **Adjusted for Skipped Phase:**
-If excluding Phase 5: (100 + 100 + 100 + 100 + 62) / 5 = 92%
+If excluding Phase 5: (100 + 100 + 100 + 100 + 69) / 5 = 94%
 
 ### Test Results Summary
 
