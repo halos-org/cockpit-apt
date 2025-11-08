@@ -104,7 +104,9 @@ npm run build             # Build once
 npm run watch             # Rebuild on changes
 npm run typecheck         # Type checking
 npm run lint              # Lint code
-npm run test              # Run tests
+npm run test              # Run unit tests
+npm run test:e2e          # Run E2E tests (requires test server)
+npm run test:e2e:ui       # Run E2E tests in UI mode
 ```
 
 Or use the convenience commands:
@@ -221,12 +223,27 @@ cockpit-apt/
 
 ### Frontend Tests
 
+**Unit Tests** (vitest):
 ```bash
 cd frontend
 npm run test              # Run once
 npm run test:watch        # Watch mode
 npm run test:coverage     # With coverage
 ```
+
+**E2E Tests** (Playwright):
+```bash
+cd frontend
+
+# First time: install browsers
+npx playwright install chromium
+
+# Run E2E tests
+npm run test:e2e          # Run all E2E tests
+npm run test:e2e:ui       # Interactive UI mode
+```
+
+**Note**: E2E tests require a running Cockpit instance at `https://halos.local:9090` with the cockpit-apt module installed. See [frontend/E2E_TESTING.md](frontend/E2E_TESTING.md) for detailed setup instructions.
 
 ## Code Quality
 

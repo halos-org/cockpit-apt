@@ -130,6 +130,216 @@ docs/                             # Documentation
 
 ## Development Workflow
 
+### Feature Development Process
+
+**Standard Workflow for All Features:**
+
+1. **Implement** the feature or fix
+2. **Test locally** - ensure all tests pass
+3. **Commit** to a feature branch
+4. **Create PR** and push to remote
+5. **Wait 180 seconds** for CI checks and GitHub Copilot code review
+6. **Check PR status** - verify tests pass, review Copilot comments and any human review feedback
+7. **Iterate** if needed, then merge
+
+**Detailed Steps:**
+
+#### 1. Create Feature Branch
+
+```bash
+git checkout -b feat/my-feature-name
+# or: fix/bug-description, docs/update-readme, etc.
+```
+
+#### 2. Implement Feature
+
+Write code following the project patterns. See "Common Development Tasks" below for examples.
+
+#### 3. Run Tests Locally
+
+**Backend tests:**
+```bash
+./run test              # All tests
+./run test -v           # Verbose
+./run test -k "search"  # Specific tests
+```
+
+**Frontend tests:**
+```bash
+cd frontend
+npm run test            # Unit tests
+npm run test:e2e        # E2E tests (requires test server)
+```
+
+**All tests:**
+```bash
+# Backend tests
+./run test
+
+# Frontend tests
+cd frontend && npm run test
+
+# Type checking
+./run typecheck
+cd frontend && npm run typecheck
+
+# Linting
+./run lint
+cd frontend && npm run lint
+```
+
+#### 4. Commit Changes
+
+```bash
+git add .
+git commit -m "feat(scope): description
+
+Longer explanation if needed.
+
+Fixes #123"
+```
+
+Follow conventional commit format (see "Git Commit Format" below).
+
+#### 5. Push and Create PR
+
+```bash
+git push -u origin feat/my-feature-name
+```
+
+Then create PR via GitHub CLI or web interface:
+
+```bash
+# Using gh CLI
+gh pr create --title "feat: Add feature X" --body "Description..."
+
+# Or visit GitHub web UI
+```
+
+#### 6. Wait for CI Checks and Code Review
+
+**Wait 180 seconds** for automated checks to complete:
+
+**CI Checks (GitHub Actions):**
+- Backend tests (pytest)
+- Frontend tests (vitest)
+- Type checking (pyright, tsc)
+- Linting (ruff, eslint)
+
+**Automated Code Review:**
+- GitHub Copilot performs automatic code review
+- Provides suggestions and identifies potential issues
+- Comments appear directly on the PR
+
+#### 7. Check PR Status
+
+```bash
+# Check PR status
+gh pr view
+
+# Check CI checks
+gh pr checks
+
+# View PR in browser
+gh pr view --web
+```
+
+**If checks fail:**
+- Review the error logs in GitHub Actions
+- Fix issues locally
+- Run tests again
+- Commit and push fixes
+- Wait another 180 seconds for checks
+
+**If checks pass:**
+- Review GitHub Copilot's automated comments
+- Address any suggestions from automated review
+- Wait for human review comments (if any)
+- Address review feedback
+- Merge when approved
+
+#### 8. Merge PR
+
+```bash
+# Merge via CLI
+gh pr merge --squash  # or --merge, --rebase
+
+# Or use GitHub web UI
+```
+
+### Workflow Example
+
+Complete example of adding a new feature:
+
+```bash
+# 1. Create branch
+git checkout -b feat/add-package-compare
+
+# 2. Implement feature
+# ... edit files ...
+
+# 3. Run all local tests
+./run test                          # Backend: 129 tests
+cd frontend && npm run test         # Frontend: 156 tests
+npm run typecheck                   # TypeScript: 0 errors
+cd ..
+
+# 4. Commit
+git add .
+git commit -m "feat(ui): add package comparison view
+
+Allows users to compare versions and dependencies of multiple packages.
+
+Relates to #45"
+
+# 5. Push and create PR
+git push -u origin feat/add-package-compare
+gh pr create \
+  --title "feat(ui): Add package comparison view" \
+  --body "Implements package comparison feature requested in #45"
+
+# 6. Wait 180 seconds for CI checks and Copilot review
+sleep 180
+
+# 7. Check status
+gh pr checks
+# ✓ Backend tests - pytest
+# ✓ Frontend tests - vitest
+# ✓ Type checking - pyright/tsc
+# ✓ Linting - ruff/eslint
+
+gh pr view
+# Status: All checks passed
+# Reviews: 1 review from GitHub Copilot (automated)
+#          Awaiting human review
+
+# Review Copilot comments in web UI
+gh pr view --web
+
+# 8. After approval, merge
+gh pr merge --squash
+git checkout main
+git pull origin main
+```
+
+### When Tests Fail in CI
+
+**Common scenarios:**
+
+1. **Tests pass locally but fail in CI:**
+   - Check for environment differences
+   - Review CI logs for specific failures
+   - May need to update mocks or fixtures
+
+2. **Linting/type errors in CI:**
+   - Run locally: `./run lint && ./run typecheck`
+   - Fix issues and commit
+   - Push and wait again
+
+3. **Timeout or infrastructure issues:**
+   - Re-run the checks (GitHub UI or `gh run rerun`)
+   - Check GitHub Status page for outages
+
 ### Backend Development
 
 ```bash
@@ -193,6 +403,55 @@ npm run typecheck
 - **Prettier**: Formatting
 - **TypeScript**: Strict mode type checking
 - **vitest**: Unit tests
+
+### CI/CD Pipeline
+
+**GitHub Actions runs on every PR:**
+
+**Checks performed:**
+1. **Backend Tests** - `./run test`
+   - 129 tests via pytest
+   - 89% code coverage
+   - Python 3.11+ in Docker container
+
+2. **Frontend Tests** - `npm run test`
+   - 156 tests via vitest
+   - Component and integration tests
+   - Mock cockpit API
+
+3. **Backend Type Checking** - `./run typecheck`
+   - pyright strict mode
+   - Full type coverage
+
+4. **Frontend Type Checking** - `npm run typecheck`
+   - TypeScript strict mode
+   - Must have 0 errors
+
+5. **Backend Linting** - `./run lint`
+   - ruff checks
+   - Code style enforcement
+
+6. **Frontend Linting** - `npm run lint`
+   - ESLint + Prettier
+   - Code style enforcement
+
+**CI Run Time:** ~3-5 minutes total
+
+**Wait Time:** 180 seconds (3 minutes) is usually sufficient for:
+- All CI checks to complete
+- GitHub Copilot to perform automated code review
+
+**Check Results:**
+- ✅ All checks pass → Review Copilot comments → Address feedback → Ready for human review
+- ❌ Any check fails → Fix locally, commit, push, wait 180s again
+
+**Automated Reviews:**
+- GitHub Copilot automatically reviews all PRs
+- Provides suggestions for code improvements
+- Identifies potential bugs or issues
+- Comments appear in PR within ~3 minutes
+
+**Note:** E2E tests (Playwright) are NOT run in CI as they require a live Cockpit server. These must be run manually against a test environment.
 
 ## Implementation Status
 
