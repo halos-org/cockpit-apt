@@ -184,11 +184,31 @@ While cache invalidation is verified through code review and unit tests, manual 
 
 This is already covered by the E2E test suite (25 Playwright tests) which can be run against halos.local.
 
+## Bug Discovery During Testing
+
+### Upgrade Button Not Working (FIXED)
+
+**Discovered**: During manual testing discussion of the Updates view
+
+**Issue**: Clicking the "Upgrade" button on an individual package in the Updates view caused the tab to re-render with a spinner but didn't actually upgrade the package.
+
+**Root Cause**: UpdatesView.tsx:77-88 called `onInstall` prop which was a dummy function in apt.tsx that only logged. The actual `installPackage` API was never called.
+
+**Fix Applied** (commit 27d42b2):
+- Updated UpdatesView to call `installPackage()` from API directly
+- Removed unused `onInstall` prop
+- Added proper error handling
+
+**Testing**: All 156 frontend tests pass after fix.
+
+---
+
 ## Next Steps
 
 Based on STATE.md Phase 6 remaining items:
 - ✅ Lock handling tested - COMPLETE
 - ✅ Cache invalidation verified - COMPLETE
+- ✅ Bug fixes applied - COMPLETE
 - ⏳ All manual test scenarios completed - Partially complete (automated tests exist)
 - ⏳ Manual test plan documented - In progress
 

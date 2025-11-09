@@ -233,7 +233,6 @@ function App() {
                 return (
                     <UpdatesView
                         onNavigateToPackage={handleNavigateToPackage}
-                        onInstall={handleInstall}
                     />
                 );
 

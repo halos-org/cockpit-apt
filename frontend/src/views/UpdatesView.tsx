@@ -23,16 +23,15 @@ import {
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { CheckCircleIcon, SearchIcon } from '@patternfly/react-icons';
-import { listUpgradablePackages } from '../lib/api';
+import { listUpgradablePackages, installPackage } from '../lib/api';
 import { UpgradablePackage } from '../lib/types';
 import { ErrorAlert } from '../components/ErrorAlert';
 
 interface UpdatesViewProps {
     onNavigateToPackage: (name: string) => void;
-    onInstall: (name: string) => Promise<void>;
 }
 
-export function UpdatesView({ onNavigateToPackage, onInstall }: UpdatesViewProps) {
+export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
     const [packages, setPackages] = useState<UpgradablePackage[]>([]);
     const [filteredPackages, setFilteredPackages] = useState<UpgradablePackage[]>([]);
     const [loading, setLoading] = useState(true);
@@ -77,11 +76,12 @@ export function UpdatesView({ onNavigateToPackage, onInstall }: UpdatesViewProps
     const handleUpgrade = async (packageName: string) => {
         try {
             setUpgradingPackage(packageName);
-            await onInstall(packageName); // Install with newer version = upgrade
+            setError(null);
+            await installPackage(packageName); // Install with newer version = upgrade
             // Reload packages after upgrade
             await loadPackages();
         } catch (err) {
-            // Error will be shown by parent component
+            setError(err as Error);
             console.error('Upgrade failed:', err);
         } finally {
             setUpgradingPackage(null);
