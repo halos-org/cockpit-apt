@@ -1,0 +1,26 @@
+/* Override PatternFly's default behavior that removes rounded frame on mobile */
+/* Keep the rounded frame at all viewport sizes, matching Cockpit's built-in modules */
+
+/* These variables are applied on the parent .pf-v6-c-page element by PatternFly */
+.pf-v6-c-page {
+  /* Keep margins on mobile (creates spacing from edges) */
+  --pf-v6-c-page__main-container--xs--MarginInlineStart: var(--pf-v6-c-page--inset) !important;
+  --pf-v6-c-page__main-container--xs--MarginInlineEnd: var(--pf-v6-c-page--inset) !important;
+
+  /* Keep all borders on mobile (not just top) */
+  --pf-v6-c-page__main-container--xs--BorderBlockEndWidth: var(--pf-t--global--border--width--main--default) !important;
+  --pf-v6-c-page__main-container--xs--BorderInlineStartWidth: var(--pf-t--global--border--width--main--default) !important;
+  --pf-v6-c-page__main-container--xs--BorderInlineEndWidth: var(--pf-t--global--border--width--main--default) !important;
+}
+
+/* This variable is applied on the child .pf-v6-c-page__main-container element */
+.pf-v6-c-page__main-container {
+  /* Keep border radius on mobile */
+  --pf-v6-c-page__main-container--xs--BorderRadius: var(--pf-t--global--border--radius--medium) !important;
+
+  /* Keep bottom margin on mobile (don't let frame touch bottom edge) */
+  --pf-v6-c-page__main-container--xs--MaxHeight: calc(100% - var(--pf-t--global--spacer--lg)) !important;
+
+  /* Fill viewport height at all viewport sizes (not just content height) */
+  align-self: stretch !important;
+}

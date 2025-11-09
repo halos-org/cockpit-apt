@@ -22,7 +22,6 @@ import {
     Title,
     Page,
     PageSection,
-    Stack,
 } from '@patternfly/react-core';
 import { SearchIcon, CubesIcon, LayerGroupIcon, ArrowUpIcon } from '@patternfly/react-icons';
 import { SearchView } from './views/SearchView';
@@ -39,6 +38,8 @@ import '@patternfly/patternfly/patternfly-base.css';
 import '@patternfly/patternfly/patternfly.css';
 // Import dark theme support (must be after PatternFly CSS)
 import './dark-theme';
+// Import our custom CSS overrides LAST so they take precedence over PatternFly defaults
+import './apt.css';
 
 /**
  * Route type for type-safe routing
@@ -247,8 +248,8 @@ function App() {
     };
 
     return (
-        <Page>
-            <PageSection padding={{ default: 'noPadding' }}>
+        <Page id="apt" className="pf-m-no-sidebar">
+            <PageSection hasBodyWrapper={false}>
                 <Tabs
                     activeKey={getActiveTab()}
                     onSelect={handleTabChange}
@@ -290,9 +291,7 @@ function App() {
                 </Tabs>
             </PageSection>
             <PageSection hasBodyWrapper={false}>
-                <Stack hasGutter>
-                    {renderView()}
-                </Stack>
+                {renderView()}
             </PageSection>
         </Page>
     );
