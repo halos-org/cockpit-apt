@@ -2,7 +2,7 @@ Source: cockpit-apt
 Section: admin
 Priority: optional
 Maintainer: Matti Airas <matti.airas@hatlabs.fi>
-Build-Depends: debhelper-compat (= 13), nodejs, npm, python3-all, python3-apt, python3-setuptools, dh-python
+Build-Depends: debhelper-compat (= 13), nodejs, npm, python3-all, python3-apt, python3-setuptools, python3-hatchling, dh-python
 Standards-Version: 4.6.0
 Homepage: https://github.com/hatlabs/cockpit-apt
 

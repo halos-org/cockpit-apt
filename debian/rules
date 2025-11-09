@@ -10,22 +10,27 @@ override_dh_missing:
 override_dh_auto_build:
 	# Build frontend
 	cd frontend && npm install && npm run build
-	# Build backend (Python package with pyproject.toml)
-	cd backend && pip3 install --target=$(CURDIR)/debian/tmp --upgrade .
+	# Build backend (Python package with pyproject.toml using standard Debian approach)
+	cd backend && pip3 install --prefix=/usr --root=$(CURDIR)/debian/tmp .
 
 override_dh_auto_install:
 	# Rebuild backend if tmp was cleaned (happens between build and install phases)
-	@if [ ! -d $(CURDIR)/debian/tmp/cockpit_apt_bridge ]; then \
+	@if [ ! -d $(CURDIR)/debian/tmp/usr ]; then \
 		echo "Rebuilding backend for install phase..."; \
-		cd backend && pip3 install --target=$(CURDIR)/debian/tmp --upgrade .; \
+		cd backend && pip3 install --prefix=/usr --root=$(CURDIR)/debian/tmp .; \
 	fi
 	# Install backend Python package
 	mkdir -p $(CURDIR)/debian/cockpit-apt/usr/lib/python3/dist-packages
-	cp -r $(CURDIR)/debian/tmp/cockpit_apt_bridge $(CURDIR)/debian/cockpit-apt/usr/lib/python3/dist-packages/
-	cp -r $(CURDIR)/debian/tmp/cockpit_apt_bridge-*.dist-info $(CURDIR)/debian/cockpit-apt/usr/lib/python3/dist-packages/
+	cp -r $(CURDIR)/debian/tmp/usr/local/lib/python*/dist-packages/cockpit_apt_bridge $(CURDIR)/debian/cockpit-apt/usr/lib/python3/dist-packages/
+	# Install dist-info directory with robust handling
+	@distinfo_dir=$$(find $(CURDIR)/debian/tmp/usr/local/lib/python*/dist-packages -maxdepth 1 -type d -name 'cockpit_apt_bridge-*.dist-info' | head -n 1); \
+	if [ -z "$$distinfo_dir" ]; then \
+		echo "Error: .dist-info directory not found" >&2; exit 1; \
+	fi; \
+	cp -r "$$distinfo_dir" $(CURDIR)/debian/cockpit-apt/usr/lib/python3/dist-packages/
 	# Install CLI script
 	mkdir -p $(CURDIR)/debian/cockpit-apt/usr/bin
-	install -m 755 $(CURDIR)/debian/tmp/bin/cockpit-apt-bridge $(CURDIR)/debian/cockpit-apt/usr/bin/cockpit-apt-bridge
+	install -m 755 $(CURDIR)/debian/tmp/usr/local/bin/cockpit-apt-bridge $(CURDIR)/debian/cockpit-apt/usr/bin/cockpit-apt-bridge
 	# Install frontend
 	mkdir -p $(CURDIR)/debian/cockpit-apt/usr/share/cockpit/apt
 	cp -r frontend/dist/* $(CURDIR)/debian/cockpit-apt/usr/share/cockpit/apt/
