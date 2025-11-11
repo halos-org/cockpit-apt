@@ -195,6 +195,15 @@ export const RepositoryDropdown: React.FC<RepositoryDropdownProps> = ({
   activeStore,
   onRepoChange
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Helper to get repository display name
+  const getRepoName = (repoId: string | null) => {
+    if (!repoId) return "All";
+    const repo = repositories.find(r => r.id === repoId);
+    return repo?.name || "Unknown";
+  };
+
   // Filter repos by active store (show only repos with packages in store)
   const filteredRepos = useMemo(() => {
     if (!activeStore) return repositories;
@@ -208,9 +217,12 @@ export const RepositoryDropdown: React.FC<RepositoryDropdownProps> = ({
 
   return (
     <Dropdown
-      toggle={<DropdownToggle>Repository: {getRepoName(activeRepo)}</DropdownToggle>}
+      toggle={<DropdownToggle onToggle={setIsOpen}>Repository: {getRepoName(activeRepo)}</DropdownToggle>}
       isOpen={isOpen}
-      onSelect={(event, selection) => onRepoChange(selection as string)}
+      onSelect={(event, selection) => {
+        onRepoChange(selection as string);
+        setIsOpen(false);
+      }}
     >
       <DropdownItem key="all" onClick={() => onRepoChange(null)}>
         All Repositories
@@ -463,7 +475,7 @@ def parse_package_tags(package: apt.Package) -> List[str]:
 
     return tags
 
-def get_tag_facet(tag: str) -> tuple[str, str]:
+def get_tag_facet(tag: str) -> Tuple[str, str]:
     """Split tag into facet and value"""
     if '::' in tag:
         facet, value = tag.split('::', 1)
@@ -609,7 +621,7 @@ interface AppActions {
 const AppContext = React.createContext<{
   state: AppState;
   actions: AppActions;
-}>(null);
+} | null>(null);
 ```
 
 ### Local Storage Persistence
@@ -781,13 +793,16 @@ interface Section {
   isCustom: boolean;
 }
 
-export const SectionGrid: React.FC<{ sections: Section[] }> = ({ sections }) => {
-  // Combine standard Debian sections with custom store sections
+export const SectionGrid: React.FC<{ sections?: Section[]; activeStore: string | null }> = ({ sections, activeStore }) => {
+  // Use provided sections prop if available, otherwise combine standard and custom sections
   const allSections = useMemo(() => {
+    if (sections && sections.length > 0) {
+      return sections;
+    }
     const standard = getStandardSections();
     const custom = activeStore ? getCustomSections(activeStore) : [];
     return [...standard, ...custom];
-  }, [activeStore]);
+  }, [sections, activeStore]);
 
   return (
     <Gallery hasGutter>
