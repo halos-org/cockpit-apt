@@ -24,19 +24,19 @@ def matches_store_filter(package: apt.Package, store: StoreConfig) -> bool:
     """Check if a package matches the filter criteria of a store.
 
     Filter logic:
-    - Multiple filter types are combined with AND logic
+    - Multiple filter types are combined with OR logic
     - Multiple values within a filter type are combined with OR logic
-    - Package must match ALL specified filter types to pass
+    - Package matches if it satisfies ANY of the specified filter types
 
     Args:
         package: APT package object
         store: Store configuration with filter criteria
 
     Returns:
-        True if package matches ANY filter criteria, False otherwise
+        True if package matches ANY of the store's filter criteria
 
     Example:
-        >>> # Package must be from Hat Labs OR in net section
+        >>> # Package from Hat Labs OR in net section
         >>> filter = StoreFilter(
         ...     include_origins=["Hat Labs"],
         ...     include_sections=["net"],

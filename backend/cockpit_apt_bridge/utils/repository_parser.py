@@ -20,16 +20,25 @@ logger = logging.getLogger(__name__)
 class Repository:
     """Repository information."""
 
-    id: str  # Unique identifier: "{origin}:{suite}"
-    name: str  # Display name (prefers Origin over Label)
+    id: str  # Composite key: origin/label + suite
+    name: str  # Display name (origin or label)
     origin: str
     label: str
     suite: str
-    package_count: int = 0
+    package_count: int
 
     def __hash__(self) -> int:
-        """Make Repository hashable for use in sets."""
-        return hash(self.id)
+        """Hash based on composite key (origin, suite)."""
+        return hash((self.origin or self.label, self.suite))
+
+    def __eq__(self, other: object) -> bool:
+        """Equality based on composite key (origin, suite)."""
+        if not isinstance(other, Repository):
+            return NotImplemented
+        return (self.origin or self.label, self.suite) == (
+            other.origin or other.label,
+            other.suite,
+        )
 
 
 def _get_origin_info(package: apt.Package) -> tuple[str, str, str] | None:

@@ -189,9 +189,9 @@ def main() -> NoReturn:
         else:
             raise APTBridgeError(f"Unknown command: {command}", code="UNKNOWN_COMMAND")
 
-        # Output result as JSON to stdout
+        # Output result as JSON to stdout (if not None)
         # Commands that stream progress may print results themselves and return None
-        if result:
+        if result is not None:
             print(to_json(result))
         sys.exit(0)
 

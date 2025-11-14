@@ -29,9 +29,7 @@ ESSENTIAL_PACKAGES = {
 }
 
 
-def execute(
-    package_name: str, purge: bool = False, auto_remove: bool = False
-) -> dict[str, Any] | None:
+def execute(package_name: str) -> dict[str, Any] | None:
     """
     Remove a package using apt-get.
 
