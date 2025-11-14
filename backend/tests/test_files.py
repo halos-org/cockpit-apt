@@ -48,9 +48,11 @@ def test_files_package_not_installed():
         stderr="dpkg-query: package 'nonexistent' is not installed",
     )
 
-    with patch("subprocess.run", side_effect=mock_error):
-        with pytest.raises(PackageNotFoundError) as exc_info:
-            files.execute("nonexistent")
+    with (
+        patch("subprocess.run", side_effect=mock_error),
+        pytest.raises(PackageNotFoundError) as exc_info,
+    ):
+        files.execute("nonexistent")
 
     assert exc_info.value.details == "nonexistent"
     assert "Package not found" in str(exc_info.value)
@@ -78,9 +80,11 @@ def test_files_dpkg_query_error():
         2, ["dpkg-query", "-L", "nginx"], stderr="dpkg-query: some other error"
     )
 
-    with patch("subprocess.run", side_effect=mock_error):
-        with pytest.raises(APTBridgeError) as exc_info:
-            files.execute("nginx")
+    with (
+        patch("subprocess.run", side_effect=mock_error),
+        pytest.raises(APTBridgeError) as exc_info,
+    ):
+        files.execute("nginx")
 
     assert "dpkg-query failed" in str(exc_info.value)
     assert "some other error" in exc_info.value.details

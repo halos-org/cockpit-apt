@@ -167,7 +167,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
             {filteredPackages.length === 0 ? (
                 <EmptyState icon={SearchIcon} titleText="No matches" headingLevel="h3">
                     <EmptyStateBody>
-                        No updates match "{filterText}". Try a different search term.
+                        No updates match &quot;{filterText}&quot;. Try a different search term.
                     </EmptyStateBody>
                     <Button variant="link" onClick={() => setFilterText('')}>
                         Clear filter

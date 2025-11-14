@@ -17,96 +17,112 @@ class TestCLIDispatcher:
         mock_apt = MagicMock()
         mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
-        with patch.dict("sys.modules", {"apt": mock_apt}):
-            with patch("sys.argv", ["cockpit-apt-bridge", "search", "nginx"]):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "search", "nginx"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     def test_details_command(self, mock_apt_cache):
         """Test dispatching details command."""
         mock_apt = MagicMock()
         mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
-        with patch.dict("sys.modules", {"apt": mock_apt}):
-            with patch("sys.argv", ["cockpit-apt-bridge", "details", "nginx"]):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "details", "nginx"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     def test_sections_command(self, mock_apt_cache):
         """Test dispatching sections command."""
         mock_apt = MagicMock()
         mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
-        with patch.dict("sys.modules", {"apt": mock_apt}):
-            with patch("sys.argv", ["cockpit-apt-bridge", "sections"]):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "sections"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     def test_list_section_command(self, mock_apt_cache):
         """Test dispatching list-section command."""
         mock_apt = MagicMock()
         mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
-        with patch.dict("sys.modules", {"apt": mock_apt}):
-            with patch("sys.argv", ["cockpit-apt-bridge", "list-section", "web"]):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "list-section", "web"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     def test_list_installed_command(self, mock_apt_cache):
         """Test dispatching list-installed command."""
         mock_apt = MagicMock()
         mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
-        with patch.dict("sys.modules", {"apt": mock_apt}):
-            with patch("sys.argv", ["cockpit-apt-bridge", "list-installed"]):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "list-installed"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     def test_list_upgradable_command(self, mock_apt_cache):
         """Test dispatching list-upgradable command."""
         mock_apt = MagicMock()
         mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
-        with patch.dict("sys.modules", {"apt": mock_apt}):
-            with patch("sys.argv", ["cockpit-apt-bridge", "list-upgradable"]):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "list-upgradable"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     def test_dependencies_command(self, mock_apt_cache):
         """Test dispatching dependencies command."""
         mock_apt = MagicMock()
         mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
-        with patch.dict("sys.modules", {"apt": mock_apt}):
-            with patch("sys.argv", ["cockpit-apt-bridge", "dependencies", "nginx"]):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "dependencies", "nginx"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     def test_reverse_dependencies_command(self, mock_apt_cache):
         """Test dispatching reverse-dependencies command."""
         mock_apt = MagicMock()
         mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
-        with patch.dict("sys.modules", {"apt": mock_apt}):
-            with patch("sys.argv", ["cockpit-apt-bridge", "reverse-dependencies", "libc6"]):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "reverse-dependencies", "libc6"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     def test_help_command(self, capsys):
         """Test help command."""
@@ -177,15 +193,15 @@ class TestCLIDispatcher:
 
     def test_unexpected_error(self, capsys):
         """Test handling of unexpected errors."""
-        with patch("sys.argv", ["cockpit-apt-bridge", "search", "test"]):
-            # Mock to raise an unexpected error
-            with patch(
+        with (
+            patch("sys.argv", ["cockpit-apt-bridge", "search", "test"]),
+            patch(
                 "cockpit_apt_bridge.commands.search.execute", side_effect=RuntimeError("Unexpected")
-            ):
-                with pytest.raises(SystemExit) as exc_info:
-                    cli.main()
+            ),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
 
-                assert exc_info.value.code == 2
-
+        assert exc_info.value.code == 2
         captured = capsys.readouterr()
         assert "Unexpected error" in captured.err

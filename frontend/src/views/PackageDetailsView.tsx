@@ -464,7 +464,7 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
                                         if (filteredFiles.length === 0) {
                                             return (
                                                 <div style={{ color: 'var(--pf-v5-global--Color--200)', padding: '1rem' }}>
-                                                    No files match filter "{fileFilter}"
+                                                    No files match filter &quot;{fileFilter}&quot;
                                                 </div>
                                             );
                                         }

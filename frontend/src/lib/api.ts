@@ -483,7 +483,7 @@ async function executeWithProgress(
                 stdout += data;
 
                 // Process complete JSON lines
-                let lines = stdout.split('\n');
+                const lines = stdout.split('\n');
                 stdout = lines.pop() || ''; // Keep incomplete line in buffer
 
                 for (const line of lines) {

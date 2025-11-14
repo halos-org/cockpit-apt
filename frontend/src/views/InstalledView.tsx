@@ -152,7 +152,7 @@ export function InstalledView({ onNavigateToPackage, onRemove }: InstalledViewPr
             {filteredPackages.length === 0 ? (
                 <EmptyState icon={SearchIcon} titleText="No matches" headingLevel="h3">
                     <EmptyStateBody>
-                        No installed packages match "{filterText}". Try a different search term.
+                        No installed packages match &quot;{filterText}&quot;. Try a different search term.
                     </EmptyStateBody>
                     <Button variant="link" onClick={() => setFilterText('')}>
                         Clear filter
