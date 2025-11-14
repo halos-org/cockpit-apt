@@ -109,7 +109,7 @@ def execute(store_id: str | None = None) -> list[dict[str, Any]]:
                     )
 
             # Sort alphabetically by name
-            result.sort(key=lambda r: r["name"].lower())
+            result.sort(key=lambda r: str(r["name"]).lower())  # type: ignore[arg-type]
             return result
 
         else:

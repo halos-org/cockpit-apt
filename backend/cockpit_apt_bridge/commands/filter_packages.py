@@ -112,8 +112,7 @@ def execute(
                 query_lower = search_query.lower()
                 name_match = query_lower in pkg.name.lower()
                 summary_match = (
-                    pkg.candidate.summary
-                    and query_lower in pkg.candidate.summary.lower()
+                    pkg.candidate.summary and query_lower in pkg.candidate.summary.lower()
                 )
                 if not (name_match or summary_match):
                     continue

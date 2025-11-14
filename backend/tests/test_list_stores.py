@@ -34,9 +34,7 @@ def test_list_stores_with_stores():
         ),
     ]
 
-    with patch(
-        "cockpit_apt_bridge.commands.list_stores.load_stores", return_value=mock_stores
-    ):
+    with patch("cockpit_apt_bridge.commands.list_stores.load_stores", return_value=mock_stores):
         result = list_stores.execute()
 
     assert len(result) == 1
