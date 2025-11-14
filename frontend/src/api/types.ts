@@ -38,6 +38,9 @@ export interface Package {
   upgradable: boolean;
   repository_id?: string;
   debtags?: string[];
+  // Additional fields for upgradable packages
+  installedVersion?: string;
+  candidateVersion?: string;
 }
 
 /**

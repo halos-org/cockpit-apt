@@ -2,13 +2,14 @@
  * Tests for api.ts
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { Package, PackageDetails, Section, Dependency, UpgradablePackage } from "../types";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../api";
 import { cache } from "../cache-manager";
+import type { Dependency, Package, PackageDetails, Section, UpgradablePackage } from "../types";
 
 // Mock cockpit global
 const mockSpawn = vi.fn();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).cockpit = {
   spawn: mockSpawn,
   file: vi.fn(),
@@ -17,6 +18,8 @@ const mockSpawn = vi.fn();
     options: {},
     go: vi.fn(),
   },
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
 };
 
 /**

@@ -6,7 +6,7 @@
  */
 
 function debug(...args: unknown[]) {
-  if ((window as any).debugging === "all" || (window as any).debugging?.includes("style")) {
+  if (window.debugging === "all" || window.debugging?.includes("style")) {
     console.debug(`cockpit-apt dark-theme:`, ...args);
   }
 }

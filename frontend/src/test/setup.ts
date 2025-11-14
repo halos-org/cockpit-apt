@@ -4,8 +4,8 @@
  * This file runs before all tests to set up the testing environment.
  */
 
-import { afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
 
 // Cleanup after each test
 afterEach(() => {
@@ -13,6 +13,7 @@ afterEach(() => {
 });
 
 // Mock cockpit global
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Test mock
 (globalThis as any).cockpit = {
   spawn: () => ({
     stream: () => ({ done: () => ({ fail: () => ({}) }) }),
@@ -29,4 +30,6 @@ afterEach(() => {
     options: {},
     go: () => {},
   },
-} as any;
+  addEventListener: () => {},
+  removeEventListener: () => {},
+};

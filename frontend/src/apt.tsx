@@ -13,16 +13,17 @@
  * - /apt/updates - Available updates (future)
  */
 
-import React, { useState, useEffect } from "react";
+import { Page, PageSection, Tab, Tabs, TabTitleText, Title } from "@patternfly/react-core";
+import { ArrowUpIcon, CubesIcon, LayerGroupIcon, SearchIcon } from "@patternfly/react-icons";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Tabs, Tab, TabTitleText, Title, Page, PageSection } from "@patternfly/react-core";
-import { SearchIcon, CubesIcon, LayerGroupIcon, ArrowUpIcon } from "@patternfly/react-icons";
-import { SearchView } from "./views/SearchView";
-import { SectionsView } from "./views/SectionsView";
-import { PackageDetailsView } from "./views/PackageDetailsView";
+import { AppProvider } from "./context/AppContext";
 import { InstalledView } from "./views/InstalledView";
-import { UpdatesView } from "./views/UpdatesView";
+import { PackageDetailsView } from "./views/PackageDetailsView";
+import { SearchView } from "./views/SearchView";
 import { SectionPackageListView } from "./views/SectionPackageListView";
+import { SectionsView } from "./views/SectionsView";
+import { UpdatesView } from "./views/UpdatesView";
 // Import both PatternFly CSS files
 // patternfly-base.css contains design tokens (--pf-t--global--* variables)
 // patternfly.css contains component styles that reference those tokens
@@ -111,9 +112,9 @@ function App() {
     handleLocationChange();
 
     // Listen for changes
-    const cleanup = (cockpit as any).addEventListener("locationchanged", handleLocationChange);
+    cockpit.addEventListener("locationchanged", handleLocationChange);
 
-    return cleanup;
+    return () => cockpit.removeEventListener("locationchanged", handleLocationChange);
   }, []);
 
   // Navigation handlers
@@ -284,5 +285,9 @@ function App() {
 const container = document.getElementById("app");
 if (container) {
   const root = createRoot(container);
-  root.render(<App />);
+  root.render(
+    <AppProvider>
+      <App />
+    </AppProvider>
+  );
 }

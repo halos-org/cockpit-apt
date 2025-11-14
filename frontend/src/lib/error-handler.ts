@@ -65,8 +65,8 @@ export class APTError extends Error {
     this.details = details;
 
     // Maintains proper stack trace for where our error was thrown (V8 only)
-    if (typeof (Error as any).captureStackTrace === "function") {
-      (Error as any).captureStackTrace(this, APTError);
+    if (typeof Error.captureStackTrace === "function") {
+      Error.captureStackTrace(this, APTError);
     }
   }
 

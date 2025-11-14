@@ -21,10 +21,10 @@
  * revalidation, and optimization.
  */
 
-import { useState, useEffect } from "react";
-import type { Package, PackageDetails, Section, UpgradablePackage } from "../lib/types";
+import { useEffect, useState } from "react";
 import * as api from "../lib/api";
 import { APTError } from "../lib/error-handler";
+import type { Package, PackageDetails, Section, UpgradablePackage } from "../lib/types";
 
 /**
  * Hook state interface
@@ -83,6 +83,7 @@ export function useSearch(query: string, enabled: boolean = true): UseQueryResul
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, enabled]);
 
   return { data, loading, error, refetch: fetchData };
@@ -146,6 +147,7 @@ export function usePackageDetails(
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packageName, enabled]);
 
   // Return refetch that forces fresh data silently (without showing loading skeleton)
@@ -201,6 +203,7 @@ export function useSections(enabled: boolean = true): UseQueryResult<Section[]> 
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
   return { data, loading, error, refetch: fetchData };
@@ -255,6 +258,7 @@ export function useIsInstalled(
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packageName, enabled]);
 
   return { data, loading, error, refetch: fetchData };
@@ -306,6 +310,7 @@ export function useInstalledPackages(enabled: boolean = true): UseQueryResult<Pa
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
   return { data, loading, error, refetch: fetchData };
@@ -355,6 +360,7 @@ export function useUpgradablePackages(
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
   return { data, loading, error, refetch: fetchData };

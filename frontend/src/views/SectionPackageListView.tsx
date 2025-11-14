@@ -7,31 +7,31 @@
  * - Breadcrumb navigation
  */
 
-import { useState, useEffect } from "react";
 import {
-  PageSection,
-  Title,
   Breadcrumb,
   BreadcrumbItem,
+  Bullseye,
   Button,
-  Select,
-  SelectOption,
-  SelectList,
-  MenuToggle,
-  MenuToggleElement,
   EmptyState,
   EmptyStateBody,
+  MenuToggle,
+  MenuToggleElement,
+  PageSection,
+  Select,
+  SelectList,
+  SelectOption,
+  Spinner,
+  Title,
   Toolbar,
   ToolbarContent,
   ToolbarItem,
-  Spinner,
-  Bullseye,
 } from "@patternfly/react-core";
-import { Table, Thead, Tr, Th, Tbody, Td } from "@patternfly/react-table";
 import { CubesIcon, FilterIcon } from "@patternfly/react-icons";
+import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
+import { useEffect, useState } from "react";
+import { ErrorAlert } from "../components/ErrorAlert";
 import { listPackagesBySection } from "../lib/api";
 import { Package } from "../lib/types";
-import { ErrorAlert } from "../components/ErrorAlert";
 
 interface SectionPackageListViewProps {
   sectionName: string;
@@ -61,6 +61,7 @@ export function SectionPackageListView({
   // Load packages in section
   useEffect(() => {
     loadPackages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionName]);
 
   // Filter packages when filter type changes

@@ -23,64 +23,47 @@ import {
 import { CheckCircleIcon, SearchIcon } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { useEffect, useState } from "react";
+import type { Package } from "../api/types";
 import { ErrorAlert } from "../components/ErrorAlert";
-import { installPackage, listUpgradablePackages } from "../lib/api";
-import { UpgradablePackage } from "../lib/types";
+import { useApp } from "../context/AppContext";
+import { installPackage } from "../lib/api";
 
 interface UpdatesViewProps {
   onNavigateToPackage: (name: string) => void;
 }
 
 export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
-  const [packages, setPackages] = useState<UpgradablePackage[]>([]);
-  const [filteredPackages, setFilteredPackages] = useState<UpgradablePackage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { state, actions } = useApp();
   const [filterText, setFilterText] = useState("");
+  const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
   const [upgradingPackage, setUpgradingPackage] = useState<string | null>(null);
 
-  // Load upgradable packages
+  // Set tab to "upgradable" on mount
   useEffect(() => {
-    loadPackages();
-  }, []);
+    actions.setActiveTab("upgradable");
+  }, [actions]);
 
-  // Filter packages when filter text changes
+  // Filter packages when filter text or packages change
   useEffect(() => {
     if (filterText.trim() === "") {
-      setFilteredPackages(packages);
+      setFilteredPackages(state.packages);
     } else {
       const filter = filterText.toLowerCase();
-      const filtered = packages.filter(
+      const filtered = state.packages.filter(
         (pkg) =>
           pkg.name.toLowerCase().includes(filter) || pkg.summary.toLowerCase().includes(filter)
       );
       setFilteredPackages(filtered);
     }
-  }, [filterText, packages]);
-
-  const loadPackages = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await listUpgradablePackages(false); // Don't use cache for fresh data
-      setPackages(result);
-      setFilteredPackages(result);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [filterText, state.packages]);
 
   const handleUpgrade = async (packageName: string) => {
     try {
       setUpgradingPackage(packageName);
-      setError(null);
       await installPackage(packageName); // Install with newer version = upgrade
       // Reload packages after upgrade
-      await loadPackages();
+      await actions.loadPackages();
     } catch (err) {
-      setError(err as Error);
       console.error("Upgrade failed:", err);
     } finally {
       setUpgradingPackage(null);
@@ -88,7 +71,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
   };
 
   // Loading state
-  if (loading) {
+  if (state.packagesLoading) {
     return (
       <PageSection>
         <Bullseye>
@@ -104,17 +87,17 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
   }
 
   // Error state
-  if (error) {
+  if (state.packagesError) {
     return (
       <PageSection>
         <Title headingLevel="h1">Available Updates</Title>
-        <ErrorAlert error={error} onRetry={loadPackages} />
+        <ErrorAlert error={new Error(state.packagesError)} onRetry={() => actions.loadPackages()} />
       </PageSection>
     );
   }
 
   // No updates available
-  if (packages.length === 0) {
+  if (state.packages.length === 0) {
     return (
       <PageSection>
         <Title headingLevel="h1">Available Updates</Title>
@@ -122,7 +105,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
           <EmptyStateBody>
             All installed packages are up to date. Check back later for new updates.
           </EmptyStateBody>
-          <Button variant="primary" onClick={loadPackages}>
+          <Button variant="primary" onClick={() => actions.loadPackages()}>
             Check for updates
           </Button>
         </EmptyState>
@@ -134,7 +117,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
     <PageSection>
       <Title headingLevel="h1">Available Updates</Title>
       <p style={{ marginTop: "8px", marginBottom: "16px", color: "#6a6e73" }}>
-        {packages.length} {packages.length === 1 ? "update" : "updates"} available
+        {state.packages.length} {state.packages.length === 1 ? "update" : "updates"} available
       </p>
 
       <Toolbar>
@@ -191,9 +174,9 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
                     {pkg.name}
                   </Button>
                 </Td>
-                <Td>{pkg.installedVersion}</Td>
+                <Td>{pkg.installedVersion || pkg.version}</Td>
                 <Td>
-                  <strong>{pkg.candidateVersion}</strong>
+                  <strong>{pkg.candidateVersion || pkg.version}</strong>
                 </Td>
                 <Td>{pkg.summary}</Td>
                 <Td>
@@ -215,7 +198,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
 
       {filteredPackages.length > 0 && filterText && (
         <p style={{ marginTop: "16px", color: "#6a6e73" }}>
-          Showing {filteredPackages.length} of {packages.length} updates
+          Showing {filteredPackages.length} of {state.packages.length} updates
         </p>
       )}
     </PageSection>

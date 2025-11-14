@@ -2,7 +2,7 @@
  * Application state management with React Context
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { APTBridgeError, filterPackages, listRepositories, listStores } from "../api";
 import type { FilterParams, Package, Repository, Store } from "../api/types";
 import {
@@ -209,17 +209,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     void loadPackages();
   }, [loadPackages, state.activeStore, state.activeRepository, state.activeTab, state.searchQuery]);
 
-  const actions: AppActions = {
-    loadStores,
-    loadRepositories,
-    loadPackages,
-    setActiveStore,
-    setActiveRepository,
-    setActiveTab,
-    setSearchQuery,
-    clearError,
-    refresh,
-  };
+  // Memoize actions to prevent unnecessary re-renders
+  const actions: AppActions = useMemo(
+    () => ({
+      loadStores,
+      loadRepositories,
+      loadPackages,
+      setActiveStore,
+      setActiveRepository,
+      setActiveTab,
+      setSearchQuery,
+      clearError,
+      refresh,
+    }),
+    [
+      loadStores,
+      loadRepositories,
+      loadPackages,
+      setActiveStore,
+      setActiveRepository,
+      setActiveTab,
+      setSearchQuery,
+      clearError,
+      refresh,
+    ]
+  );
 
   return <AppContext.Provider value={{ state, actions }}>{children}</AppContext.Provider>;
 }

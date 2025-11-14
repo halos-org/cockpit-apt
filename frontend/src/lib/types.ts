@@ -184,7 +184,18 @@ declare global {
     spawn(args: string[], options?: SpawnOptions): Spawn;
     file(path: string): File;
     location: Location;
+    addEventListener(event: "locationchanged" | "visibilitychange", callback: () => void): void;
+    removeEventListener(event: "locationchanged" | "visibilitychange", callback: () => void): void;
   };
+
+  interface Window {
+    debugging?: string | string[];
+  }
+
+  interface ErrorConstructor {
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    captureStackTrace?(targetObject: object, constructorOpt?: Function): void;
+  }
 
   interface SpawnOptions {
     err?: "message" | "ignore" | "out";
@@ -207,7 +218,7 @@ declare global {
 
   interface Location {
     path: string[];
-    options: Record<string, string>;
+    options: Record<string, string | string[]>;
     go(path: string | string[], options?: Record<string, string>): void;
   }
 }

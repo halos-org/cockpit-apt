@@ -23,9 +23,9 @@ import {
 import { CubesIcon, SearchIcon } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { useEffect, useState } from "react";
+import type { Package } from "../api/types";
 import { ErrorAlert } from "../components/ErrorAlert";
-import { listInstalledPackages } from "../lib/api";
-import { Package } from "../lib/types";
+import { useApp } from "../context/AppContext";
 
 interface InstalledViewProps {
   onNavigateToPackage: (name: string) => void;
@@ -33,52 +33,36 @@ interface InstalledViewProps {
 }
 
 export function InstalledView({ onNavigateToPackage, onRemove }: InstalledViewProps) {
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { state, actions } = useApp();
   const [filterText, setFilterText] = useState("");
   const [removingPackage, setRemovingPackage] = useState<string | null>(null);
+  const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
 
-  // Load installed packages
+  // Set tab to "installed" on mount
   useEffect(() => {
-    loadPackages();
-  }, []);
+    actions.setActiveTab("installed");
+  }, [actions]);
 
-  // Filter packages when filter text changes
+  // Filter packages when filter text or packages change
   useEffect(() => {
     if (filterText.trim() === "") {
-      setFilteredPackages(packages);
+      setFilteredPackages(state.packages);
     } else {
       const filter = filterText.toLowerCase();
-      const filtered = packages.filter(
+      const filtered = state.packages.filter(
         (pkg) =>
           pkg.name.toLowerCase().includes(filter) || pkg.summary.toLowerCase().includes(filter)
       );
       setFilteredPackages(filtered);
     }
-  }, [filterText, packages]);
-
-  const loadPackages = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await listInstalledPackages(false); // Don't use cache for fresh data
-      setPackages(result);
-      setFilteredPackages(result);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [filterText, state.packages]);
 
   const handleRemove = async (packageName: string) => {
     try {
       setRemovingPackage(packageName);
       await onRemove(packageName);
       // Reload packages after removal
-      await loadPackages();
+      await actions.loadPackages();
     } catch (err) {
       // Error will be shown by parent component
       console.error("Remove failed:", err);
@@ -88,7 +72,7 @@ export function InstalledView({ onNavigateToPackage, onRemove }: InstalledViewPr
   };
 
   // Loading state
-  if (loading) {
+  if (state.packagesLoading) {
     return (
       <PageSection>
         <Bullseye>
@@ -104,17 +88,17 @@ export function InstalledView({ onNavigateToPackage, onRemove }: InstalledViewPr
   }
 
   // Error state
-  if (error) {
+  if (state.packagesError) {
     return (
       <PageSection>
         <Title headingLevel="h1">Installed Packages</Title>
-        <ErrorAlert error={error} onRetry={loadPackages} />
+        <ErrorAlert error={new Error(state.packagesError)} onRetry={() => actions.loadPackages()} />
       </PageSection>
     );
   }
 
   // Empty state
-  if (packages.length === 0) {
+  if (state.packages.length === 0) {
     return (
       <PageSection>
         <Title headingLevel="h1">Installed Packages</Title>
@@ -129,7 +113,7 @@ export function InstalledView({ onNavigateToPackage, onRemove }: InstalledViewPr
     <PageSection>
       <Title headingLevel="h1">Installed Packages</Title>
       <p style={{ marginTop: "8px", marginBottom: "16px", color: "#6a6e73" }}>
-        {packages.length} packages installed
+        {state.packages.length} packages installed
       </p>
 
       <Toolbar>
@@ -196,7 +180,7 @@ export function InstalledView({ onNavigateToPackage, onRemove }: InstalledViewPr
 
       {filteredPackages.length > 0 && filterText && (
         <p style={{ marginTop: "16px", color: "#6a6e73" }}>
-          Showing {filteredPackages.length} of {packages.length} packages
+          Showing {filteredPackages.length} of {state.packages.length} packages
         </p>
       )}
     </PageSection>
