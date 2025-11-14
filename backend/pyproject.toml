@@ -49,9 +49,6 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
-# Note: OSError "Bad file descriptor" during cleanup is a known pytest issue
-# in container environments. All tests pass - the error occurs only during
-# final cleanup and can be safely ignored.
 
 [tool.coverage.run]
 source = ["cockpit_apt_bridge"]

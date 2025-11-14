@@ -7,6 +7,30 @@ from unittest.mock import MagicMock
 import pytest
 
 
+def pytest_configure(config):
+    """Configure pytest to suppress OSError during capture cleanup.
+
+    In container environments, pytest's capture plugin can encounter
+    'Bad file descriptor' errors when closing temporary files during
+    final cleanup. This happens after all tests pass and doesn't affect
+    test results. We monkey-patch the cleanup to ignore this specific error.
+    """
+    from _pytest import capture
+
+    original_done = capture.FDCapture.done
+
+    def patched_done(self):
+        try:
+            original_done(self)
+        except OSError as e:
+            if e.errno == 9:  # Bad file descriptor
+                pass  # Ignore in container environments
+            else:
+                raise
+
+    capture.FDCapture.done = patched_done
+
+
 @pytest.fixture(autouse=True)
 def reset_apt_cache():
     """Ensure each test starts with clean state."""
