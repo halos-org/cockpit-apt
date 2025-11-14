@@ -9,6 +9,7 @@ import json
 import os
 import select
 import subprocess
+from typing import Any
 
 from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
 from cockpit_apt_bridge.utils.validators import validate_package_name
@@ -28,7 +29,9 @@ ESSENTIAL_PACKAGES = {
 }
 
 
-def execute(package_name: str) -> dict:
+def execute(
+    package_name: str, purge: bool = False, auto_remove: bool = False
+) -> dict[str, Any] | None:
     """
     Remove a package using apt-get.
 
@@ -121,7 +124,7 @@ def execute(package_name: str) -> dict:
                                 print(json.dumps(progress_json), flush=True)
 
         # Read any remaining output
-        stdout, stderr = process.communicate()
+        _, stderr = process.communicate()
         status_file.close()
 
         # Check exit code
@@ -161,7 +164,7 @@ def execute(package_name: str) -> dict:
         )
 
 
-def _parse_status_line(line: str) -> dict | None:
+def _parse_status_line(line: str) -> dict[str, Any] | None:
     """
     Parse apt-get Status-Fd output line.
 
