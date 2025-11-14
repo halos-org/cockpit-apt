@@ -107,7 +107,9 @@ def sample_packages():
         MockPackage(
             "nginx",
             summary="HTTP server",
-            description="Nginx is a web server with focus on high performance and low memory usage.",
+            description=(
+                "Nginx is a web server with focus on high performance and low memory usage."
+            ),
             version="1.18.0",
             installed=False,
             section="web",

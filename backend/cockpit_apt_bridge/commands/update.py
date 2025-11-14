@@ -119,4 +119,6 @@ def execute() -> dict[str, Any] | None:
     except APTBridgeError:
         raise
     except Exception as e:
-        raise APTBridgeError("Error updating package lists", code="INTERNAL_ERROR", details=str(e))
+        raise APTBridgeError(
+            "Error updating package lists", code="INTERNAL_ERROR", details=str(e)
+        ) from e

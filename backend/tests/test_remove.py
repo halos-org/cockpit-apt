@@ -21,7 +21,9 @@ class TestExecute:
     @patch("cockpit_apt_bridge.commands.remove.os.fdopen")
     @patch("cockpit_apt_bridge.commands.remove.select.select")
     @patch("builtins.print")
-    def test_remove_success(self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
+    def test_remove_success(
+        self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
+    ):
         """Test successful package removal."""
         # Setup pipe mocks
         mock_pipe.return_value = (3, 4)
@@ -74,7 +76,9 @@ class TestExecute:
     @patch("cockpit_apt_bridge.commands.remove.os.close")
     @patch("cockpit_apt_bridge.commands.remove.os.fdopen")
     @patch("cockpit_apt_bridge.commands.remove.select.select")
-    def test_remove_not_installed(self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
+    def test_remove_not_installed(
+        self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
+    ):
         """Test removal of package that's not installed."""
         # Setup mocks
         mock_pipe.return_value = (3, 4)
@@ -128,7 +132,9 @@ class TestExecute:
     @patch("cockpit_apt_bridge.commands.remove.os.close")
     @patch("cockpit_apt_bridge.commands.remove.os.fdopen")
     @patch("cockpit_apt_bridge.commands.remove.select.select")
-    def test_remove_generic_failure(self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
+    def test_remove_generic_failure(
+        self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
+    ):
         """Test removal with generic failure."""
         # Setup mocks
         mock_pipe.return_value = (3, 4)

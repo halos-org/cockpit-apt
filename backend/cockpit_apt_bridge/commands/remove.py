@@ -159,7 +159,7 @@ def execute(package_name: str) -> dict[str, Any] | None:
     except Exception as e:
         raise APTBridgeError(
             f"Error removing '{package_name}'", code="INTERNAL_ERROR", details=str(e)
-        )
+        ) from e
 
 
 def _parse_status_line(line: str) -> dict[str, Any] | None:

@@ -27,13 +27,13 @@ def execute() -> list[dict[str, Any]]:
         raise CacheError(
             "python-apt not available - must run on Debian/Ubuntu system",
             details="ImportError: No module named 'apt'",
-        )
+        ) from None
 
     try:
         # Open APT cache
         cache = apt.Cache()
     except Exception as e:
-        raise CacheError("Failed to open APT cache", details=str(e))
+        raise CacheError("Failed to open APT cache", details=str(e)) from e
 
     try:
         # Call upgrade() to mark packages for upgrade
@@ -64,4 +64,4 @@ def execute() -> list[dict[str, Any]]:
         return packages
 
     except Exception as e:
-        raise CacheError("Error listing upgradable packages", details=str(e))
+        raise CacheError("Error listing upgradable packages", details=str(e)) from e

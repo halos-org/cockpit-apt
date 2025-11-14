@@ -68,13 +68,13 @@ def execute(query: str) -> list[dict[str, Any]]:
         raise CacheError(
             "python-apt not available - must run on Debian/Ubuntu system",
             details="ImportError: No module named 'apt'",
-        )
+        ) from None
 
     try:
         # Open APT cache
         cache = apt.Cache()
     except Exception as e:
-        raise CacheError("Failed to open APT cache", details=str(e))
+        raise CacheError("Failed to open APT cache", details=str(e)) from e
 
     # Search for matching packages
     results: list[dict[str, Any]] = []
@@ -109,6 +109,6 @@ def execute(query: str) -> list[dict[str, Any]]:
         results.sort(key=sort_key)
 
     except Exception as e:
-        raise CacheError("Error during package search", details=str(e))
+        raise CacheError("Error during package search", details=str(e)) from e
 
     return results

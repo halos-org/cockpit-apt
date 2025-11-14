@@ -75,7 +75,9 @@ class TestExecute:
     @patch("cockpit_apt_bridge.commands.install.os.fdopen")
     @patch("cockpit_apt_bridge.commands.install.select.select")
     @patch("builtins.print")
-    def test_install_success(self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
+    def test_install_success(
+        self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
+    ):
         """Test successful package installation."""
         # Setup pipe mocks
         mock_pipe.return_value = (3, 4)
@@ -127,7 +129,9 @@ class TestExecute:
     @patch("cockpit_apt_bridge.commands.install.os.close")
     @patch("cockpit_apt_bridge.commands.install.os.fdopen")
     @patch("cockpit_apt_bridge.commands.install.select.select")
-    def test_install_package_not_found(self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
+    def test_install_package_not_found(
+        self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
+    ):
         """Test installation of non-existent package."""
         # Setup mocks
         mock_pipe.return_value = (3, 4)

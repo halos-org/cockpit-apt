@@ -34,13 +34,13 @@ def execute(package_name: str) -> list[str]:
         raise CacheError(
             "python-apt not available - must run on Debian/Ubuntu system",
             details="ImportError: No module named 'apt'",
-        )
+        ) from None
 
     try:
         # Open APT cache
         cache = apt.Cache()
     except Exception as e:
-        raise CacheError("Failed to open APT cache", details=str(e))
+        raise CacheError("Failed to open APT cache", details=str(e)) from e
 
     try:
         # Verify package exists
@@ -76,4 +76,6 @@ def execute(package_name: str) -> list[str]:
     except PackageNotFoundError:
         raise
     except Exception as e:
-        raise CacheError(f"Error getting reverse dependencies for '{package_name}'", details=str(e))
+        raise CacheError(
+            f"Error getting reverse dependencies for '{package_name}'", details=str(e)
+        ) from e

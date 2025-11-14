@@ -47,7 +47,9 @@ def execute(package_name: str) -> list[str]:
     except subprocess.CalledProcessError as e:
         # dpkg-query returns non-zero if package not installed
         if "not installed" in e.stderr or "is not installed" in e.stderr:
-            raise PackageNotFoundError(package_name)
-        raise APTBridgeError(f"dpkg-query failed for package '{package_name}'", details=e.stderr)
+            raise PackageNotFoundError(package_name) from e
+        raise APTBridgeError(
+            f"dpkg-query failed for package '{package_name}'", details=e.stderr
+        ) from e
     except Exception as e:
-        raise APTBridgeError(f"Error listing files for '{package_name}'", details=str(e))
+        raise APTBridgeError(f"Error listing files for '{package_name}'", details=str(e)) from e
