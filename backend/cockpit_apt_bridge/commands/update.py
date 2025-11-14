@@ -9,11 +9,12 @@ import json
 import os
 import re
 import subprocess
+from typing import Any
 
 from cockpit_apt_bridge.utils.errors import APTBridgeError
 
 
-def execute() -> dict:
+def execute() -> dict[str, Any] | None:
     """
     Update package lists using apt-get update.
 
@@ -49,38 +50,39 @@ def execute() -> dict:
         completed_repos = 0
 
         # Read output line by line
-        for line in iter(process.stdout.readline, ""):
-            if not line:
-                break
+        if process.stdout:
+            for line in iter(process.stdout.readline, ""):
+                if not line:
+                    break
 
-            line = line.strip()
+                line = line.strip()
 
-            # Parse progress from output
-            # Look for lines like "Get:1 http://..." or "Hit:1 http://..."
-            if line.startswith(("Get:", "Hit:", "Ign:")):
-                # Extract repository being processed
-                match = re.match(r"(Get|Hit|Ign):(\d+)\s+(.+)", line)
-                if match:
-                    repo_num = int(match.group(2))
-                    repo_url = match.group(3)
+                # Parse progress from output
+                # Look for lines like "Get:1 http://..." or "Hit:1 http://..."
+                if line.startswith(("Get:", "Hit:", "Ign:")):
+                    # Extract repository being processed
+                    match = re.match(r"(Get|Hit|Ign):(\d+)\s+(.+)", line)
+                    if match:
+                        repo_num = int(match.group(2))
+                        repo_url = match.group(3)
 
-                    # Update total if we see a higher number
-                    if repo_num > total_repos:
-                        total_repos = repo_num
+                        # Update total if we see a higher number
+                        if repo_num > total_repos:
+                            total_repos = repo_num
 
-                    # Track completed
-                    if match.group(1) in ("Hit", "Get"):
-                        completed_repos = repo_num
+                        # Track completed
+                        if match.group(1) in ("Hit", "Get"):
+                            completed_repos = repo_num
 
-                    # Calculate percentage
-                    if total_repos > 0:
-                        percentage = int((completed_repos / total_repos) * 100)
-                        progress_json = {
-                            "type": "progress",
-                            "percentage": percentage,
-                            "message": f"Updating: {repo_url[:60]}...",
-                        }
-                        print(json.dumps(progress_json), flush=True)
+                        # Calculate percentage
+                        if total_repos > 0:
+                            percentage = int((completed_repos / total_repos) * 100)
+                            progress_json = {
+                                "type": "progress",
+                                "percentage": percentage,
+                                "message": f"Updating: {repo_url[:60]}...",
+                            }
+                            print(json.dumps(progress_json), flush=True)
 
         # Wait for process to complete
         process.wait()

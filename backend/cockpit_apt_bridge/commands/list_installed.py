@@ -53,7 +53,7 @@ def execute() -> list[dict[str, Any]]:
                 packages.append(package_dict)
 
         # Sort alphabetically by name
-        packages.sort(key=lambda p: p["name"])
+        packages.sort(key=lambda p: p["name"])  # type: ignore[arg-type]
 
         return packages
 

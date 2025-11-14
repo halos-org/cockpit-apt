@@ -18,6 +18,7 @@ classifiers = [
 dependencies = [
     # python-apt is a system package, installed via apt-get
     # It's not available on PyPI, so we don't list it here
+    "pyyaml>=6.0",
 ]
 
 [project.scripts]
@@ -92,8 +93,10 @@ indent-style = "space"
 [tool.pyright]
 include = ["cockpit_apt_bridge"]
 exclude = ["**/__pycache__", "**/node_modules", ".venv", ".uv"]
+stubPath = "stubs"
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
+reportMissingImports = false
 reportMissingTypeStubs = false
 reportUnknownMemberType = false
 reportUnknownArgumentType = false
