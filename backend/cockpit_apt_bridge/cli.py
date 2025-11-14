@@ -87,7 +87,7 @@ Examples:
   cockpit-apt-bridge list-upgradable
   cockpit-apt-bridge list-stores
   cockpit-apt-bridge list-repositories --store marine
-  cockpit-apt-bridge filter-packages --store marine --tab available --limit 50
+  cockpit-apt-bridge filter-packages --store marine --tab installed --limit 50
   cockpit-apt-bridge dependencies nginx
   cockpit-apt-bridge reverse-dependencies libc6
   cockpit-apt-bridge files nginx

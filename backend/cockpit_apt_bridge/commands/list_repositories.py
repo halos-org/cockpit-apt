@@ -87,7 +87,8 @@ def execute(store_id: str | None = None) -> list[dict[str, Any]]:
                 if not matches_store_filter(pkg, store):
                     continue
 
-                # Find matching repository
+                # Find matching repository (manual matching for performance,
+                # avoiding function call overhead in inner loop)
                 for repo in repositories:
                     repo_match = (pkg_origin or pkg_label) == (
                         repo.origin or repo.label
