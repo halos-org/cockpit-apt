@@ -211,8 +211,6 @@ import os
 import yaml
 from pathlib import Path
 from typing import List, Dict, Any
-from dataclasses import dataclass
-
 from dataclasses import dataclass, field
 
 @dataclass
@@ -322,12 +320,12 @@ def matches_store_filter(package: Package, store_config: StoreConfig) -> bool:
         package_match = package.name in filters.include_packages
         matches.append(package_match)
 
-    # AND logic between categories: all must match
+    # OR logic between categories: any match qualifies
     # If no filters specified, package doesn't match
     if not matches:
         return False
 
-    return all(matches)
+    return any(matches)
 ```
 
 ### Debtag Parsing
@@ -683,9 +681,6 @@ describe('Store Toggle', () => {
 ```
 
 ### E2E Test Example
-
-```typescript
-// E2E test example placeholder
 
 ```typescript
 test('complete filter flow', async () => {
