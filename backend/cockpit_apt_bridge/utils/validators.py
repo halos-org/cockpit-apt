@@ -67,7 +67,10 @@ def validate_package_name(name: str) -> None:
         raise APTBridgeError(
             f"Invalid package name: {name}",
             code="INVALID_INPUT",
-            details="Package names must contain only: a-z, 0-9, +, -, . and start with a letter or digit",
+            details=(
+                "Package names must contain only: a-z, 0-9, +, -, . "
+                "and start with a letter or digit"
+            ),
         )
 
     # Additional security check: no path separators or shell metacharacters
