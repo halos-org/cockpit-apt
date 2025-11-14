@@ -68,35 +68,40 @@ def execute(store_id: str | None = None) -> list[dict[str, Any]]:
 
         # If store filter is active, recount packages per repository
         if store:
-            result = []
-            for repo in repositories:
-                # Count packages in this repo that match the store filter
-                matching_count = 0
-                for pkg in cache:
-                    # Check if package is from this repository
-                    if not pkg.candidate:
-                        continue
+            # Build repo_id -> count mapping in single pass over packages
+            repo_counts = {}
+            for pkg in cache:
+                if not pkg.candidate:
+                    continue
 
-                    origins = pkg.candidate.origins
-                    if not origins:
-                        continue
+                origins = pkg.candidate.origins
+                if not origins:
+                    continue
 
-                    origin_obj = origins[0]
-                    pkg_origin = getattr(origin_obj, "origin", "") or ""
-                    pkg_label = getattr(origin_obj, "label", "") or ""
-                    pkg_suite = getattr(origin_obj, "suite", "") or ""
+                origin_obj = origins[0]
+                pkg_origin = getattr(origin_obj, "origin", "") or ""
+                pkg_label = getattr(origin_obj, "label", "") or ""
+                pkg_suite = getattr(origin_obj, "suite", "") or ""
 
-                    # Check if matches this repository
+                # Check if matches store filter first (cheaper)
+                if not matches_store_filter(pkg, store):
+                    continue
+
+                # Find matching repository
+                for repo in repositories:
                     repo_match = (pkg_origin or pkg_label) == (
                         repo.origin or repo.label
                     ) and pkg_suite == repo.suite
 
-                    # Check if matches store filter
-                    if repo_match and matches_store_filter(pkg, store):
-                        matching_count += 1
+                    if repo_match:
+                        repo_counts[repo.id] = repo_counts.get(repo.id, 0) + 1
+                        break
 
-                # Only include repos with at least one matching package
-                if matching_count > 0:
+            # Build result from repositories with counts
+            result = []
+            for repo in repositories:
+                count = repo_counts.get(repo.id, 0)
+                if count > 0:
                     result.append(
                         {
                             "id": repo.id,
@@ -104,7 +109,7 @@ def execute(store_id: str | None = None) -> list[dict[str, Any]]:
                             "origin": repo.origin,
                             "label": repo.label,
                             "suite": repo.suite,
-                            "package_count": matching_count,
+                            "package_count": count,
                         }
                     )
 
@@ -126,5 +131,7 @@ def execute(store_id: str | None = None) -> list[dict[str, Any]]:
                 for repo in repositories
             ]
 
+    except CacheError:
+        raise
     except Exception as e:
         raise CacheError("Error listing repositories", details=str(e)) from e

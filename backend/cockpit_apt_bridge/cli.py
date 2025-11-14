@@ -68,7 +68,9 @@ Commands:
   list-upgradable                   List packages with available upgrades
   list-stores                       List all configured stores
   list-repositories [--store ID]    List all repositories (optionally filtered by store)
-  filter-packages [OPTIONS]         Filter packages by store, repo, tab, search
+  filter-packages [OPTIONS]         Filter packages by store, repo, tab, search query, limit
+                                    OPTIONS: [--store ID] [--repo ID] [--tab TAB]
+                                             [--search QUERY] [--limit N]
   dependencies PACKAGE              Get direct dependencies of a package
   reverse-dependencies PACKAGE      Get packages that depend on a package
   files PACKAGE                     List files installed by a package (installed only)
@@ -83,6 +85,9 @@ Examples:
   cockpit-apt-bridge list-section web
   cockpit-apt-bridge list-installed
   cockpit-apt-bridge list-upgradable
+  cockpit-apt-bridge list-stores
+  cockpit-apt-bridge list-repositories --store marine
+  cockpit-apt-bridge filter-packages --store marine --tab available --limit 50
   cockpit-apt-bridge dependencies nginx
   cockpit-apt-bridge reverse-dependencies libc6
   cockpit-apt-bridge files nginx
@@ -149,13 +154,24 @@ def main() -> NoReturn:
         elif command == "list-repositories":
             # Optional --store parameter
             store_id = None
-            if len(sys.argv) > 2 and sys.argv[2] == "--store":
-                if len(sys.argv) < 4:
+            if len(sys.argv) > 2:
+                if sys.argv[2] == "--store":
+                    if len(sys.argv) < 4:
+                        raise APTBridgeError(
+                            "List-repositories --store requires a store ID",
+                            code="INVALID_ARGUMENTS",
+                        )
+                    store_id = sys.argv[3]
+                    if len(sys.argv) > 4:
+                        raise APTBridgeError(
+                            f"Unexpected argument: {sys.argv[4]}",
+                            code="INVALID_ARGUMENTS",
+                        )
+                else:
                     raise APTBridgeError(
-                        "List-repositories --store requires a store ID",
+                        f"Unknown parameter: {sys.argv[2]}",
                         code="INVALID_ARGUMENTS",
                     )
-                store_id = sys.argv[3]
             result = list_repositories.execute(store_id)
 
         elif command == "filter-packages":
@@ -170,21 +186,51 @@ def main() -> NoReturn:
 
             i = 2
             while i < len(sys.argv):
-                if sys.argv[i] == "--store" and i + 1 < len(sys.argv):
+                if sys.argv[i] == "--store":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--store requires a value",
+                            code="INVALID_ARGUMENTS",
+                        )
                     store_id = sys.argv[i + 1]
                     i += 2
-                elif sys.argv[i] == "--repo" and i + 1 < len(sys.argv):
+                elif sys.argv[i] == "--repo":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--repo requires a value",
+                            code="INVALID_ARGUMENTS",
+                        )
                     repository_id = sys.argv[i + 1]
                     i += 2
-                elif sys.argv[i] == "--tab" and i + 1 < len(sys.argv):
+                elif sys.argv[i] == "--tab":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--tab requires a value",
+                            code="INVALID_ARGUMENTS",
+                        )
                     tab = sys.argv[i + 1]
                     i += 2
-                elif sys.argv[i] == "--search" and i + 1 < len(sys.argv):
+                elif sys.argv[i] == "--search":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--search requires a value",
+                            code="INVALID_ARGUMENTS",
+                        )
                     search_query = sys.argv[i + 1]
                     i += 2
-                elif sys.argv[i] == "--limit" and i + 1 < len(sys.argv):
+                elif sys.argv[i] == "--limit":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--limit requires a value",
+                            code="INVALID_ARGUMENTS",
+                        )
                     try:
                         limit = int(sys.argv[i + 1])
+                        if limit < 0:
+                            raise APTBridgeError(
+                                "--limit must be non-negative",
+                                code="INVALID_ARGUMENTS",
+                            )
                     except ValueError:
                         raise APTBridgeError(
                             f"Invalid limit value: {sys.argv[i + 1]}",
