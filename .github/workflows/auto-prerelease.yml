@@ -146,7 +146,6 @@ jobs:
         sudo apt install cockpit-apt
         \`\`\`
 
-        **Note:** Once [hatlabs/apt.hatlabs.fi#17](https://github.com/hatlabs/apt.hatlabs.fi/issues/17) is implemented, this package will be automatically available in the unstable channel.
         EOF
 
         echo "Release notes created"
