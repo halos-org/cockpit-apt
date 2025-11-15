@@ -948,7 +948,7 @@ distro="trixie", channel="stable"   → trixie-stable
 8. Signs Release file with GPG key
 9. Deploys to GitHub Pages
 
-**Note**: The apt.hatlabs.fi workflow currently downloads from tag "unstable" for the unstable channel. This needs to be updated to download from the latest pre-release instead. See apt.hatlabs.fi repository issue for implementation details.
+**Note**: The apt.hatlabs.fi workflow now downloads from the latest pre-release for the unstable channel, as implemented in PRs #18 and #19.
 
 **Full Rebuild Mode** (scheduled daily):
 
