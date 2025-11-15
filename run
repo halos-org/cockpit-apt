@@ -105,7 +105,7 @@ function dev:version:bump {
   bumpversion --current-version "$CURRENT_VERSION" \
     --commit \
     --message "chore: bump version to {new_version}" \
-    $part VERSION backend/pyproject.toml
+    "$part" VERSION backend/pyproject.toml
 
   # Read the new version that bumpversion created
   NEW_VERSION=$(cat VERSION)
