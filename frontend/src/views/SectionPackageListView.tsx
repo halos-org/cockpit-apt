@@ -104,10 +104,14 @@ export function SectionPackageListView({
       }
       // Reload packages after action
       await loadPackages();
+    } catch (err) {
+      console.error("Local reload failed:", err);
+    }
+    try {
       // Also reload context packages to update global state
       await actions.loadPackages();
     } catch (err) {
-      console.error("Action failed:", err);
+      console.error("Global state reload failed:", err);
     } finally {
       setActioningPackage(null);
     }

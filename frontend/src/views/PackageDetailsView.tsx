@@ -128,7 +128,11 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
       await refetch();
 
       // Reload context packages to update global state
-      await actions.loadPackages();
+      try {
+        await actions.loadPackages();
+      } catch (e) {
+        console.warn("Failed to reload global package state:", e);
+      }
 
       // Also call the optional parent callback for any side effects
       if (onInstall) {
@@ -164,7 +168,11 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
       await refetch();
 
       // Reload context packages to update global state
-      await actions.loadPackages();
+      try {
+        await actions.loadPackages();
+      } catch (e) {
+        console.warn("Failed to reload global package state:", e);
+      }
 
       // Also call the optional parent callback for any side effects
       if (onRemove) {
