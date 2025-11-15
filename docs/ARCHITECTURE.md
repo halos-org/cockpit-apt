@@ -822,10 +822,6 @@ Mark as pre-release (GitHub checkbox)
     ↓
 Attach .deb package to release
     ↓
-[GitHub triggers 'release.published' webhook event]
-    ↓
-[release.yml workflow receives event]
-    ↓
 Dispatch to apt.hatlabs.fi
     - Event: package-updated
     - Payload: {repository, distro: "any", channel: "unstable", component: "main"}
@@ -1020,8 +1016,6 @@ Code changes → PR → Review → Merge to main
 [Automatic Pre-Release Workflow]
     ↓
 Build .deb → Create/update version-tagged pre-release
-    ↓
-[GitHub webhook: release.published event]
     ↓
 Dispatch to apt.hatlabs.fi (channel: unstable)
     ↓

@@ -56,7 +56,7 @@ jobs:
         echo "action=create" >> $GITHUB_OUTPUT
         echo "✅ No published release with same or higher version - will create pre-release v${TAG_VERSION}"
       env:
-        GH_TOKEN: ${{ secrets.REPO_DISPATCH_PAT }}
+        GH_TOKEN: ${{ github.token }}
 
     - name: Setup Node.js
       if: steps.check.outputs.action == 'create'
@@ -153,7 +153,7 @@ jobs:
 
         echo "Release notes created"
       env:
-        GH_TOKEN: ${{ secrets.REPO_DISPATCH_PAT }}
+        GH_TOKEN: ${{ github.token }}
 
     - name: Delete existing pre-release
       if: steps.check.outputs.action == 'create'
@@ -169,7 +169,7 @@ jobs:
           fi
         fi
       env:
-        GH_TOKEN: ${{ secrets.REPO_DISPATCH_PAT }}
+        GH_TOKEN: ${{ github.token }}
 
     - name: Create pre-release
       if: steps.check.outputs.action == 'create'
@@ -191,7 +191,22 @@ jobs:
 
         echo "✅ Pre-release created successfully"
       env:
-        GH_TOKEN: ${{ secrets.REPO_DISPATCH_PAT }}
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Dispatch to APT repository
+      if: steps.check.outputs.action == 'create'
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ secrets.REPO_DISPATCH_PAT }}
+        repository: hatlabs/apt.hatlabs.fi
+        event-type: package-updated
+        client-payload: |
+          {
+            "repository": "${{ github.repository }}",
+            "distro": "any",
+            "channel": "unstable",
+            "component": "main"
+          }
 
     - name: Report success
       if: steps.check.outputs.action == 'create'
@@ -203,5 +218,4 @@ jobs:
         echo "Release tag: v${TAG_VERSION}"
         echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/v${TAG_VERSION}"
         echo ""
-        echo "ℹ️  Note: Creating this pre-release triggers the 'release.published' webhook event."
-        echo "   The release.yml workflow will automatically dispatch this to apt.hatlabs.fi unstable channel."
+        echo "✅ Dispatched to apt.hatlabs.fi unstable channel"
