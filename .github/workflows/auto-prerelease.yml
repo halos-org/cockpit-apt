@@ -173,6 +173,12 @@ jobs:
       run: |
         TAG_VERSION="${{ steps.version.outputs.tag_version }}"
 
+        # Verify .deb files exist before creating release
+        if ! ls ../*.deb 1> /dev/null 2>&1; then
+          echo "❌ Error: No .deb files found"
+          exit 1
+        fi
+
         echo "📦 Creating pre-release v${TAG_VERSION}"
         gh release create "v${TAG_VERSION}" \
           --prerelease \
