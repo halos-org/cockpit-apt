@@ -101,11 +101,11 @@ function dev:version:bump {
   # Read current version
   CURRENT_VERSION=$(cat VERSION)
 
-  # Bump version with automatic commit (includes VERSION and backend/pyproject.toml)
+  # Bump version with automatic commit (includes VERSION, backend/pyproject.toml, and frontend/package.json)
   bumpversion --current-version "$CURRENT_VERSION" \
     --commit \
     --message "chore: bump version to {new_version}" \
-    $part VERSION backend/pyproject.toml
+    $part
 
   # Read the new version that bumpversion created
   NEW_VERSION=$(cat VERSION)
@@ -129,6 +129,7 @@ function dev:version:bump {
   echo "Files updated and committed:"
   echo "  - VERSION"
   echo "  - backend/pyproject.toml"
+  echo "  - frontend/package.json"
   echo "  - debian/changelog"
   echo ""
   echo "Commit created by bumpversion"

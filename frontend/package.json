@@ -1,6 +1,6 @@
 {
   "name": "cockpit-apt",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "APT package management module for Cockpit",
   "private": true,
   "type": "module",
