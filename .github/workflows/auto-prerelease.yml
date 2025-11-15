@@ -26,7 +26,7 @@ jobs:
 
         VERSION=$(dpkg-parsechangelog -S Version)
         # Strip Debian revision (everything after the last dash) for tag version
-        TAG_VERSION="${VERSION%%-*}"
+        TAG_VERSION="${VERSION%-*}"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
         echo "Version from debian/changelog: $VERSION (tag version: $TAG_VERSION)"
@@ -46,7 +46,7 @@ jobs:
           echo "Found highest stable release: v${HIGHEST_STABLE}"
           # Compare versions using dpkg --compare-versions
           # Strip Debian revision from VERSION for comparison (0.2.0-1 → 0.2.0)
-          if dpkg --compare-versions "${VERSION%%-*}" le "$HIGHEST_STABLE"; then
+          if dpkg --compare-versions "${VERSION%-*}" le "$HIGHEST_STABLE"; then
             echo "action=skip" >> $GITHUB_OUTPUT
             echo "⏭️  Stable release v${HIGHEST_STABLE} >= v${TAG_VERSION} - skipping pre-release"
             exit 0
