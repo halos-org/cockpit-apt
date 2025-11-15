@@ -16,34 +16,34 @@
  */
 
 import {
-    Badge,
-    Card,
-    CardBody,
-    CardHeader,
-    CardTitle,
-    EmptyState,
-    EmptyStateBody,
-    Grid,
-    GridItem,
-    Title,
+  Badge,
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  EmptyState,
+  EmptyStateBody,
+  Grid,
+  GridItem,
+  Title,
 } from "@patternfly/react-core";
 import {
-    BookIcon,
-    CodeIcon,
-    CogIcon,
-    CubesIcon,
-    DatabaseIcon,
-    DesktopIcon,
-    EditIcon,
-    EnvelopeIcon,
-    FolderIcon,
-    GlobeIcon,
-    ImageIcon,
-    LayerGroupIcon,
-    NetworkWiredIcon,
-    ServerIcon,
-    TerminalIcon,
-    VolumeUpIcon,
+  BookIcon,
+  CodeIcon,
+  CogIcon,
+  CubesIcon,
+  DatabaseIcon,
+  DesktopIcon,
+  EditIcon,
+  EnvelopeIcon,
+  FolderIcon,
+  GlobeIcon,
+  ImageIcon,
+  LayerGroupIcon,
+  NetworkWiredIcon,
+  ServerIcon,
+  TerminalIcon,
+  VolumeUpIcon,
 } from "@patternfly/react-icons";
 import React, { useMemo } from "react";
 import type { CustomSection } from "../api/types";
@@ -339,6 +339,17 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
                           {section.count} package{section.count !== 1 ? "s" : ""}
                         </Badge>
                       </div>
+                      {customSection?.description && (
+                        <div
+                          style={{
+                            marginTop: "0.5rem",
+                            fontSize: "0.875rem",
+                            color: "var(--pf-v5-global--Color--200)",
+                          }}
+                        >
+                          {customSection.description}
+                        </div>
+                      )}
                     </CardBody>
                   </Card>
                 </GridItem>
