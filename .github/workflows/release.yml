@@ -19,7 +19,7 @@ jobs:
         client-payload: |
           {
             "repository": "${{ github.repository }}",
-            "distro": "any",
+            "distro": "trixie",
             "channel": "stable",
             "component": "main"
           }
