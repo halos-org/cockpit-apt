@@ -3,6 +3,16 @@
  */
 
 /**
+ * Custom section metadata for a store
+ */
+export interface CustomSection {
+  section: string;
+  label: string;
+  description: string;
+  icon?: string;
+}
+
+/**
  * Store configuration from stores.yaml
  */
 export interface Store {
@@ -12,6 +22,7 @@ export interface Store {
   icon?: string;
   repositories?: string[];
   debtags?: string[];
+  custom_sections?: CustomSection[];
 }
 
 /**

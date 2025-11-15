@@ -15,39 +15,41 @@
  *   <SectionsView onNavigateToSection={(name) => navigateTo(`/sections/${name}`)} />
  */
 
-import React from "react";
 import {
-  Title,
+  Badge,
   Card,
+  CardBody,
   CardHeader,
   CardTitle,
-  CardBody,
-  Grid,
-  GridItem,
   EmptyState,
   EmptyStateBody,
-  Badge,
+  Grid,
+  GridItem,
+  Title,
 } from "@patternfly/react-core";
 import {
-  CubesIcon,
-  FolderIcon,
-  CodeIcon,
-  GlobeIcon,
-  VolumeUpIcon,
-  ImageIcon,
   BookIcon,
-  TerminalIcon,
-  ServerIcon,
-  DatabaseIcon,
+  CodeIcon,
   CogIcon,
-  EditIcon,
-  NetworkWiredIcon,
-  EnvelopeIcon,
+  CubesIcon,
+  DatabaseIcon,
   DesktopIcon,
+  EditIcon,
+  EnvelopeIcon,
+  FolderIcon,
+  GlobeIcon,
+  ImageIcon,
   LayerGroupIcon,
+  NetworkWiredIcon,
+  ServerIcon,
+  TerminalIcon,
+  VolumeUpIcon,
 } from "@patternfly/react-icons";
+import React, { useMemo } from "react";
+import type { CustomSection } from "../api/types";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { LoadingSkeleton } from "../components/LoadingSkeleton";
+import { useApp } from "../context/AppContext";
 import { useSections } from "../hooks/usePackages";
 
 export interface SectionsViewProps {
@@ -173,11 +175,41 @@ function getSectionIcon(sectionName: string): React.ReactNode {
 
 /**
  * Get a friendly display name for the base section (without prefix)
+ * Can be overridden by custom section metadata
  */
-function getSectionDisplayName(sectionName: string): string {
+function getSectionDisplayName(sectionName: string, customSection?: CustomSection): string {
+  // Check if there's a custom label for this section
+  if (customSection) {
+    return customSection.label;
+  }
+
   const { baseSection } = parseSectionName(sectionName);
   // Capitalize first letter
   return baseSection.charAt(0).toUpperCase() + baseSection.slice(1);
+}
+
+/**
+ * Get the icon for a section, with visual indicator if custom metadata exists
+ */
+function getSectionIconWithCustom(
+  sectionName: string,
+  customSection?: CustomSection
+): React.ReactNode {
+  // Custom icons from store config are not yet implemented.
+  // The "Custom" badge is just a visual indicator that this section has custom metadata.
+  // TODO: Support custom icons via URLs or icon names in the future.
+  if (customSection) {
+    return (
+      <div className="custom-section-badge">
+        {getSectionIcon(sectionName)}
+        <Badge isRead aria-label="Custom section configuration">
+          Custom
+        </Badge>
+      </div>
+    );
+  }
+
+  return getSectionIcon(sectionName);
 }
 
 /**
@@ -217,7 +249,17 @@ function sortSections(
 }
 
 export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection }) => {
+  const { state } = useApp();
   const { data: sections, loading, error, refetch } = useSections();
+
+  // Get custom sections from active store
+  const customSections = useMemo(() => {
+    if (!state.activeStore || !state.stores.length) {
+      return undefined;
+    }
+    const activeStore = state.stores.find((s) => s.id === state.activeStore);
+    return activeStore?.custom_sections;
+  }, [state.activeStore, state.stores]);
 
   // Sort sections by archive area and base name
   const sortedSections = sections ? sortSections(sections) : [];
@@ -253,6 +295,10 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
           <Grid hasGutter>
             {sortedSections.map((section) => {
               const { prefix } = parseSectionName(section.name);
+              const customSection = customSections?.find((cs) => cs.section === section.name);
+              const displayName = getSectionDisplayName(section.name, customSection);
+              const icon = getSectionIconWithCustom(section.name, customSection);
+
               return (
                 <GridItem key={section.name} sm={6} md={4} lg={3} xl={2}>
                   <Card
@@ -267,9 +313,9 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
                     style={{ height: "100%" }}
                     tabIndex={0}
                     role="button"
-                    aria-label={`View ${section.count} packages in ${prefix ? `${getArchiveLabel(prefix)} ` : ""}${getSectionDisplayName(section.name)} section`}
+                    aria-label={`View ${section.count} packages in ${prefix ? `${getArchiveLabel(prefix)} ` : ""}${displayName} section`}
                   >
-                    <CardHeader>{getSectionIcon(section.name)}</CardHeader>
+                    <CardHeader>{icon}</CardHeader>
 
                     <CardTitle>
                       {prefix && (
@@ -284,7 +330,7 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
                           {getArchiveLabel(prefix)}
                         </div>
                       )}
-                      {getSectionDisplayName(section.name)}
+                      {displayName}
                     </CardTitle>
 
                     <CardBody>
@@ -293,6 +339,17 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
                           {section.count} package{section.count !== 1 ? "s" : ""}
                         </Badge>
                       </div>
+                      {customSection?.description && (
+                        <div
+                          style={{
+                            marginTop: "0.5rem",
+                            fontSize: "0.875rem",
+                            color: "var(--pf-v5-global--Color--200)",
+                          }}
+                        >
+                          {customSection.description}
+                        </div>
+                      )}
                     </CardBody>
                   </Card>
                 </GridItem>

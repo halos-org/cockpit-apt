@@ -17,6 +17,8 @@ import { Page, PageSection, Tab, Tabs, TabTitleText, Title } from "@patternfly/r
 import { ArrowUpIcon, CubesIcon, LayerGroupIcon, SearchIcon } from "@patternfly/react-icons";
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { RepositoryDropdown } from "./components/RepositoryDropdown";
+import { StoreToggleGroup } from "./components/StoreToggleGroup";
 import { AppProvider } from "./context/AppContext";
 import { InstalledView } from "./views/InstalledView";
 import { PackageDetailsView } from "./views/PackageDetailsView";
@@ -236,6 +238,10 @@ function App() {
   return (
     <Page id="apt" className="pf-m-no-sidebar">
       <PageSection hasBodyWrapper={false}>
+        <div className="filter-controls">
+          <StoreToggleGroup />
+          <RepositoryDropdown />
+        </div>
         <Tabs
           activeKey={getActiveTab()}
           onSelect={handleTabChange}
