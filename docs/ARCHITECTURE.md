@@ -715,6 +715,39 @@ Display in UI components
 - No data migration required
 - Store features appear when store packages installed
 
+## Version Management
+
+### Canonical Version Source
+
+The canonical version is defined in the `VERSION` file at the project root and managed by [bumpversion](https://github.com/c4urself/bump2version).
+
+**Version Synchronization**:
+- `VERSION` file: Canonical source (managed by bumpversion)
+- `backend/pyproject.toml`: Automatically updated by bumpversion
+- `frontend/package.json`: Automatically updated by bumpversion
+- `debian/changelog`: Automatically updated by `./run dev:version:bump` script
+
+**Version Bump Process**:
+```bash
+./run dev:version:bump [patch|minor|major]
+```
+
+This command:
+1. Runs bumpversion to update `VERSION`, `backend/pyproject.toml`, and `frontend/package.json`
+2. Updates `debian/changelog` with the new version
+3. Creates a single commit with all version changes
+
+**Configuration**: See `.bumpversion.cfg` for the bumpversion configuration.
+
+### Workflow Version Sources
+
+The CI/CD workflows read versions from different files, but all files are kept in sync:
+
+- **draft-release.yml**: Reads from `frontend/package.json`
+- **auto-prerelease.yml**: Reads from `debian/changelog`
+
+Since all version files are synchronized by the version bump process, the workflows will always use consistent version numbers.
+
 ## CI/CD Pipeline
 
 ### GitHub Actions Workflows
@@ -883,14 +916,15 @@ Developer publishes release (triggers release.yml)
 
 **Key Characteristics**:
 - Creates draft releases, not pre-releases
-- Reads version from `frontend/package.json`, not `debian/changelog`
+- Reads version from `frontend/package.json` (synchronized with canonical `VERSION`)
 - Includes source code only, no .deb packages
 - Requires manual publishing to become a stable release
 - Works together with auto-prerelease.yml (not competing workflows)
 
 **Workflow Comparison**:
-- `draft-release.yml`: Frontend version → Draft → Manual publish → Stable channel
-- `auto-prerelease.yml`: Debian version → Pre-release → Automatic → Unstable channel
+- `draft-release.yml`: Reads from `frontend/package.json` → Draft → Manual publish → Stable channel
+- `auto-prerelease.yml`: Reads from `debian/changelog` → Pre-release → Automatic → Unstable channel
+- Both workflows use synchronized versions (all kept in sync via bumpversion)
 
 ### APT Repository Integration Architecture
 
