@@ -721,6 +721,12 @@ Display in UI components
 
 The project uses GitHub Actions for continuous integration and deployment. The CI/CD pipeline consists of three main workflows:
 
+> **Note on draft-release.yml:**
+> There is also an existing `draft-release.yml` workflow that runs on push to `main`.
+> It creates draft releases with source code only (no .deb packages) and reads the version from `frontend/package.json`.
+> With the introduction of `auto-prerelease.yml`, the intention is to migrate release automation to the new workflow.
+> For now, both workflows may coexist, but `draft-release.yml` should be considered deprecated and will be removed once `auto-prerelease.yml` is fully validated.
+
 #### 1. Build and Test Workflow (build.yml)
 
 **Trigger**: Pull requests and pushes to main
