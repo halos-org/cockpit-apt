@@ -126,6 +126,10 @@ docs/                             # Documentation
   TASK_*.md
 ```
 
+## Issue Creation & Implementation
+
+**MANDATORY:** All GitHub issues must require following `docs/IMPLEMENTATION_CHECKLIST.md` during implementation. Include this requirement in the issue body when creating issues.
+
 ## Development Workflow
 
 **MANDATORY:** Follow [/DEVELOPMENT_WORKFLOW.md](/DEVELOPMENT_WORKFLOW.md) for ALL implementations.
