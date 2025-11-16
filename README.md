@@ -130,6 +130,29 @@ sudo systemctl restart cockpit
 
 ## Development Environment
 
+### Agentic Coding Setup (Claude Code, GitHub Copilot, etc.)
+
+For development with AI assistants, use the halos-distro workspace for full context:
+
+```bash
+# Clone the workspace
+git clone https://github.com/hatlabs/halos-distro.git
+cd halos-distro
+
+# Get all sub-repositories including cockpit-apt
+./run repos:clone
+
+# Work from workspace root for AI-assisted development
+# Claude Code gets full context across all repos
+```
+
+See `halos-distro/docs/` for development workflows:
+- `HUMAN_DEVELOPMENT_GUIDANCE.md` - Quick start guide
+- `IMPLEMENTATION_CHECKLIST.md` - Development checklist
+- `DEVELOPMENT_WORKFLOW.md` - Detailed workflows
+
+### Traditional Development Setup
+
 This project uses Docker containers for development to ensure consistent environments across macOS and Linux. The container provides:
 
 - Debian Trixie base (matches deployment target)
