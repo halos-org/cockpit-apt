@@ -3,10 +3,10 @@
  *
  * Displays a PatternFly ToggleGroup for selecting the active store.
  * Only renders if multiple stores are available (stores.length > 1).
- * Includes "All Stores" option to clear the filter.
+ * Includes "All Packages" option to clear the filter.
  */
 
-import { Label, ToggleGroup, ToggleGroupItem } from "@patternfly/react-core";
+import { ToggleGroup, ToggleGroupItem } from "@patternfly/react-core";
 import React from "react";
 import { useApp } from "../context/AppContext";
 
@@ -34,10 +34,9 @@ export function StoreToggleGroup() {
 
   return (
     <div className="store-toggle-group">
-      <Label id="store-label">Store:</Label>
-      <ToggleGroup aria-label="Store selection" aria-labelledby="store-label">
+      <ToggleGroup aria-label="Store selection">
         <ToggleGroupItem
-          text="All Stores"
+          text="All Packages"
           buttonId="store-all"
           isSelected={selectedStore === "all"}
           onChange={(event, isSelected) => handleStoreChange(event, isSelected, "all")}
