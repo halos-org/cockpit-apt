@@ -128,17 +128,34 @@ docs/                             # Documentation
 
 ## Development Workflow
 
+**MANDATORY:** Follow [/DEVELOPMENT_WORKFLOW.md](/DEVELOPMENT_WORKFLOW.md) for ALL implementations.
+
 ### Feature Development Process
 
 **Standard Workflow for All Features:**
 
-1. **Implement** the feature or fix
-2. **Test locally** - ensure all tests pass
-3. **Commit** to a feature branch
-4. **Create PR** and push to remote
-5. **Wait 180 seconds** for CI checks and GitHub Copilot code review
-6. **Check PR status** - verify tests pass, review Copilot comments and any human review feedback
-7. **Iterate** if needed, then merge
+1. **EXPLORE** - Read relevant code WITHOUT writing any code
+   - Use `Task tool with subagent_type=Explore` for complex navigation
+   - Reference `/docs/SPEC.md` and `/docs/ARCHITECTURE.md`
+2. **PLAN** - Create implementation approach
+   - Use `think hard` for planning
+   - Document the plan before coding
+3. **TEST** - Write tests FIRST (TDD)
+   - Write comprehensive tests
+   - Verify tests fail
+   - Commit tests
+4. **IMPLEMENT** - Code until tests pass
+   - Follow the plan
+   - Don't modify tests
+   - Iterate until all pass
+5. **VERIFY** - Check implementation quality
+   - Use subagents for verification
+   - Check for edge cases
+6. **COMMIT** to a feature branch
+7. **CREATE PR** and push to remote
+8. **WAIT 180 seconds** for CI checks and GitHub Copilot code review
+9. **CHECK PR status** - verify tests pass, review feedback
+10. **ITERATE** if needed, then merge
 
 **Detailed Steps:**
 
@@ -488,21 +505,54 @@ APT repositories can provide AppStream metadata (icons, screenshots, categories)
 
 ## Common Development Tasks
 
-### Adding a New Backend Command
+### Test-Driven Development (TDD) - MANDATORY
 
-1. Create `backend/cockpit_apt_bridge/commands/mycommand.py`
-2. Implement `execute(args) -> result` function
-3. Add handler in `cli.py`
-4. Write tests in `backend/tests/test_mycommand.py`
-5. Run: `./run test && ./run lint && ./run typecheck`
+All new features MUST follow TDD workflow:
 
-### Adding a New Frontend Component
+```bash
+# 1. Write tests FIRST
+# Create backend/tests/test_newfeature.py
+# Write comprehensive test cases
 
-1. Create `frontend/src/components/MyComponent.tsx`
-2. Add types to `frontend/src/lib/types.ts` if needed
-3. Import and use in parent component
-4. Run: `npm run typecheck && npm run lint`
-5. Write tests in `__tests__/MyComponent.test.tsx`
+# 2. Verify tests fail
+./run test -k newfeature  # Should fail
+
+# 3. Commit the tests
+git add backend/tests/test_newfeature.py
+git commit -m "test: add tests for new feature"
+
+# 4. Implement until tests pass
+# Write implementation code
+./run test -k newfeature  # Iterate until passes
+
+# 5. Commit implementation
+git add backend/cockpit_apt_bridge/...
+git commit -m "feat: implement new feature"
+```
+
+### Adding a New Backend Command (TDD Approach)
+
+1. **Write tests first** in `backend/tests/test_mycommand.py`
+2. **Verify tests fail**: `./run test -k mycommand`
+3. **Commit tests**: `git commit -m "test: add mycommand tests"`
+4. Create `backend/cockpit_apt_bridge/commands/mycommand.py`
+5. Implement `execute(args) -> result` function
+6. Add handler in `cli.py`
+7. **Run tests until pass**: `./run test -k mycommand`
+8. **Final checks**: `./run test && ./run lint && ./run typecheck`
+9. **Commit implementation**: `git commit -m "feat: add mycommand"`
+
+### Adding a New Frontend Component (TDD Approach)
+
+1. **Write tests first** in `__tests__/MyComponent.test.tsx`
+2. **Verify tests fail**: `npm run test`
+3. **Commit tests**: `git commit -m "test: add MyComponent tests"`
+4. Create `frontend/src/components/MyComponent.tsx`
+5. Add types to `frontend/src/lib/types.ts` if needed
+6. Import and use in parent component
+7. **Run tests until pass**: `npm run test`
+8. **Final checks**: `npm run typecheck && npm run lint`
+9. **Commit implementation**: `git commit -m "feat: add MyComponent"`
 
 ### Testing Changes
 
