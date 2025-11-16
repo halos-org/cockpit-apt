@@ -154,13 +154,26 @@ export const SearchView: React.FC<SearchViewProps> = ({
                 </Thead>
                 <Tbody>
                   {state.packages.map((pkg) => (
-                    <Tr key={pkg.name} onClick={() => handleRowClick(pkg)} style={{ cursor: "pointer" }}>
+                    <Tr
+                      key={pkg.name}
+                      onClick={() => handleRowClick(pkg)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <Td>
-                        <Button variant="link" isInline onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="link"
+                          isInline
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRowClick(pkg);
+                          }}
+                        >
                           {pkg.name}
                         </Button>
                       </Td>
-                      <Td>{pkg.summary}</Td>
+                      <Td modifier="truncate" style={{ maxWidth: "400px" }}>
+                        {pkg.summary}
+                      </Td>
                       <Td>{pkg.version}</Td>
                       <Td>{pkg.section}</Td>
                       <Td>
