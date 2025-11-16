@@ -106,7 +106,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
       ? `No updates available for ${activeStore.name}`
       : "System is up to date";
     const bodyText = activeStore
-      ? `All ${activeStore.name.toLowerCase()} packages are up to date. Check back later for new updates.`
+      ? `All packages from ${activeStore.name} are up to date. Check back later for new updates.`
       : "All installed packages are up to date. Check back later for new updates.";
 
     return (
