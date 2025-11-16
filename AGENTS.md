@@ -2,17 +2,28 @@
 
 # Cockpit APT - Development Guide
 
-Modern APT package manager interface for Cockpit, inspired by Raspberry Pi's Add/Remove Software.
+## 🎯 For Agentic Coding: Use the HaLOS Workspace
 
-**Local Instructions**: For environment-specific instructions and configurations, see @CLAUDE.local.md (not committed to version control).
+This repository should be used as part of the halos-distro workspace for AI-assisted development:
+
+```bash
+# Clone workspace and all repos
+git clone https://github.com/hatlabs/halos-distro.git
+cd halos-distro
+./run repos:clone
+```
+
+See `halos-distro/docs/` for development workflows and guidance.
+
+## About This Project
+
+Modern APT package manager interface for Cockpit, inspired by Raspberry Pi's Add/Remove Software. Designed for the HaLOS distribution but works on any Debian/Ubuntu system with Cockpit.
+
+**Local Instructions**: For environment-specific instructions, see @CLAUDE.local.md (not committed to version control).
 
 ## Git Workflow Policy
 
 **Branch Workflow:** Never push to main directly - always use feature branches and PRs.
-
-## Project Context
-
-This is a web-based package manager for Cockpit that provides a modern interface to APT, similar to GNOME Software or Raspberry Pi's Add/Remove Software. It's designed for the HaLOS distribution but works on any Debian/Ubuntu system with Cockpit.
 
 ## Architecture
 
