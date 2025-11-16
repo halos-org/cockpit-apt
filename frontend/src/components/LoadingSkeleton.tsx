@@ -144,7 +144,7 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
     return (
       <Grid hasGutter className={className}>
         {Array.from({ length: rows }).map((_, index) => (
-          <GridItem key={index} md={6} lg={4} xl={3}>
+          <GridItem key={index} sm={6} md={4} lg={3} xl={2}>
             <CardSkeleton />
           </GridItem>
         ))}
