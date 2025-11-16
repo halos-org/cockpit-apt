@@ -97,8 +97,8 @@ filters:
     - field::marine
   include_packages:
     - signalk-server
-custom_sections:
-  - section: ais-radar
+category_metadata:
+  - id: ais-radar
     label: AIS & Radar
     description: AIS and radar applications
     icon: /usr/share/icons/ais.svg
@@ -119,11 +119,11 @@ custom_sections:
         assert store.filters.include_tags == ["field::marine"]
         assert store.filters.include_packages == ["signalk-server"]
 
-        assert store.custom_sections is not None
-        assert len(store.custom_sections) == 1
-        assert store.custom_sections[0].section == "ais-radar"
-        assert store.custom_sections[0].label == "AIS & Radar"
-        assert store.custom_sections[0].icon == "/usr/share/icons/ais.svg"
+        assert store.category_metadata is not None
+        assert len(store.category_metadata) == 1
+        assert store.category_metadata[0].id == "ais-radar"
+        assert store.category_metadata[0].label == "AIS & Radar"
+        assert store.category_metadata[0].icon == "/usr/share/icons/ais.svg"
 
 
 def test_load_store_with_minimal_fields():
@@ -148,7 +148,7 @@ filters:
         assert store.name == "Minimal Store"
         assert store.icon is None
         assert store.banner is None
-        assert store.custom_sections is None
+        assert store.category_metadata is None
         assert store.filters.include_origins == ["TestOrigin"]
         assert store.filters.include_sections == []
 
@@ -325,24 +325,24 @@ filters:
         assert len(filters.include_packages) == 3
 
 
-def test_custom_sections_parsed_correctly():
-    """Verify custom section metadata is parsed correctly."""
+def test_category_metadata_parsed_correctly():
+    """Verify category metadata is parsed correctly."""
     with TemporaryDirectory() as tmpdir:
         tmppath = Path(tmpdir)
 
         (tmppath / "custom.yaml").write_text("""
 id: custom
-name: Custom Sections
-description: Store with custom sections
+name: Custom Categories
+description: Store with category metadata
 filters:
   include_origins:
     - TestOrigin
-custom_sections:
-  - section: ais-radar
+category_metadata:
+  - id: ais-radar
     label: AIS & Radar
     description: AIS and radar applications
     icon: /path/to/icon.svg
-  - section: navigation
+  - id: navigation
     label: Navigation
     description: Navigation tools
 """)
@@ -350,49 +350,49 @@ custom_sections:
         stores = load_stores(config_dir=tmppath)
         assert len(stores) == 1
 
-        sections = stores[0].custom_sections
-        assert sections is not None
-        assert len(sections) == 2
+        metadata = stores[0].category_metadata
+        assert metadata is not None
+        assert len(metadata) == 2
 
-        assert sections[0].section == "ais-radar"
-        assert sections[0].label == "AIS & Radar"
-        assert sections[0].description == "AIS and radar applications"
-        assert sections[0].icon == "/path/to/icon.svg"
+        assert metadata[0].id == "ais-radar"
+        assert metadata[0].label == "AIS & Radar"
+        assert metadata[0].description == "AIS and radar applications"
+        assert metadata[0].icon == "/path/to/icon.svg"
 
-        assert sections[1].section == "navigation"
-        assert sections[1].icon is None  # Icon is optional
+        assert metadata[1].id == "navigation"
+        assert metadata[1].icon is None  # Icon is optional
 
 
-def test_custom_sections_skips_invalid_entries():
-    """Invalid custom section entries are skipped with warning."""
+def test_category_metadata_skips_invalid_entries():
+    """Invalid category metadata entries are skipped with warning."""
     with TemporaryDirectory() as tmpdir:
         tmppath = Path(tmpdir)
 
         (tmppath / "partial.yaml").write_text("""
 id: partial
-name: Partial Sections
-description: Store with invalid custom sections
+name: Partial Categories
+description: Store with invalid category metadata
 filters:
   include_origins:
     - TestOrigin
-custom_sections:
-  - section: valid
-    label: Valid Section
+category_metadata:
+  - id: valid
+    label: Valid Category
     description: This is valid
-  - section: invalid
-    label: Missing Description
+  - id: invalid
+    description: Missing Label
   - label: Also Invalid
-    description: Missing section field
+    description: Missing id field
 """)
 
         stores = load_stores(config_dir=tmppath)
         assert len(stores) == 1
 
-        # Only the valid section should be loaded
-        sections = stores[0].custom_sections
-        assert sections is not None
-        assert len(sections) == 1
-        assert sections[0].section == "valid"
+        # Only the valid category should be loaded
+        metadata = stores[0].category_metadata
+        assert metadata is not None
+        assert len(metadata) == 1
+        assert metadata[0].id == "valid"
 
 
 def test_supports_yml_extension():

@@ -30,7 +30,7 @@ def test_list_stores_with_stores():
             ),
             icon="/icons/marine.svg",
             banner="/banners/marine.jpg",
-            custom_sections=None,
+            category_metadata=None,
         ),
     ]
 
@@ -44,4 +44,4 @@ def test_list_stores_with_stores():
     assert result[0]["icon"] == "/icons/marine.svg"
     assert result[0]["banner"] == "/banners/marine.jpg"
     assert result[0]["filters"]["include_tags"] == ["field::marine"]
-    assert result[0]["custom_sections"] is None
+    assert result[0]["category_metadata"] is None

@@ -21,7 +21,7 @@ def execute() -> list[dict[str, Any]]:
         - icon: Optional icon URL/path
         - banner: Optional banner image URL/path
         - filters: Filter configuration (origins, sections, tags, packages)
-        - custom_sections: Optional custom section metadata
+        - category_metadata: Optional category metadata
 
     Note:
         Returns empty list if no stores are configured (vanilla mode).
@@ -46,19 +46,19 @@ def execute() -> list[dict[str, Any]]:
             },
         }
 
-        # Include custom sections if present
-        if store.custom_sections:
-            store_dict["custom_sections"] = [
+        # Include category metadata if present
+        if store.category_metadata:
+            store_dict["category_metadata"] = [
                 {
-                    "section": cs.section,
-                    "label": cs.label,
-                    "description": cs.description,
-                    "icon": cs.icon,
+                    "id": cm.id,
+                    "label": cm.label,
+                    "description": cm.description,
+                    "icon": cm.icon,
                 }
-                for cs in store.custom_sections
+                for cm in store.category_metadata
             ]
         else:
-            store_dict["custom_sections"] = None
+            store_dict["category_metadata"] = None
 
         result.append(store_dict)
 
