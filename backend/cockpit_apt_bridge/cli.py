@@ -39,7 +39,9 @@ from cockpit_apt_bridge.commands import (
     files,
     filter_packages,
     install,
+    list_categories,
     list_installed,
+    list_packages_by_category,
     list_repositories,
     list_section,
     list_stores,
@@ -64,6 +66,9 @@ Commands:
   details PACKAGE                   Get detailed information about a package
   sections                          List all Debian sections with package counts
   list-section SECTION              List all packages in a section
+  list-categories [--store ID]      List all categories (auto-discovered from tags)
+  list-packages-by-category CATEGORY [--store ID]
+                                    List all packages in a category
   list-installed                    List all installed packages
   list-upgradable                   List packages with available upgrades
   list-stores                       List all configured stores
@@ -83,6 +88,8 @@ Examples:
   cockpit-apt-bridge details nginx
   cockpit-apt-bridge sections
   cockpit-apt-bridge list-section web
+  cockpit-apt-bridge list-categories --store marine
+  cockpit-apt-bridge list-packages-by-category navigation --store marine
   cockpit-apt-bridge list-installed
   cockpit-apt-bridge list-upgradable
   cockpit-apt-bridge list-stores
@@ -141,6 +148,58 @@ def main() -> NoReturn:
                 )
             section_name = sys.argv[2]
             result = list_section.execute(section_name)
+
+        elif command == "list-categories":
+            # Optional --store parameter
+            store_id = None
+            if len(sys.argv) > 2:
+                if sys.argv[2] == "--store":
+                    if len(sys.argv) < 4:
+                        raise APTBridgeError(
+                            "List-categories --store requires a store ID",
+                            code="INVALID_ARGUMENTS",
+                        )
+                    store_id = sys.argv[3]
+                    if len(sys.argv) > 4:
+                        raise APTBridgeError(
+                            f"Unexpected argument: {sys.argv[4]}",
+                            code="INVALID_ARGUMENTS",
+                        )
+                else:
+                    raise APTBridgeError(
+                        f"Unknown parameter: {sys.argv[2]}",
+                        code="INVALID_ARGUMENTS",
+                    )
+            result = list_categories.execute(store_id)
+
+        elif command == "list-packages-by-category":
+            if len(sys.argv) < 3:
+                raise APTBridgeError(
+                    "List-packages-by-category command requires a category ID argument",
+                    code="INVALID_ARGUMENTS",
+                )
+            category_id = sys.argv[2]
+            # Optional --store parameter
+            store_id = None
+            if len(sys.argv) > 3:
+                if sys.argv[3] == "--store":
+                    if len(sys.argv) < 5:
+                        raise APTBridgeError(
+                            "List-packages-by-category --store requires a store ID",
+                            code="INVALID_ARGUMENTS",
+                        )
+                    store_id = sys.argv[4]
+                    if len(sys.argv) > 5:
+                        raise APTBridgeError(
+                            f"Unexpected argument: {sys.argv[5]}",
+                            code="INVALID_ARGUMENTS",
+                        )
+                else:
+                    raise APTBridgeError(
+                        f"Unknown parameter: {sys.argv[3]}",
+                        code="INVALID_ARGUMENTS",
+                    )
+            result = list_packages_by_category.execute(category_id, store_id)
 
         elif command == "list-installed":
             result = list_installed.execute()
