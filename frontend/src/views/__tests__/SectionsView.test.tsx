@@ -34,7 +34,8 @@ vi.mock("../../lib/api");
 };
 
 // Default mock for AppContext - will be overridden in tests
-let mockAppState = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mockAppState: any = {
   activeStore: null,
   stores: [],
 };
@@ -441,6 +442,157 @@ describe("SectionsView - Loading and Error States", () => {
     await waitFor(() => {
       expect(screen.getByText("No categories found")).toBeInTheDocument();
       expect(screen.getByText("No categories found for this store.")).toBeInTheDocument();
+    });
+  });
+});
+
+describe("SectionsView - Edge Cases", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should show sections mode when category_metadata is empty array", async () => {
+    mockAppState = {
+      activeStore: "test",
+      stores: [
+        {
+          id: "test",
+          name: "Test",
+          category_metadata: [], // Empty array - should show sections mode
+        },
+      ],
+    };
+
+    vi.mocked(api.listSections).mockResolvedValue([{ name: "web", count: 1 }]);
+    vi.mocked(api.listCategories).mockResolvedValue([]);
+
+    render(<SectionsView onNavigateToSection={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Browse by Section")).toBeInTheDocument();
+      expect(screen.getByText("Web")).toBeInTheDocument();
+    });
+  });
+
+  it("should handle category without description or icon gracefully", async () => {
+    mockAppState = {
+      activeStore: "marine",
+      stores: [
+        {
+          id: "marine",
+          name: "Marine",
+          category_metadata: [{ id: "minimal", label: "Minimal Category" }],
+        },
+      ],
+    };
+
+    const mockCategories: Category[] = [
+      {
+        id: "minimal",
+        label: "Minimal Category",
+        count: 5,
+        // No description, no icon
+      },
+    ];
+
+    vi.mocked(api.listCategories).mockResolvedValue(mockCategories);
+
+    render(<SectionsView onNavigateToSection={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Minimal Category")).toBeInTheDocument();
+      expect(screen.getByText("5 packages")).toBeInTheDocument();
+      // Description should not be present
+      expect(screen.queryByText(/description/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("should not crash when onNavigateToSection is undefined", async () => {
+    mockAppState = {
+      activeStore: null,
+      stores: [],
+    };
+
+    vi.mocked(api.listSections).mockResolvedValue([{ name: "web", count: 1 }]);
+
+    const { container } = render(<SectionsView />); // No onNavigateToSection prop
+
+    await waitFor(() => {
+      expect(screen.getByText("Browse by Section")).toBeInTheDocument();
+    });
+
+    // Click on a section card - should not crash
+    const card = screen.getByRole("button", { name: /View.*web/i });
+    card.click();
+
+    // Component should still be rendered
+    expect(container).toBeInTheDocument();
+  });
+
+  it("should handle very long category names gracefully", async () => {
+    mockAppState = {
+      activeStore: "marine",
+      stores: [
+        {
+          id: "marine",
+          name: "Marine",
+          category_metadata: [
+            {
+              id: "long",
+              label: "This is a very very very very very very long category name that might overflow",
+            },
+          ],
+        },
+      ],
+    };
+
+    const mockCategories: Category[] = [
+      {
+        id: "long",
+        label: "This is a very very very very very very long category name that might overflow",
+        count: 1,
+      },
+    ];
+
+    vi.mocked(api.listCategories).mockResolvedValue(mockCategories);
+
+    render(<SectionsView onNavigateToSection={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "This is a very very very very very very long category name that might overflow"
+        )
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("should handle category with count of 0", async () => {
+    mockAppState = {
+      activeStore: "marine",
+      stores: [
+        {
+          id: "marine",
+          name: "Marine",
+          category_metadata: [{ id: "empty", label: "Empty Category" }],
+        },
+      ],
+    };
+
+    const mockCategories: Category[] = [
+      {
+        id: "empty",
+        label: "Empty Category",
+        count: 0,
+      },
+    ];
+
+    vi.mocked(api.listCategories).mockResolvedValue(mockCategories);
+
+    render(<SectionsView onNavigateToSection={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("0 packages")).toBeInTheDocument();
     });
   });
 });
