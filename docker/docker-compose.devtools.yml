@@ -5,19 +5,19 @@ services:
       dockerfile: Dockerfile.devtools
     image: cockpit-apt-devtools:latest
 
-    # Mount the backend directory
+    # Mount the entire project
     volumes:
-      - ../backend:/workspace/backend
+      - ../:/workspace
 
     # Working directory
-    working_dir: /workspace/backend
+    working_dir: /workspace
 
     # Keep container running for Dev Container
     stdin_open: true
     tty: true
 
-    # Run as non-root user
-    user: vscode
+    # Run as root for package building (needed for apt-get and dpkg)
+    user: root
 
     # Override command for interactive use
     command: /bin/bash

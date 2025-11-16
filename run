@@ -34,21 +34,21 @@ function test {
   #@ Run backend tests with pytest
   #@ Category: Backend
   echo "🧪 Running backend tests..."
-  devtools bash -c "uv sync --extra dev && uv run pytest $*"
+  devtools bash -c "cd backend && uv sync --extra dev && uv run pytest $*"
 }
 
 function lint {
   #@ Run ruff linter on backend code
   #@ Category: Backend
   echo "🔍 Running ruff linter..."
-  devtools bash -c "uv sync --extra dev && uv run ruff check ."
+  devtools bash -c "cd backend && uv sync --extra dev && uv run ruff check ."
 }
 
 function lint:fix {
   #@ Run ruff linter and fix issues
   #@ Category: Backend
   echo "🔧 Running ruff linter with auto-fix..."
-  devtools bash -c "uv sync --extra dev && uv run ruff check --fix ."
+  devtools bash -c "cd backend && uv sync --extra dev && uv run ruff check --fix ."
 }
 
 function format {
@@ -56,7 +56,7 @@ function format {
   #@ Category: Backend
   echo "✨ Formatting code with ruff..."
   devtools \
-    bash -c "uv sync --extra dev && uv run ruff format ."
+    bash -c "cd backend && uv sync --extra dev && uv run ruff format ."
 }
 
 function typecheck {
@@ -64,7 +64,7 @@ function typecheck {
   #@ Category: Backend
   echo "📝 Running pyright type checker..."
   devtools \
-    bash -c "uv sync --extra dev && uv run pyright"
+    bash -c "cd backend && uv sync --extra dev && uv run pyright"
 }
 
 function shell {
@@ -140,7 +140,7 @@ function build {
   #@ Category: Backend
   echo "📦 Building backend package..."
   devtools \
-    uv build
+    bash -c "cd backend && uv build"
 }
 
 function install:dev {
@@ -148,7 +148,19 @@ function install:dev {
   #@ Category: Backend
   echo "📥 Installing backend in development mode..."
   devtools \
-    uv pip install -e ".[dev]"
+    bash -c "cd backend && uv pip install -e \".[dev]\""
+}
+
+################################################################################
+# Debian Package Building Commands
+
+function debian:build {
+  #@ Build Debian package with dpkg-buildpackage
+  #@ Category: Debian
+  echo "📦 Building Debian package..."
+  devtools \
+    bash -c "apt-get update -qq && apt-get install -y -qq debhelper-compat=13 python3-all python3-hatchling dh-python >/dev/null 2>&1 && cd /workspace && dpkg-buildpackage -us -uc -b"
+  echo "✅ Debian package built successfully"
 }
 
 ################################################################################
