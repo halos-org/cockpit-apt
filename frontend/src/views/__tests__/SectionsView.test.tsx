@@ -517,12 +517,11 @@ describe("SectionsView - Edge Cases", () => {
 
     const { container } = render(<SectionsView />); // No onNavigateToSection prop
 
-    await waitFor(() => {
-      expect(screen.getByText("Browse by Section")).toBeInTheDocument();
-    });
+    // Wait for the button to be rendered (not just the heading)
+    // The heading is always rendered, but the button is only rendered after data loads
+    const card = await screen.findByRole("button", { name: /View.*web/i });
 
     // Click on a section card - should not crash
-    const card = screen.getByRole("button", { name: /View.*web/i });
     card.click();
 
     // Component should still be rendered
