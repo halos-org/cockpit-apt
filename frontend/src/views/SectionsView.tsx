@@ -15,14 +15,7 @@
  *   <SectionsView onNavigateToSection={(name) => navigateTo(`/sections/${name}`)} />
  */
 
-import {
-  Badge,
-  EmptyState,
-  EmptyStateBody,
-  Grid,
-  GridItem,
-  Title,
-} from "@patternfly/react-core";
+import { Badge, EmptyState, EmptyStateBody, Grid, GridItem, Title } from "@patternfly/react-core";
 import {
   BookIcon,
   ChartAreaIcon,
@@ -261,11 +254,7 @@ function renderCategoryIcon(iconName?: string, categoryId?: string): React.React
   // If icon is a file path (starts with /), render as image
   if (iconName && iconName.startsWith("/")) {
     return (
-      <img
-        src={iconName}
-        alt=""
-        style={{ width: "2rem", height: "2rem", objectFit: "contain" }}
-      />
+      <img src={iconName} alt="" style={{ width: "2rem", height: "2rem", objectFit: "contain" }} />
     );
   }
 
@@ -362,7 +351,10 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
     loading: categoriesLoading,
     error: categoriesError,
     refetch: refetchCategories,
-  } = useCategories(showCategories && state.activeStore ? state.activeStore : undefined, showCategories);
+  } = useCategories(
+    showCategories && state.activeStore ? state.activeStore : undefined,
+    showCategories
+  );
 
   // Unified loading/error/refetch based on which mode we're in
   const loading = showCategories ? categoriesLoading : sectionsLoading;
@@ -405,7 +397,11 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
       {loading && <LoadingSkeleton variant="card" rows={8} />}
 
       {!loading && !error && itemCount === 0 && (
-        <EmptyState icon={CubesIcon} titleText={`No ${showCategories ? "categories" : "sections"} found`} headingLevel="h4">
+        <EmptyState
+          icon={CubesIcon}
+          titleText={`No ${showCategories ? "categories" : "sections"} found`}
+          headingLevel="h4"
+        >
           <EmptyStateBody>{emptyMessage}</EmptyStateBody>
         </EmptyState>
       )}

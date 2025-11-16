@@ -87,9 +87,7 @@ describe("SectionsView - Sections Mode", () => {
           id: "test-store",
           name: "Test Store",
           description: "Test",
-          custom_sections: [
-            { section: "web", label: "Web Apps", description: "Web applications" },
-          ],
+          custom_sections: [{ section: "web", label: "Web Apps", description: "Web applications" }],
         },
       ],
     };
@@ -257,9 +255,7 @@ describe("SectionsView - Icon Rendering", () => {
       ],
     };
 
-    const mockCategories: Category[] = [
-      { id: "navigation", label: "Navigation", count: 5 },
-    ];
+    const mockCategories: Category[] = [{ id: "navigation", label: "Navigation", count: 5 }];
 
     vi.mocked(api.listCategories).mockResolvedValue(mockCategories);
 
@@ -539,7 +535,8 @@ describe("SectionsView - Edge Cases", () => {
           category_metadata: [
             {
               id: "long",
-              label: "This is a very very very very very very long category name that might overflow",
+              label:
+                "This is a very very very very very very long category name that might overflow",
             },
           ],
         },
