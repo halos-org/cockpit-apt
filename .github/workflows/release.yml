@@ -4,12 +4,16 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
+env:
+  APT_DISTRO: ${{ vars.APT_DISTRO || 'trixie' }}
+  APT_COMPONENT: ${{ vars.APT_COMPONENT || 'main' }}
+
 jobs:
   trigger-packaging:
     runs-on: ubuntu-latest
-    env:
-      APT_DISTRO: trixie
-      APT_COMPONENT: main
     # Only handle stable releases - pre-releases are handled by auto-prerelease.yml
     if: ${{ github.event.release.prerelease == false }}
     steps:
