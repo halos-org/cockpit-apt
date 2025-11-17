@@ -741,46 +741,31 @@ This command:
 
 ### Workflow Version Sources
 
-The CI/CD workflows read versions from different files, but all files are kept in sync:
+The CI/CD workflows read versions from debian/changelog:
 
-- **draft-release.yml**: Reads from `frontend/package.json`
-- **auto-prerelease.yml**: Reads from `debian/changelog`
+- **main.yml**: Reads from `debian/changelog` for all release operations
 
-Since all version files are synchronized by the version bump process, the workflows will always use consistent version numbers.
+Since all version files (VERSION, backend/pyproject.toml, frontend/package.json, debian/changelog) are synchronized by the version bump process, the workflows always use consistent version numbers across all releases.
 
 ## CI/CD Pipeline
 
 ### GitHub Actions Workflows
 
-The project uses GitHub Actions for continuous integration and deployment. The CI/CD pipeline consists of four main workflows:
+The project uses GitHub Actions for continuous integration and deployment. The CI/CD pipeline consists of three main workflows that provide a test-first approach with automated releases.
 
-> **Note on draft-release.yml:**
-> There is also a `draft-release.yml` workflow that runs on push to `main`.
-> It creates draft releases with source code (no .deb packages) for manual review before publishing stable releases.
-> This workflow is complementary to `auto-prerelease.yml`:
-> - `draft-release.yml`: Creates draft releases → manually publish → stable channel
-> - `auto-prerelease.yml`: Creates automatic pre-releases → unstable channel
-> Both workflows are required for the complete release process.
+#### 1. Pull Request Checks Workflow (pr.yml)
 
-#### 1. Build and Test Workflow (build.yml)
+**Trigger**: Pull requests to main branch
 
-**Trigger**: Pull requests and pushes to main
-
-**Purpose**: Validate code quality and test coverage
+**Purpose**: Validate code quality and test coverage before merging
 
 **Jobs**:
 
-**Backend Job**:
-- Runs in Docker container (python-apt requires Linux)
-- Executes pytest test suite (129 tests)
-- Runs ruff linting
-- Reports coverage metrics
-
-**Frontend Job**:
-- Sets up Node.js 18
-- Installs dependencies via npm
-- Builds TypeScript/React code
-- Runs vitest test suite (156 tests)
+**Tests Job**:
+- Runs all tests via the `run-tests` composite action
+- Backend: pytest test suite (129 tests) + ruff linting
+- Frontend: Build + vitest test suite (156 tests)
+- All tests must pass before PR can be merged
 
 **Wait Time**: ~3-5 minutes for all checks
 
@@ -788,65 +773,80 @@ The project uses GitHub Actions for continuous integration and deployment. The C
 - All tests must pass
 - No linting errors
 - TypeScript compilation successful
+- Backend and frontend builds complete
 
-#### 2. Automatic Pre-Release Workflow (auto-prerelease.yml)
+#### 2. Main Branch CI/CD Workflow (main.yml)
 
 **Trigger**: Push to main branch
 
-**Purpose**: Continuous delivery to unstable APT channel
+**Purpose**: Automated testing, building, and releasing on the main branch
+
+**Jobs**:
+
+**Test Job**:
+- Runs all tests via the `run-tests` composite action
+- Same checks as pr.yml workflow
+- Build only proceeds if tests pass
+
+**Build and Release Job** (depends on test):
+- Reads version from debian/changelog
+- Checks if release already exists (skips if duplicate)
+- Builds frontend and .deb package
+- Renames package with `+distro+component` suffix
+- Creates pre-release with .deb artifact
+- Creates draft release for manual review
+- Dispatches to apt.hatlabs.fi for unstable channel
 
 **Process Flow**:
 
 ```
 Push to main
     ↓
+Run all tests (backend + frontend)
+    ↓
+    ├─ Tests fail → Stop (no build/release)
+    ├─ Tests pass → Continue
+    ↓
 Read version from debian/changelog
     ↓
-Check for stable release with same/higher version
+Check if pre-release exists for this version
     ↓
-    ├─ Stable exists → Skip (log and exit)
-    ├─ No stable or version higher → Continue
+    ├─ Exists → Skip (log and exit)
+    ├─ Does not exist → Continue
     ↓
 Setup build environment
     ↓
-Build .deb package (dpkg-buildpackage)
+Build .deb package (via build-deb-package.sh)
     ↓
-Check if pre-release with version tag exists
+Rename package with +distro+component suffix
     ↓
-    ├─ Exists → Delete old pre-release and tag
-    ├─ Does not exist → Continue
+Delete old pre-release if exists
     ↓
 Create pre-release with version tag (e.g., v0.2.0)
     ↓
-Mark as pre-release (GitHub checkbox)
+Attach .deb package to pre-release
     ↓
-Attach .deb package to release
+Create draft release (for manual stable publishing)
     ↓
 Dispatch to apt.hatlabs.fi
     - Event: package-updated
-    - Payload: {repository, distro: "any", channel: "unstable", component: "main"}
-    ↓
-apt.hatlabs.fi downloads .deb from latest pre-release
+    - Payload: {repository, distro, channel: "unstable", component}
     ↓
 Package available in unstable APT distribution
 ```
 
-**Version Comparison Logic**:
-- Extract version from `debian/changelog` (e.g., "0.2.0-1")
-- List all non-draft, non-prerelease releases
-- Parse version numbers using semantic versioning
-- Skip if stable ≥ current version
+**Configuration**:
+- Uses repository variables with defaults:
+  - `APT_DISTRO` (default: `trixie`)
+  - `APT_COMPONENT` (default: `main`)
+- Can be customized via repository settings without modifying workflow
 
 **Benefits**:
+- Test-first approach: build only if tests pass
 - Every commit to main results in installable package
-- Rapid iteration for unstable channel users
-- No manual release management needed
-- Pre-releases automatically replaced (not accumulated)
-
-**Limitations**:
-- Only creates pre-releases (not stable releases)
-- Requires version bump in debian/changelog for new stable releases
-- Pre-releases with same version replace each other
+- Automatic pre-releases for unstable channel
+- Draft releases ready for manual stable publishing
+- No manual release management needed for unstable
 
 #### 3. Stable Release Workflow (release.yml)
 
@@ -861,66 +861,60 @@ Developer publishes release
     ↓
 Workflow detects release.published event
     ↓
-Determine channel based on release type
-    - Pre-release checkbox checked → "unstable"
-    - Regular release → "stable"
+Check if pre-release (skip pre-releases)
     ↓
 Dispatch to apt.hatlabs.fi
     - Event: package-updated
-    - Payload: {repository, distro: "any", channel, component: "main"}
+    - Payload: {repository, distro, channel: "stable", component}
     ↓
 apt.hatlabs.fi downloads .deb from release assets
     ↓
-Package available in appropriate APT distribution
+Package available in stable APT distribution
 ```
 
-**Note**: This workflow does NOT build packages. The .deb package must already be attached to the release (typically by the auto-prerelease workflow or manual upload).
+**Note**: This workflow does NOT build packages. The .deb package must already be attached to the release (typically from the main.yml workflow).
 
-**Channel Determination**:
-- GitHub pre-release → unstable channel → `unstable` distribution
-- Regular release → stable channel → `stable` distribution
+**Configuration**:
+- Uses repository variables with defaults:
+  - `APT_DISTRO` (default: `trixie`)
+  - `APT_COMPONENT` (default: `main`)
+- Only handles non-prerelease publications
+- Pre-releases are handled by main.yml workflow
 
-#### 4. Draft Release Workflow (draft-release.yml)
+**Channel Assignment**:
+- Regular release publication → stable channel → `stable` distribution
 
-**Trigger**: Push to main branch
+### Repository Variables
 
-**Purpose**: Create draft releases for manual review before stable release
+The workflows support configuration via GitHub repository variables for flexible deployment targeting:
 
-**Process Flow**:
+**Available Variables**:
+- `APT_DISTRO`: Target Debian distribution (default: `trixie`)
+- `APT_COMPONENT`: APT component name (default: `main`)
 
-```
-Push to main
-    ↓
-Read version from frontend/package.json
-    ↓
-Check if draft release exists
-    - If draft exists → delete and recreate
-    - If published exists → skip
-    ↓
-Build frontend (source code only)
-    ↓
-Generate release notes with changelog
-    ↓
-Create draft release with source code
-    - Marked as draft (not published)
-    - No .deb packages attached
-    ↓
-Developer reviews, edits release notes
-    ↓
-Developer publishes release (triggers release.yml)
-```
+**Setting Variables**:
+1. Go to repository Settings → Secrets and variables → Actions → Variables
+2. Click "New repository variable"
+3. Add `APT_DISTRO` and/or `APT_COMPONENT` with desired values
 
-**Key Characteristics**:
-- Creates draft releases, not pre-releases
-- Reads version from `frontend/package.json` (synchronized with canonical `VERSION`)
-- Includes source code only, no .deb packages
-- Requires manual publishing to become a stable release
-- Works together with auto-prerelease.yml (not competing workflows)
+**Default Behavior**:
+- If variables not set, workflows use sensible defaults (`trixie`, `main`)
+- Works out of box without configuration
+- Can be customized per repository for different deployment targets
 
-**Workflow Comparison**:
-- `draft-release.yml`: Reads from `frontend/package.json` → Draft → Manual publish → Stable channel
-- `auto-prerelease.yml`: Reads from `debian/changelog` → Pre-release → Automatic → Unstable channel
-- Both workflows use synchronized versions (all kept in sync via bumpversion)
+**Example Scenarios**:
+- Multi-distro: Set `APT_DISTRO=bookworm` for Debian 12 packages
+- Custom component: Set `APT_COMPONENT=contrib` for contrib packages
+- Testing: Use different values for test repositories
+
+### Composite Actions
+
+**run-tests Action** (`.github/actions/run-tests/action.yml`):
+- Encapsulates all testing logic
+- Used by both pr.yml and main.yml workflows
+- Runs backend tests, linting, frontend build, and frontend tests
+- Ensures consistent test execution across workflows
+- Can be reused by other repositories
 
 ### APT Repository Integration Architecture
 
@@ -1011,11 +1005,16 @@ distro="trixie", channel="stable"   → trixie-stable
 ```
 Developer workflow:
     ↓
-Code changes → PR → Review → Merge to main
+Code changes → PR → Review (pr.yml runs tests) → Merge to main
     ↓
-[Automatic Pre-Release Workflow]
+[Main Branch CI/CD Workflow - main.yml]
     ↓
-Build .deb → Create/update version-tagged pre-release
+Run all tests (backend + frontend)
+    ↓
+    ├─ Tests fail → Stop (no build/release)
+    ├─ Tests pass → Continue
+    ↓
+Build .deb → Create pre-release + draft release
     ↓
 Dispatch to apt.hatlabs.fi (channel: unstable)
     ↓
@@ -1025,7 +1024,9 @@ Users on unstable channel: apt update && apt install cockpit-apt
     ↓
 Testing and validation
     ↓
-[Manual Action: Publish stable release]
+[Manual Action: Publish draft release as stable]
+    ↓
+[Stable Release Workflow - release.yml]
     ↓
 Dispatch to apt.hatlabs.fi (channel: stable)
     ↓
