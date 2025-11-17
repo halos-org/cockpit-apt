@@ -22,7 +22,7 @@ LAST_TAG=$(gh release list --limit 100 --json tagName,isPrerelease,isDraft \
 
 if [ -n "$LAST_TAG" ]; then
   echo "Generating changelog since $LAST_TAG"
-  CHANGELOG=$(git log "${LAST_TAG}"..HEAD --pretty=format:"- %s (%h)" --no-merges)
+  CHANGELOG=$(git log "${LAST_TAG}"..HEAD --pretty=format:"- %s (%h)" --no-merges --)
 else
   echo "No previous published releases found, using recent commits"
   CHANGELOG=$(git log -10 --pretty=format:"- %s (%h)" --no-merges)

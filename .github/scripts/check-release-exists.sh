@@ -24,6 +24,7 @@ case "$RELEASE_TYPE" in
       echo "Found highest stable release: v${HIGHEST_STABLE}"
       # Compare versions using dpkg --compare-versions
       # Strip Debian revision from VERSION for comparison (0.2.0-1 → 0.2.0)
+      # Note: ${VERSION%-*} is safe - if VERSION has no dash, it returns VERSION unchanged
       if dpkg --compare-versions "${VERSION%-*}" le "$HIGHEST_STABLE"; then
         echo "action=skip" >> "$GITHUB_OUTPUT"
         echo "⏭️  Stable release v${HIGHEST_STABLE} >= v${VERSION%-*} - skipping pre-release"
