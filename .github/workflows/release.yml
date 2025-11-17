@@ -7,6 +7,9 @@ on:
 jobs:
   trigger-packaging:
     runs-on: ubuntu-latest
+    env:
+      APT_DISTRO: trixie
+      APT_COMPONENT: main
     # Only handle stable releases - pre-releases are handled by auto-prerelease.yml
     if: ${{ github.event.release.prerelease == false }}
     steps:
@@ -19,7 +22,7 @@ jobs:
         client-payload: |
           {
             "repository": "${{ github.repository }}",
-            "distro": "trixie",
+            "distro": "${{ env.APT_DISTRO }}",
             "channel": "stable",
-            "component": "main"
+            "component": "${{ env.APT_COMPONENT }}"
           }
