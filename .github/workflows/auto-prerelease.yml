@@ -19,42 +19,11 @@ jobs:
 
     - name: Read version from debian/changelog
       id: version
-      run: |
-        # Install devscripts for dpkg-parsechangelog
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq devscripts
-
-        VERSION=$(dpkg-parsechangelog -S Version)
-        # Strip Debian revision (everything after the last dash) for tag version
-        TAG_VERSION="${VERSION%-*}"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
-        echo "Version from debian/changelog: $VERSION (tag version: $TAG_VERSION)"
+      run: .github/scripts/read-version.sh
 
     - name: Check if published release exists
       id: check
-      run: |
-        VERSION="${{ steps.version.outputs.version }}"
-        TAG_VERSION="${{ steps.version.outputs.tag_version }}"
-
-        # Get the highest version from published (non-prerelease) releases
-        HIGHEST_STABLE=$(gh release list --limit 100 --json tagName,isPrerelease,isDraft \
-          --jq '.[] | select(.isDraft == false and .isPrerelease == false) | .tagName' | \
-          sed 's/^v//' | sort -V | tail -n1)
-
-        if [ -n "$HIGHEST_STABLE" ]; then
-          echo "Found highest stable release: v${HIGHEST_STABLE}"
-          # Compare versions using dpkg --compare-versions
-          # Strip Debian revision from VERSION for comparison (0.2.0-1 → 0.2.0)
-          if dpkg --compare-versions "${VERSION%-*}" le "$HIGHEST_STABLE"; then
-            echo "action=skip" >> $GITHUB_OUTPUT
-            echo "⏭️  Stable release v${HIGHEST_STABLE} >= v${TAG_VERSION} - skipping pre-release"
-            exit 0
-          fi
-        fi
-
-        echo "action=create" >> $GITHUB_OUTPUT
-        echo "✅ No published release with same or higher version - will create pre-release v${TAG_VERSION}"
+      run: .github/scripts/check-release-exists.sh "${{ steps.version.outputs.version }}" prerelease
       env:
         GH_TOKEN: ${{ github.token }}
 
@@ -83,75 +52,16 @@ jobs:
 
     - name: Build frontend
       if: steps.check.outputs.action == 'create'
-      run: |
-        cd frontend
-        npm ci
-        npm run build
-        cd ..
+      run: .github/scripts/build-frontend.sh
 
     - name: Build .deb package
       if: steps.check.outputs.action == 'create'
-      run: |
-        # Build the package
-        dpkg-buildpackage -b -uc -us
-
-        # List generated packages
-        echo "📦 Generated packages:"
-        ls -lh ../*.deb
+      run: .github/scripts/build-deb-package.sh
 
     - name: Generate release notes
       if: steps.check.outputs.action == 'create'
       id: notes
-      run: |
-        VERSION="${{ steps.version.outputs.version }}"
-        TAG_VERSION="${{ steps.version.outputs.tag_version }}"
-        SHORT_SHA="${GITHUB_SHA:0:7}"
-
-        # Get the latest published (non-prerelease) release
-        LAST_TAG=$(gh release list --limit 100 --json tagName,isPrerelease,isDraft \
-          --jq '.[] | select(.isDraft == false and .isPrerelease == false) | .tagName' | head -n1)
-
-        if [ -n "$LAST_TAG" ]; then
-          echo "Generating changelog since $LAST_TAG"
-          CHANGELOG=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
-        else
-          echo "No previous published releases found, using recent commits"
-          CHANGELOG=$(git log -10 --pretty=format:"- %s (%h)" --no-merges)
-        fi
-
-        # Create release notes
-        cat > release_notes.md <<EOF
-        ## Cockpit APT v${TAG_VERSION} (Pre-release)
-
-        ⚠️ **This is a pre-release build from the main branch. Use for testing only.**
-
-        **Build Information:**
-        - Commit: ${SHORT_SHA} (\`${GITHUB_SHA}\`)
-        - Built: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
-
-        ### Recent Changes
-
-        ${CHANGELOG}
-
-        ### Installation
-
-        To install this pre-release:
-
-        \`\`\`bash
-        # Add Hat Labs repository (if not already added)
-        curl -fsSL https://apt.hatlabs.fi/hat-labs-apt-key.asc | sudo gpg --dearmor -o /usr/share/keyrings/hatlabs-apt-key.gpg
-
-        # Add unstable channel
-        echo "deb [signed-by=/usr/share/keyrings/hatlabs-apt-key.gpg] https://apt.hatlabs.fi unstable main" | sudo tee /etc/apt/sources.list.d/hatlabs-unstable.list
-
-        # Update and install
-        sudo apt update
-        sudo apt install cockpit-apt
-        \`\`\`
-
-        EOF
-
-        echo "Release notes created"
+      run: .github/scripts/generate-release-notes.sh "${{ steps.version.outputs.version }}" "${{ steps.version.outputs.tag_version }}" prerelease
       env:
         GH_TOKEN: ${{ github.token }}
 
@@ -159,8 +69,6 @@ jobs:
       if: steps.check.outputs.action == 'create'
       run: |
         TAG_VERSION="${{ steps.version.outputs.tag_version }}"
-
-        # Check if pre-release exists
         if gh release view "v${TAG_VERSION}" &>/dev/null; then
           IS_PRERELEASE=$(gh release view "v${TAG_VERSION}" --json isPrerelease --jq '.isPrerelease')
           if [ "$IS_PRERELEASE" = "true" ]; then
@@ -175,20 +83,16 @@ jobs:
       if: steps.check.outputs.action == 'create'
       run: |
         TAG_VERSION="${{ steps.version.outputs.tag_version }}"
-
-        # Verify .deb files exist before creating release
         if ! ls ../*.deb 1> /dev/null 2>&1; then
           echo "❌ Error: No .deb files found"
           exit 1
         fi
-
         echo "📦 Creating pre-release v${TAG_VERSION}"
         gh release create "v${TAG_VERSION}" \
           --prerelease \
           --title "v${TAG_VERSION} (Pre-release)" \
           --notes-file release_notes.md \
           ../*.deb
-
         echo "✅ Pre-release created successfully"
       env:
         GH_TOKEN: ${{ github.token }}

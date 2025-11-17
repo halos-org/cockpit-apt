@@ -25,101 +25,38 @@ jobs:
 
     - name: Read version from package.json
       id: version
-      run: |
-        VERSION=$(node -p "require('./frontend/package.json').version")
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "Version: $VERSION"
+      run: .github/scripts/read-frontend-version.sh
 
     - name: Check if release exists
       id: check_release
-      run: |
-        if gh release view "v${{ steps.version.outputs.version }}" &>/dev/null; then
-          IS_DRAFT=$(gh release view "v${{ steps.version.outputs.version }}" --json isDraft --jq '.isDraft')
-          if [ "$IS_DRAFT" = "true" ]; then
-            echo "skip=false" >> $GITHUB_OUTPUT
-            echo "delete_existing=true" >> $GITHUB_OUTPUT
-            echo "Existing draft release found - will delete and recreate"
-          else
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "delete_existing=false" >> $GITHUB_OUTPUT
-            echo "Published release v${{ steps.version.outputs.version }} already exists - skipping"
-          fi
-        else
-          echo "skip=false" >> $GITHUB_OUTPUT
-          echo "delete_existing=false" >> $GITHUB_OUTPUT
-          echo "No existing release found"
-        fi
+      run: .github/scripts/check-release-exists.sh "${{ steps.version.outputs.version }}" draft
       env:
         GH_TOKEN: ${{ github.token }}
 
     - name: Delete existing draft release
       if: steps.check_release.outputs.delete_existing == 'true'
-      run: |
-        echo "Deleting existing draft release v${{ steps.version.outputs.version }}"
-        gh release delete "v${{ steps.version.outputs.version }}" --yes
+      run: gh release delete "v${{ steps.version.outputs.version }}" --yes
       env:
         GH_TOKEN: ${{ github.token }}
 
-    - name: Install dependencies and build
+    - name: Build frontend
       if: steps.check_release.outputs.skip == 'false'
-      run: |
-        cd frontend
-        npm ci
-        npm run build
+      run: .github/scripts/build-frontend.sh
+
+    - name: Generate release notes
+      if: steps.check_release.outputs.skip == 'false'
+      run: .github/scripts/generate-release-notes.sh "${{ steps.version.outputs.version }}" "${{ steps.version.outputs.version }}" draft
+      env:
+        GH_TOKEN: ${{ github.token }}
 
     - name: Create draft release
       if: steps.check_release.outputs.skip == 'false'
       run: |
         VERSION="${{ steps.version.outputs.version }}"
-
-        # Get the latest published release tag for changelog
-        LAST_TAG=$(gh release list --limit 100 --json tagName,isPrerelease,isDraft --jq '.[] | select(.isDraft == false and .isPrerelease == false) | .tagName' | head -n1)
-
-        if [ -n "$LAST_TAG" ]; then
-          echo "Generating changelog since $LAST_TAG"
-          CHANGELOG_COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s" --no-merges)
-        else
-          echo "No previous releases found, using recent commits"
-          CHANGELOG_COMMITS=$(git log -10 --pretty=format:"- %s" --no-merges)
-        fi
-
-        # Create release notes
-        cat > release_notes.md <<EOF
-        ## Cockpit APT v${VERSION}
-
-        Modern Cockpit interface for APT package management on Debian, inspired by Raspberry Pi's Add/Remove Software.
-
-        ### Changes
-
-        ${CHANGELOG_COMMITS}
-
-        ### Features
-
-        - Browse packages by Debian sections
-        - Search for packages across all sections
-        - View detailed package information
-        - Install and remove packages with progress tracking
-        - Dark mode support
-        - Accessible interface with keyboard navigation
-
-        ### Installation
-
-        This is the source code release. For Debian packages, see [apt.hatlabs.fi](https://github.com/hatlabs/apt.hatlabs.fi).
-
-        ### Development
-
-        For development setup and build commands, see:
-        - [README.md](https://github.com/hatlabs/cockpit-apt/blob/main/README.md) - Installation and usage
-        - [CLAUDE.md](https://github.com/hatlabs/cockpit-apt/blob/main/CLAUDE.md) - Development guide
-        - \`./run help\` - Available build and development commands
-        EOF
-
-        # Create the release (source code is automatically attached by GitHub)
         gh release create "v${VERSION}" \
           --draft \
           --title "v${VERSION}" \
           --notes-file release_notes.md
-
         echo "Created draft release v${VERSION}"
       env:
         GH_TOKEN: ${{ github.token }}
