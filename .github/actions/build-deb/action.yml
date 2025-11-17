@@ -1,0 +1,33 @@
+name: 'Build Debian Package'
+description: 'Build .deb package in Debian trixie container with Docker layer caching'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Cache Docker layers
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-debtools-${{ hashFiles('docker/Dockerfile.debtools') }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-debtools-
+
+    - name: Build debtools Docker image
+      shell: bash
+      run: |
+        cd docker
+        docker buildx build \
+          --file Dockerfile.debtools \
+          --tag debtools:latest \
+          --cache-from type=local,src=/tmp/.buildx-cache \
+          --cache-to type=local,dest=/tmp/.buildx-cache,mode=max \
+          --load \
+          .
+        cd ..
+
+    - name: Build Debian package
+      shell: bash
+      run: .github/scripts/build-deb-package.sh

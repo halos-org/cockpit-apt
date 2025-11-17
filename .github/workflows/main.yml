@@ -42,7 +42,7 @@ jobs:
 
       - name: Build .deb package
         if: steps.check.outputs.action == 'create'
-        run: .github/scripts/build-deb-package.sh
+        uses: ./.github/actions/build-deb
 
       - name: Rename package with distro+component suffix
         if: steps.check.outputs.action == 'create'
