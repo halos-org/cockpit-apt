@@ -48,8 +48,8 @@ jobs:
         if: steps.check.outputs.action == 'create'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          OLD_NAME="../cockpit-apt_${VERSION}_all.deb"
-          NEW_NAME="../cockpit-apt_${VERSION}_all+${APT_DISTRO}+${APT_COMPONENT}.deb"
+          OLD_NAME="cockpit-apt_${VERSION}_all.deb"
+          NEW_NAME="cockpit-apt_${VERSION}_all+${APT_DISTRO}+${APT_COMPONENT}.deb"
 
           if [ -f "$OLD_NAME" ]; then
             echo "📦 Renaming package: $(basename $OLD_NAME) → $(basename $NEW_NAME)"
@@ -86,7 +86,7 @@ jobs:
         if: steps.check.outputs.action == 'create'
         run: |
           TAG_VERSION="${{ steps.version.outputs.tag_version }}"
-          if ! ls ../*.deb 1> /dev/null 2>&1; then
+          if ! ls *.deb 1> /dev/null 2>&1; then
             echo "❌ Error: No .deb files found"
             exit 1
           fi
@@ -95,7 +95,7 @@ jobs:
             --prerelease \
             --title "v${TAG_VERSION} (Pre-release)" \
             --notes-file release_notes.md \
-            ../*.deb
+            *.deb
           echo "✅ Pre-release created successfully"
         env:
           GH_TOKEN: ${{ github.token }}
