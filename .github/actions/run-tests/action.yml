@@ -1,0 +1,29 @@
+name: 'Run Tests'
+description: 'Run all backend and frontend tests'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run backend tests
+      run: .github/scripts/run-backend-tests.sh
+      shell: bash
+
+    - name: Run backend linting
+      run: .github/scripts/run-backend-linting.sh
+      shell: bash
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'frontend/package-lock.json'
+
+    - name: Build frontend
+      run: .github/scripts/build-frontend.sh
+      shell: bash
+
+    - name: Run frontend tests
+      working-directory: frontend
+      run: npm test
+      shell: bash
