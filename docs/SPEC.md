@@ -10,6 +10,7 @@ This specification defines the container store filtering and repository manageme
 
 The goal is to transform cockpit-apt from a vanilla APT package manager into an extensible application platform that can present specialized package collections through filtered "store" views, while preserving its core functionality for system package management.
 
+
 ## Goals
 
 ### Primary Goals
