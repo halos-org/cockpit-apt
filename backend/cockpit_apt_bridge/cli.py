@@ -8,7 +8,7 @@ handling errors and formatting output as JSON.
 Commands:
     search QUERY                      - Search for packages matching QUERY
     details PACKAGE                   - Get detailed information about a package
-    sections                          - List all Debian sections with package counts
+    sections [--store ID]             - List all Debian sections with package counts
     list-section SECTION              - List all packages in a section
     list-installed                    - List all installed packages
     list-upgradable                   - List packages with available upgrades
@@ -64,7 +64,7 @@ Usage: cockpit-apt-bridge <command> [arguments]
 Commands:
   search QUERY                      Search for packages matching QUERY
   details PACKAGE                   Get detailed information about a package
-  sections                          List all Debian sections with package counts
+  sections [--store ID]             List all Debian sections with package counts
   list-section SECTION              List all packages in a section
   list-categories [--store ID]      List all categories (auto-discovered from tags)
   list-packages-by-category CATEGORY [--store ID]
@@ -87,6 +87,7 @@ Examples:
   cockpit-apt-bridge search nginx
   cockpit-apt-bridge details nginx
   cockpit-apt-bridge sections
+  cockpit-apt-bridge sections --store marine
   cockpit-apt-bridge list-section web
   cockpit-apt-bridge list-categories --store marine
   cockpit-apt-bridge list-packages-by-category navigation --store marine
@@ -138,7 +139,22 @@ def main() -> NoReturn:
             result = details.execute(package_name)
 
         elif command == "sections":
-            result = sections.execute()
+            # Optional --store parameter
+            store_id = None
+            if len(sys.argv) > 2:
+                if sys.argv[2] == "--store":
+                    if len(sys.argv) < 4:
+                        raise APTBridgeError(
+                            "Sections --store requires a store ID",
+                            code="INVALID_ARGUMENTS",
+                        )
+                    store_id = sys.argv[3]
+                    if len(sys.argv) > 4:
+                        raise APTBridgeError(
+                            f"Unexpected argument: {sys.argv[4]}",
+                            code="INVALID_ARGUMENTS",
+                        )
+            result = sections.execute(store_id=store_id)
 
         elif command == "list-section":
             if len(sys.argv) < 3:
