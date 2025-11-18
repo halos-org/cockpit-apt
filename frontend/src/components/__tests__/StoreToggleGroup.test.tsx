@@ -2,7 +2,7 @@
  * Tests for StoreToggleGroup
  *
  * Validates that the StoreToggleGroup component properly:
- * - Only renders when multiple stores are available
+ * - Only renders when stores are available (hidden in vanilla mode)
  * - Displays "All Packages" as the first option
  * - Does not render a label element
  * - Has proper accessibility attributes (aria-label, no aria-labelledby)
@@ -50,17 +50,30 @@ describe("StoreToggleGroup - Rendering", () => {
     vi.clearAllMocks();
   });
 
-  it("should not render when stores.length <= 1", () => {
+  it("should not render when stores.length === 0 (vanilla mode)", () => {
     mockAppState = {
       activeStore: null,
-      stores: [{ id: "test", name: "Test" }],
+      stores: [],
     };
 
     const { container } = render(<StoreToggleGroup />);
     expect(container.firstChild).toBeNull();
   });
 
-  it("should render when stores.length > 1", () => {
+  it("should render when stores.length === 1", () => {
+    mockAppState = {
+      activeStore: null,
+      stores: [{ id: "test", name: "Test Store" }],
+    };
+
+    const { container } = render(<StoreToggleGroup />);
+    expect(container.firstChild).not.toBeNull();
+    // Should show "All Packages" + the single store
+    expect(screen.getByText("All Packages")).toBeInTheDocument();
+    expect(screen.getByText("Test Store")).toBeInTheDocument();
+  });
+
+  it("should render when stores.length >= 2", () => {
     mockAppState = {
       activeStore: null,
       stores: [
@@ -251,16 +264,6 @@ describe("StoreToggleGroup - Selection State", () => {
 describe("StoreToggleGroup - Edge Cases", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it("should handle empty stores array", () => {
-    mockAppState = {
-      activeStore: null,
-      stores: [],
-    };
-
-    const { container } = render(<StoreToggleGroup />);
-    expect(container.firstChild).toBeNull();
   });
 
   it("should handle exactly 2 stores", () => {
