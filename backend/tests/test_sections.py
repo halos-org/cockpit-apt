@@ -3,12 +3,13 @@ Unit tests for sections and list-section commands.
 """
 
 from unittest.mock import MagicMock, patch
+from pathlib import Path
 
 import pytest
 
 from cockpit_apt_bridge.commands import list_section, sections
 from cockpit_apt_bridge.utils.errors import APTBridgeError
-from tests.conftest import MockCache
+from tests.conftest import MockCache, MockPackage
 
 
 def test_sections_success(mock_apt_cache):
@@ -171,3 +172,149 @@ def test_list_section_cache_error():
             list_section.execute("web")
 
         assert exc_info.value.code == "CACHE_ERROR"
+
+
+# Store filtering tests
+
+
+@pytest.fixture
+def marine_packages():
+    """Fixture providing marine-themed test packages for store filtering."""
+    packages = []
+
+    # Marine packages with field::marine tag
+    packages.append(
+        MockPackage(
+            "opencpn-container",
+            summary="Open source chart plotter",
+            version="5.10.2-1",
+            section="graphics",
+        )
+    )
+    packages[-1].candidate.record["Tag"] = "role::container-app, field::marine"
+
+    packages.append(
+        MockPackage(
+            "signalk-server-container",
+            summary="Marine data server",
+            version="2.0.0-1",
+            section="net",
+        )
+    )
+    packages[-1].candidate.record["Tag"] = "role::container-app, field::marine"
+
+    # Non-marine package
+    packages.append(
+        MockPackage(
+            "nginx",
+            summary="HTTP server",
+            version="1.18.0",
+            section="web",
+        )
+    )
+    packages[-1].candidate.record["Tag"] = "role::server, interface::web"
+
+    packages.append(
+        MockPackage(
+            "apache2",
+            summary="Apache HTTP Server",
+            version="2.4.54",
+            section="web",
+        )
+    )
+    packages[-1].candidate.record["Tag"] = "role::server, interface::web"
+
+    return packages
+
+
+@pytest.fixture
+def mock_cache_with_marine(marine_packages):
+    """Fixture providing a mock APT cache with marine and non-marine packages."""
+    return MockCache(marine_packages)
+
+
+@pytest.fixture
+def temp_store_config(tmp_path):
+    """Create temporary store config for testing."""
+    store_dir = tmp_path / "stores"
+    store_dir.mkdir()
+
+    store_file = store_dir / "marine.yaml"
+    store_file.write_text("""id: marine
+name: Marine Navigation & Monitoring
+description: Marine apps
+filters:
+  include_tags:
+    - field::marine
+""")
+
+    return store_dir
+
+
+def test_sections_without_store_id(mock_cache_with_marine):
+    """Test sections command without store_id returns all packages."""
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_cache_with_marine)
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        result = sections.execute(store_id=None)
+
+    # Should return all sections
+    section_names = [s["name"] for s in result]
+    assert "graphics" in section_names  # opencpn
+    assert "net" in section_names  # signalk
+    assert "web" in section_names  # nginx, apache2
+
+    # Check counts
+    web_section = next(s for s in result if s["name"] == "web")
+    assert web_section["count"] == 2  # nginx + apache2
+
+
+def test_sections_with_store_id_filters_packages(mock_cache_with_marine, temp_store_config):
+    """Test sections command with store_id only returns filtered packages."""
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_cache_with_marine)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch("cockpit_apt_bridge.commands.sections.STORE_CONFIG_DIR", temp_store_config):
+            result = sections.execute(store_id="marine")
+
+    # Should only return sections for marine packages
+    section_names = [s["name"] for s in result]
+    assert "graphics" in section_names  # opencpn (marine)
+    assert "net" in section_names  # signalk (marine)
+    assert "web" not in section_names  # nginx, apache2 (not marine)
+
+    # Check counts
+    graphics_section = next(s for s in result if s["name"] == "graphics")
+    assert graphics_section["count"] == 1  # only opencpn
+
+    net_section = next(s for s in result if s["name"] == "net")
+    assert net_section["count"] == 1  # only signalk
+
+
+def test_sections_with_invalid_store_id(mock_cache_with_marine, temp_store_config):
+    """Test sections command with invalid store_id raises error."""
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_cache_with_marine)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch("cockpit_apt_bridge.commands.sections.STORE_CONFIG_DIR", temp_store_config):
+            with pytest.raises(APTBridgeError) as exc_info:
+                sections.execute(store_id="invalid-store")
+
+            assert exc_info.value.code == "STORE_NOT_FOUND"
+            assert "invalid-store" in str(exc_info.value)
+
+
+def test_sections_with_store_id_empty_result(mock_apt_cache, temp_store_config):
+    """Test sections with store_id when no packages match the filter."""
+    # mock_apt_cache has no marine packages
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch("cockpit_apt_bridge.commands.sections.STORE_CONFIG_DIR", temp_store_config):
+            result = sections.execute(store_id="marine")
+
+    # Should return empty list when no packages match
+    assert result == []
