@@ -178,7 +178,10 @@ export function usePackageDetails(
  *   );
  * }
  */
-export function useSections(enabled: boolean = true): UseQueryResult<Section[]> {
+export function useSections(
+  storeId?: string | null,
+  enabled: boolean = true
+): UseQueryResult<Section[]> {
   const [data, setData] = useState<Section[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<APTError | null>(null);
@@ -193,7 +196,7 @@ export function useSections(enabled: boolean = true): UseQueryResult<Section[]> 
     setError(null);
 
     try {
-      const result = await api.listSections();
+      const result = await api.listSections(storeId ?? undefined);
       setData(result);
     } catch (err) {
       setError(err as APTError);
@@ -205,7 +208,7 @@ export function useSections(enabled: boolean = true): UseQueryResult<Section[]> 
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled]);
+  }, [storeId, enabled]);
 
   return { data, loading, error, refetch: fetchData };
 }

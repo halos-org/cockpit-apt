@@ -152,12 +152,16 @@ export async function getPackageDetails(
 /**
  * List all Debian sections with package counts
  *
+ * @param storeId Optional store ID to filter packages
  * @param useCache Whether to use cached results (default: true)
  * @returns List of sections sorted by name
  * @throws APTError if command fails
  */
-export async function listSections(useCache: boolean = true): Promise<Section[]> {
-  const cacheKey = "sections";
+export async function listSections(
+  storeId?: string,
+  useCache: boolean = true
+): Promise<Section[]> {
+  const cacheKey = storeId ? `sections:${storeId}` : "sections";
 
   // Check cache
   if (useCache) {
@@ -167,8 +171,14 @@ export async function listSections(useCache: boolean = true): Promise<Section[]>
     }
   }
 
+  // Build command
+  const command = ["sections"];
+  if (storeId) {
+    command.push("--store", storeId);
+  }
+
   // Execute command
-  const result = (await executeCommand(["sections"])) as Section[];
+  const result = (await executeCommand(command)) as Section[];
 
   // Cache result
   cache.set(cacheKey, result);

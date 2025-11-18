@@ -344,7 +344,10 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
     loading: sectionsLoading,
     error: sectionsError,
     refetch: refetchSections,
-  } = useSections(!showCategories);
+  } = useSections(
+    !showCategories && state.activeStore ? state.activeStore : undefined,
+    !showCategories
+  );
 
   const {
     data: categories,
