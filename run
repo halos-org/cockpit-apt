@@ -28,133 +28,9 @@ function devtools {
 }
 
 ################################################################################
-# Backend Development Commands
-
-function test {
-  #@ Run backend tests with pytest
-  #@ Category: Backend
-  echo "🧪 Running backend tests..."
-  devtools bash -c "cd backend && uv sync --extra dev && uv run pytest $*"
-}
-
-function lint {
-  #@ Run ruff linter on backend code
-  #@ Category: Backend
-  echo "🔍 Running ruff linter..."
-  devtools bash -c "cd backend && uv sync --extra dev && uv run ruff check ."
-}
-
-function lint:fix {
-  #@ Run ruff linter and fix issues
-  #@ Category: Backend
-  echo "🔧 Running ruff linter with auto-fix..."
-  devtools bash -c "cd backend && uv sync --extra dev && uv run ruff check --fix ."
-}
-
-function format {
-  #@ Format backend code with ruff
-  #@ Category: Backend
-  echo "✨ Formatting code with ruff..."
-  devtools \
-    bash -c "cd backend && uv sync --extra dev && uv run ruff format ."
-}
-
-function typecheck {
-  #@ Run pyright type checker
-  #@ Category: Backend
-  echo "📝 Running pyright type checker..."
-  devtools \
-    bash -c "cd backend && uv sync --extra dev && uv run pyright"
-}
-
-function shell {
-  #@ Open interactive shell in development container
-  #@ Category: Development
-  echo "🐚 Opening shell in development container..."
-  echo "   Working directory: /workspace/backend"
-  echo "   Exit with: exit or Ctrl+D"
-  echo ""
-  devtools bash
-}
-
-function dev:version:bump {
-  #@ Bump version (patch/minor/major)
-  #@ Category: Development
-  local part="${1:-patch}"
-
-  if [[ ! "$part" =~ ^(patch|minor|major)$ ]]; then
-    echo "❌ Error: Version part must be 'patch', 'minor', or 'major'"
-    echo "Usage: ./run dev:version:bump [patch|minor|major]"
-    return 1
-  fi
-
-  echo "📦 Bumping $part version..."
-
-  # Check if bumpversion is available
-  if ! command -v bumpversion &> /dev/null; then
-    echo "❌ bumpversion not found. Please install it:"
-    echo "   Run: pip3 install --user bump2version"
-    echo "   Or: brew install bumpversion (on macOS)"
-    return 1
-  fi
-
-  # Read current version
-  CURRENT_VERSION=$(cat VERSION)
-
-  # Bump version with automatic commit (includes VERSION, backend/pyproject.toml, and frontend/package.json)
-  bumpversion --current-version "$CURRENT_VERSION" \
-    --commit \
-    --message "chore: bump version to {new_version}" \
-    "$part"
-
-  # Read the new version that bumpversion created
-  NEW_VERSION=$(cat VERSION)
-
-  # Update debian/changelog and amend the commit
-  echo "📝 Updating debian/changelog to ${NEW_VERSION}-1..."
-  docker run --rm \
-    -v "$PWD:/workspace" \
-    -w /workspace \
-    -e DEBEMAIL="matti.airas@hatlabs.fi" \
-    -e DEBFULLNAME="Matti Airas" \
-    debian:trixie-slim \
-    bash -c "apt-get update -qq && apt-get install -y -qq devscripts >/dev/null 2>&1 && dch --newversion '${NEW_VERSION}-1' --distribution unstable 'Version bump to ${NEW_VERSION}'"
-
-  # Amend the commit to include debian/changelog
-  git add debian/changelog
-  git commit --amend --no-edit
-
-  echo "✅ Version bump complete: $NEW_VERSION"
-  echo ""
-  echo "Files updated and committed:"
-  echo "  - VERSION"
-  echo "  - backend/pyproject.toml"
-  echo "  - frontend/package.json"
-  echo "  - debian/changelog"
-  echo ""
-  echo "Commit created by bumpversion"
-}
-
-function build {
-  #@ Build backend package
-  #@ Category: Backend
-  echo "📦 Building backend package..."
-  devtools \
-    bash -c "cd backend && uv build"
-}
-
-function install:dev {
-  #@ Install backend in development mode
-  #@ Category: Backend
-  echo "📥 Installing backend in development mode..."
-  devtools \
-    bash -c "cd backend && uv pip install -e \".[dev]\""
-}
-
-################################################################################
 # Debian Package Building Commands
 
-function debian:build {
+function build-deb {
   #@ Build Debian package with dpkg-buildpackage
   #@ Category: Debian
   echo "📦 Building Debian package..."
@@ -165,53 +41,20 @@ function debian:build {
 }
 
 ################################################################################
-# Frontend Development Commands
+# Frontend proxy
 
-function frontend:build {
-  #@ Build frontend (TypeScript/React)
+function frontend {
+  #@ Proxy to frontend run script
   #@ Category: Frontend
-  echo "🏗️  Building frontend..."
+  echo "➡️  Running frontend command in ./frontend/run"
   cd frontend
-  npm run build
-  echo "✅ Frontend build complete"
-}
-
-function frontend:watch {
-  #@ Watch and rebuild frontend on changes
-  #@ Category: Frontend
-  echo "👀 Watching frontend for changes..."
-  cd frontend
-  npm run watch
-}
-
-function frontend:typecheck {
-  #@ Type check frontend code
-  #@ Category: Frontend
-  echo "📝 Type checking frontend..."
-  cd frontend
-  npm run typecheck
-}
-
-function frontend:lint {
-  #@ Lint frontend code
-  #@ Category: Frontend
-  echo "🔍 Linting frontend..."
-  cd frontend
-  npm run lint
-}
-
-function frontend:test {
-  #@ Run frontend tests with vitest
-  #@ Category: Frontend
-  echo "🧪 Running frontend tests..."
-  cd frontend
-  npm run test
+  ./run "$@"
 }
 
 ################################################################################
 # Docker Management Commands
 
-function docker:build {
+function build-devtools {
   #@ Build development Docker image
   #@ Category: Docker
   echo "🐳 Building development Docker image..."
@@ -219,7 +62,7 @@ function docker:build {
   echo "✅ Docker image built successfully"
 }
 
-function docker:clean {
+function clean-devtools {
   #@ Remove development Docker containers and images
   #@ Category: Docker
   echo "🧹 Cleaning Docker containers and images..."
@@ -230,23 +73,23 @@ function docker:clean {
 ################################################################################
 # CI Commands
 
-function ci:test {
+function ci-test {
   #@ Run all tests (backend + frontend) for CI
   #@ Category: CI
   echo "🚀 Running all tests for CI..."
   test
-  frontend:test
+  frontend test
   echo "✅ All tests passed"
 }
 
-function ci:lint {
+function ci-lint {
   #@ Run all linters (backend + frontend) for CI
   #@ Category: CI
   echo "🚀 Running all linters for CI..."
   lint
   typecheck
-  frontend:lint
-  frontend:typecheck
+  frontend lint
+  frontend typecheck
   echo "✅ All linters passed"
 }
 
@@ -254,25 +97,12 @@ function ci:lint {
 # Utility Commands
 
 function clean {
-  #@ Clean build artifacts
+  #@ Clean build artifacts (proxy)
   #@ Category: Utility
-  echo "🧹 Cleaning build artifacts..."
+  # Usage: ./run clean
 
-  # Backend
-  rm -rf backend/.pytest_cache
-  rm -rf backend/.ruff_cache
-  rm -rf backend/.coverage
-  rm -rf backend/htmlcov
-  rm -rf backend/dist
-  rm -rf backend/build
-  rm -rf backend/*.egg-info
-  find backend -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-
-  # Frontend
-  rm -rf frontend/node_modules/.cache
-  rm -rf frontend/dist
-
-  echo "✅ Cleanup complete"
+  backend clean
+  frontend clean
 }
 
 ################################################################################
@@ -321,20 +151,21 @@ function help {
   echo "Usage: ./run <command> [arguments...]"
   echo ""
   echo "Quick start (Backend):"
-  echo "  1. ./run docker:build      # Build development container"
-  echo "  2. ./run test              # Run backend tests"
-  echo "  3. ./run shell             # Open interactive shell"
+  echo "  1. ./run build-devtools    # Build development container"
+  echo "  2. ./run backend test      # Run backend tests"
+  echo "  3. ./run backend shell     # Open backend dev shell"
   echo ""
   echo "Quick start (Frontend):"
   echo "  1. cd frontend && npm install"
-  echo "  2. ./run frontend:build    # Build frontend"
-  echo "  3. ./run frontend:watch    # Watch for changes"
+  echo "  2. ./run frontend build    # Build frontend"
+  echo "  3. ./run frontend watch    # Watch for changes"
   echo ""
   echo "Development workflow:"
-  echo "  ./run test                 # Run tests after changes"
-  echo "  ./run lint                 # Check code style"
-  echo "  ./run typecheck            # Check types"
-  echo "  ./run format               # Format code"
+  echo "  ./run backend test         # Run backend tests after changes"
+  echo "  ./run backend lint         # Check backend code style"
+  echo "  ./run backend typecheck    # Check backend types"
+  echo "  ./run backend format       # Format backend code"
+  echo "  ./run [backend|frontend] clean  # Clean artifacts (default: both)"
 }
 
 ################################################################################

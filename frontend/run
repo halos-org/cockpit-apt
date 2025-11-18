@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+#
+# usage: ./run command [argument ...]
+#
+# Frontend-specific commands for cockpit-apt development.
+#
+
+set -o nounset
+set -o pipefail
+set -o errexit
+
+# Change the current directory to the project root.
+PROJECT_ROOT=${0%/*}
+if [[ $0 != $PROJECT_ROOT && $PROJECT_ROOT != "" ]]; then
+  cd "$PROJECT_ROOT"
+fi
+readonly PROJECT_ROOT=$(pwd)
+
+# Store the absolute path to this script (useful for recursion).
+readonly SCRIPT="$PROJECT_ROOT/$(basename "$0")"
+
+################################################################################
+# Frontend Development Commands
+
+function install {
+  #@ Install frontend dependencies
+  #@ Category: Frontend
+  echo "📦 Installing frontend dependencies..."
+  npm install
+  echo "✅ Frontend dependencies installed"
+}
+
+
+function build {
+  #@ Build frontend (TypeScript/React)
+  #@ Category: Frontend
+  echo "🏗️  Building frontend..."
+  npm run build
+  echo "✅ Frontend build complete"
+}
+
+function watch {
+  #@ Watch and rebuild frontend on changes
+  #@ Category: Frontend
+  echo "👀 Watching frontend for changes..."
+  npm run watch
+}
+
+function typecheck {
+  #@ Type check frontend code
+  #@ Category: Frontend
+  echo "📝 Type checking frontend..."
+  npm run typecheck
+}
+
+function lint {
+  #@ Lint frontend code
+  #@ Category: Frontend
+  echo "🔍 Linting frontend..."
+  npm run lint
+}
+
+function test {
+  #@ Run frontend tests with vitest
+  #@ Category: Frontend
+  echo "🧪 Running frontend tests..."
+  npm run test
+}
+
+function check {
+  #@ Run all frontend checks (lint, typecheck, tests)
+  #@ Category: Frontend
+  echo "✅ Running all frontend checks..."
+  lint
+  typecheck
+  test
+  echo "✅ All frontend checks passed"
+}
+
+function clean {
+  #@ Clean frontend build artifacts
+  #@ Category: Frontend
+  echo "🧹 Cleaning frontend build artifacts..."
+
+  rm -rf ./node_modules/.cache
+  rm -rf ./dist
+
+  echo "✅ Frontend cleanup complete"
+}
+
+################################################################################
+# Help (frontend)
+
+function help {
+  echo "Available commands:"
+  echo ""
+
+  # Extract function definitions and their help comments
+  awk '/^function / {
+    fname = $2
+    sub(/[({].*/, "", fname)
+    getline
+    if ($0 ~ /#@/) {
+      desc = $0
+      sub(/.*#@ /, "", desc)
+      sub(/ *$/, "", desc)
+      getline
+      if ($0 ~ /#@ Category:/) {
+        cat = $0
+        sub(/.*Category: /, "", cat)
+        sub(/ *$/, "", cat)
+        if (!seen[cat]++) categories[++cat_count] = cat
+        commands[cat, ++cmd_count[cat]] = fname
+        descriptions[cat, cmd_count[cat]] = desc
+      }
+    }
+  }
+  END {
+    for (i = 1; i <= cat_count; i++) {
+      cat = categories[i]
+      print "\n" cat ":"
+      for (j = 1; j <= cmd_count[cat]; j++) {
+        printf "  %-25s %s\n", commands[cat, j], descriptions[cat, j]
+      }
+    }
+  }' "$0"
+
+}
+
+################################################################################
+# Entrypoint
+
+TIMEFORMAT=$'\nTask completed in %3lR'
+time "${@:-help}"

@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+#
+# usage: ./run command [argument ...]
+#
+# Backend-specific commands for cockpit-apt development.
+#
+
+set -o nounset
+set -o pipefail
+set -o errexit
+
+# Change the current directory to the project root.
+PROJECT_ROOT=${0%/*}
+if [[ $0 != $PROJECT_ROOT && $PROJECT_ROOT != "" ]]; then
+  cd "$PROJECT_ROOT"
+fi
+readonly PROJECT_ROOT=$(pwd)
+
+# Store the absolute path to this script (useful for recursion).
+readonly SCRIPT="$PROJECT_ROOT/$(basename "$0")"
+
+################################################################################
+# Helper Functions (backend)
+
+function devtools {
+  #@ Run command in devtools container (backend)
+  docker compose -f docker/docker-compose.devtools.yml run --rm devtools "$@"
+}
+
+################################################################################
+# Backend Development Commands
+
+function test {
+  #@ Run backend tests with pytest
+  #@ Category: Backend
+  echo "🧪 Running backend tests..."
+  devtools bash -c "uv sync --extra dev && uv run pytest $*"
+}
+
+function lint {
+  #@ Run ruff linter on backend code
+  #@ Category: Backend
+  echo "🔍 Running ruff linter..."
+  devtools bash -c "uv sync --extra dev && uv run ruff check ."
+}
+
+function lintfix {
+  #@ Run ruff linter and fix issues
+  #@ Category: Backend
+  echo "🔧 Running ruff linter with auto-fix..."
+  devtools bash -c "uv sync --extra dev && uv run ruff check --fix ."
+}
+
+function format {
+  #@ Format backend code with ruff
+  #@ Category: Backend
+  echo "✨ Formatting code with ruff..."
+  devtools \
+    bash -c "uv sync --extra dev && uv run ruff format ."
+}
+
+function typecheck {
+  #@ Run pyright type checker
+  #@ Category: Backend
+  echo "📝 Running pyright type checker..."
+  devtools \
+    bash -c "uv sync --extra dev && uv run pyright"
+}
+
+function check {
+  #@ Run all backend checks (lint, typecheck, tests)
+  #@ Category: Backend
+  echo "✅ Running all backend checks..."
+  lint
+  typecheck
+  test
+  echo "✅ All backend checks passed"
+}
+
+function shell {
+  #@ Open interactive shell in development container
+  #@ Category: Development
+  echo "🐚 Opening shell in development container..."
+  echo "   Working directory: /workspace/backend"
+  echo "   Exit with: exit or Ctrl+D"
+  echo ""
+  devtools bash
+}
+
+function build {
+  #@ Build backend package
+  #@ Category: Backend
+  echo "📦 Building backend package..."
+  devtools \
+    bash -c "uv build"
+}
+
+function install_dev {
+  #@ Install backend in development mode
+  #@ Category: Backend
+  echo "📥 Installing backend in development mode..."
+  devtools \
+    bash -c "uv pip install -e \".[dev]\""
+}
+
+function clean {
+  #@ Clean backend build artifacts
+  #@ Category: Backend
+  echo "🧹 Cleaning backend build artifacts..."
+
+  rm -rf ./.pytest_cache
+  rm -rf ./.ruff_cache
+  rm -rf ./.coverage
+  rm -rf ./htmlcov
+  rm -rf ./dist
+  rm -rf ./build
+  rm -rf ./*.egg-info
+  find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+
+  echo "✅ Backend cleanup complete"
+}
+
+################################################################################
+# Help (backend)
+
+function help {
+  echo "Available commands:"
+  echo ""
+
+  # Extract function definitions and their help comments
+  awk '/^function / {
+    fname = $2
+    sub(/[({].*/, "", fname)
+    getline
+    if ($0 ~ /#@/) {
+      desc = $0
+      sub(/.*#@ /, "", desc)
+      sub(/ *$/, "", desc)
+      getline
+      if ($0 ~ /#@ Category:/) {
+        cat = $0
+        sub(/.*Category: /, "", cat)
+        sub(/ *$/, "", cat)
+        if (!seen[cat]++) categories[++cat_count] = cat
+        commands[cat, ++cmd_count[cat]] = fname
+        descriptions[cat, cmd_count[cat]] = desc
+      }
+    }
+  }
+  END {
+    for (i = 1; i <= cat_count; i++) {
+      cat = categories[i]
+      print "\n" cat ":"
+      for (j = 1; j <= cmd_count[cat]; j++) {
+        printf "  %-25s %s\n", commands[cat, j], descriptions[cat, j]
+      }
+    }
+  }' "$0"
+
+}
+
+################################################################################
+# Entrypoint
+
+TIMEFORMAT=$'\nTask completed in %3lR'
+time "${@:-help}"
