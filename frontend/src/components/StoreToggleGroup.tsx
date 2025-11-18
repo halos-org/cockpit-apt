@@ -2,7 +2,8 @@
  * Store selection toggle group component
  *
  * Displays a PatternFly ToggleGroup for selecting the active store.
- * Only renders if multiple stores are available (stores.length > 1).
+ * Only renders if stores are available (stores.length > 0).
+ * Hidden in vanilla mode (no stores installed).
  * Includes "All Packages" option to clear the filter.
  */
 
@@ -14,8 +15,8 @@ export function StoreToggleGroup() {
   const { state, actions } = useApp();
   const { stores, activeStore } = state;
 
-  // Only show if there are multiple stores
-  if (stores.length <= 1) {
+  // Only show if there are stores (hide in vanilla mode)
+  if (stores.length === 0) {
     return null;
   }
 
