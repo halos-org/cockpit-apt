@@ -27,17 +27,27 @@ function devtools {
   docker compose -f docker/docker-compose.devtools.yml run --rm devtools "$@"
 }
 
+function debtools {
+  #@ Run command in debtools container (Debian packaging)
+  docker compose -f docker/docker-compose.debtools.yml run --rm debtools "$@"
+}
+
 ################################################################################
 # Debian Package Building Commands
 
 function build-deb {
-  #@ Build Debian package with dpkg-buildpackage
+  #@ Build Debian package in debtools container
   #@ Category: Debian
   echo "📦 Building Debian package..."
-  devtools \
-    bash -c "apt-get update -qq && apt-get install -y -qq debhelper-compat=13 python3-all python3-hatchling dh-python >/dev/null 2>&1 && cd /workspace && dpkg-buildpackage -us -uc -b && mv ../*.deb ../*.changes ../*.buildinfo /workspace 2>/dev/null || true"
-  echo "✅ Debian package built successfully"
-  ls -lh cockpit-apt*.deb 2>/dev/null | tail -1 || echo "⚠️  .deb file location:"
+  # Build in debtools container which has all build dependencies pre-installed
+  # dpkg-buildpackage writes to .. by convention, so we move files back after
+  debtools \
+    bash -c "dpkg-buildpackage -b -uc -us && mv ../*.deb ../*.buildinfo ../*.changes ./ 2>/dev/null || true"
+
+  # List generated packages
+  echo "📦 Generated packages:"
+  ls -lh cockpit-apt*.deb 2>/dev/null || echo "⚠️  No .deb files found"
+  echo "✅ Package build complete"
 }
 
 ################################################################################
@@ -62,11 +72,27 @@ function build-devtools {
   echo "✅ Docker image built successfully"
 }
 
+function build-debtools {
+  #@ Build Debian packaging Docker image
+  #@ Category: Docker
+  echo "🐳 Building Debian packaging Docker image..."
+  docker compose -f docker/docker-compose.debtools.yml build debtools
+  echo "✅ Docker image built successfully"
+}
+
 function clean-devtools {
   #@ Remove development Docker containers and images
   #@ Category: Docker
   echo "🧹 Cleaning Docker containers and images..."
   docker compose -f docker/docker-compose.devtools.yml down --rmi all --volumes
+  echo "✅ Docker cleanup complete"
+}
+
+function clean-debtools {
+  #@ Remove Debian packaging Docker containers and images
+  #@ Category: Docker
+  echo "🧹 Cleaning Debian packaging Docker containers and images..."
+  docker compose -f docker/docker-compose.debtools.yml down --rmi all --volumes
   echo "✅ Docker cleanup complete"
 }
 
