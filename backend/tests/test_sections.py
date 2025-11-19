@@ -275,7 +275,7 @@ def test_sections_with_store_id_filters_packages(mock_cache_with_marine, temp_st
     mock_apt.Cache = MagicMock(return_value=mock_cache_with_marine)
 
     with patch.dict("sys.modules", {"apt": mock_apt}):
-        with patch("cockpit_apt_bridge.commands.sections.STORE_CONFIG_DIR", temp_store_config):
+        with patch("cockpit_apt_bridge.utils.store_config.STORE_CONFIG_DIR", temp_store_config):
             result = sections.execute(store_id="marine")
 
     # Should only return sections for marine packages
@@ -298,7 +298,7 @@ def test_sections_with_invalid_store_id(mock_cache_with_marine, temp_store_confi
     mock_apt.Cache = MagicMock(return_value=mock_cache_with_marine)
 
     with patch.dict("sys.modules", {"apt": mock_apt}):
-        with patch("cockpit_apt_bridge.commands.sections.STORE_CONFIG_DIR", temp_store_config):
+        with patch("cockpit_apt_bridge.utils.store_config.STORE_CONFIG_DIR", temp_store_config):
             with pytest.raises(APTBridgeError) as exc_info:
                 sections.execute(store_id="invalid-store")
 
@@ -313,7 +313,7 @@ def test_sections_with_store_id_empty_result(mock_apt_cache, temp_store_config):
     mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
 
     with patch.dict("sys.modules", {"apt": mock_apt}):
-        with patch("cockpit_apt_bridge.commands.sections.STORE_CONFIG_DIR", temp_store_config):
+        with patch("cockpit_apt_bridge.utils.store_config.STORE_CONFIG_DIR", temp_store_config):
             result = sections.execute(store_id="marine")
 
     # Should return empty list when no packages match
