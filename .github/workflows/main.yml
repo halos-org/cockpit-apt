@@ -56,7 +56,7 @@ jobs:
           UPSTREAM="${{ steps.version.outputs.upstream }}"
           REVISION="${{ steps.revision.outputs.revision }}"
           DEBIAN_VERSION="${UPSTREAM}-${REVISION}"
-          PRERELEASE_TAG="v${UPSTREAM}+${REVISION}~pre"
+          PRERELEASE_TAG="v${UPSTREAM}+${REVISION}_pre"
           STABLE_TAG="v${UPSTREAM}+${REVISION}"
 
           echo "debian_version=$DEBIAN_VERSION" >> $GITHUB_OUTPUT
