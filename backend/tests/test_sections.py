@@ -3,7 +3,6 @@ Unit tests for sections and list-section commands.
 """
 
 from unittest.mock import MagicMock, patch
-from pathlib import Path
 
 import pytest
 
