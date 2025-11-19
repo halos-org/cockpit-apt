@@ -148,11 +148,11 @@ def main() -> NoReturn:
                         code="INVALID_ARGUMENTS",
                     )
                 store_id = sys.argv[3]
-                    if len(sys.argv) > 4:
-                        raise APTBridgeError(
-                            f"Unexpected argument: {sys.argv[4]}",
-                            code="INVALID_ARGUMENTS",
-                        )
+                if len(sys.argv) > 4:
+                    raise APTBridgeError(
+                        f"Unexpected argument: {sys.argv[4]}",
+                        code="INVALID_ARGUMENTS",
+                    )
             result = sections.execute(store_id=store_id)
 
         elif command == "list-section":
