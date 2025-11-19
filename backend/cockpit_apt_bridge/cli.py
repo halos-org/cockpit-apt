@@ -141,14 +141,13 @@ def main() -> NoReturn:
         elif command == "sections":
             # Optional --store parameter
             store_id = None
-            if len(sys.argv) > 2:
-                if sys.argv[2] == "--store":
-                    if len(sys.argv) < 4:
-                        raise APTBridgeError(
-                            "Sections --store requires a store ID",
-                            code="INVALID_ARGUMENTS",
-                        )
-                    store_id = sys.argv[3]
+            if len(sys.argv) > 2 and sys.argv[2] == "--store":
+                if len(sys.argv) < 4:
+                    raise APTBridgeError(
+                        "Sections --store requires a store ID",
+                        code="INVALID_ARGUMENTS",
+                    )
+                store_id = sys.argv[3]
                     if len(sys.argv) > 4:
                         raise APTBridgeError(
                             f"Unexpected argument: {sys.argv[4]}",
