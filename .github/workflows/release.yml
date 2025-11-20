@@ -96,7 +96,7 @@ jobs:
       - name: Trigger APT repository
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.REPO_DISPATCH_PAT }}
+          token: ${{ secrets.APT_REPO_PAT }}
           repository: hatlabs/apt.hatlabs.fi
           event-type: package-updated
           client-payload: |
