@@ -31,8 +31,15 @@ import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { useEffect, useState } from "react";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
-import { listPackagesBySection } from "../lib/api";
+import { listPackagesByCategory, listPackagesBySection } from "../lib/api";
 import { Package } from "../lib/types";
+
+/**
+ * Determines if a store should display categories mode
+ */
+function shouldShowCategories(store: any): boolean {
+  return Boolean(store?.category_metadata && store.category_metadata.length > 0);
+}
 
 interface SectionPackageListViewProps {
   sectionName: string;
@@ -51,7 +58,7 @@ export function SectionPackageListView({
   onInstall,
   onRemove,
 }: SectionPackageListViewProps) {
-  const { actions } = useApp();
+  const { state, actions } = useApp();
   const [packages, setPackages] = useState<Package[]>([]);
   const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,11 +67,20 @@ export function SectionPackageListView({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [actioningPackage, setActioningPackage] = useState<string | null>(null);
 
-  // Load packages in section
+  // Determine if we're in category mode based on active store
+  const showCategories = Boolean(
+    state.activeStore &&
+      state.stores.length > 0 &&
+      shouldShowCategories(state.stores.find((s) => s.id === state.activeStore))
+  );
+  const displayLabel = showCategories ? "Categories" : "Sections";
+  const itemLabel = showCategories ? "category" : "section";
+
+  // Load packages in section/category
   useEffect(() => {
     loadPackages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sectionName]);
+  }, [sectionName, showCategories]);
 
   // Filter packages when filter type changes
   useEffect(() => {
@@ -85,7 +101,10 @@ export function SectionPackageListView({
     try {
       setLoading(true);
       setError(null);
-      const result = await listPackagesBySection(sectionName);
+      // Call appropriate API based on mode
+      const result = showCategories
+        ? await listPackagesByCategory(sectionName, state.activeStore || undefined)
+        : await listPackagesBySection(sectionName);
       setPackages(result);
     } catch (err) {
       setError(err as Error);
@@ -134,7 +153,7 @@ export function SectionPackageListView({
       <PageSection>
         <Bullseye>
           <EmptyState>
-            <Spinner size="xl" aria-label={`Loading packages in ${sectionName} section`} />
+            <Spinner size="xl" aria-label={`Loading packages in ${sectionName} ${itemLabel}`} />
             <Title headingLevel="h2" size="lg" style={{ marginTop: "1rem" }}>
               Loading {sectionName} packages...
             </Title>
@@ -150,7 +169,7 @@ export function SectionPackageListView({
       <PageSection>
         <Breadcrumb>
           <BreadcrumbItem to="#" onClick={onNavigateToSections}>
-            Sections
+            {displayLabel}
           </BreadcrumbItem>
           <BreadcrumbItem isActive>{sectionName}</BreadcrumbItem>
         </Breadcrumb>
@@ -168,7 +187,7 @@ export function SectionPackageListView({
       <PageSection>
         <Breadcrumb>
           <BreadcrumbItem to="#" onClick={onNavigateToSections}>
-            Sections
+            {displayLabel}
           </BreadcrumbItem>
           <BreadcrumbItem isActive>{sectionName}</BreadcrumbItem>
         </Breadcrumb>
@@ -176,9 +195,9 @@ export function SectionPackageListView({
           {sectionName}
         </Title>
         <EmptyState icon={CubesIcon} titleText="No packages found" headingLevel="h2">
-          <EmptyStateBody>No packages found in the {sectionName} section.</EmptyStateBody>
+          <EmptyStateBody>No packages found in the {sectionName} {itemLabel}.</EmptyStateBody>
           <Button variant="primary" onClick={onNavigateToSections}>
-            Back to sections
+            Back to {displayLabel.toLowerCase()}
           </Button>
         </EmptyState>
       </PageSection>
@@ -190,7 +209,7 @@ export function SectionPackageListView({
       <PageSection>
         <Breadcrumb>
           <BreadcrumbItem to="#" onClick={onNavigateToSections}>
-            Sections
+            {displayLabel}
           </BreadcrumbItem>
           <BreadcrumbItem isActive>{sectionName}</BreadcrumbItem>
         </Breadcrumb>
@@ -241,7 +260,7 @@ export function SectionPackageListView({
             </EmptyStateBody>
           </EmptyState>
         ) : (
-          <Table aria-label={`Packages in ${sectionName} section`} variant="compact">
+          <Table aria-label={`Packages in ${sectionName} ${itemLabel}`} variant="compact">
             <Thead>
               <Tr>
                 <Th>Package</Th>
