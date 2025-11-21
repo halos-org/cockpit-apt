@@ -12,12 +12,10 @@ env:
   APT_COMPONENT: ${{ vars.APT_COMPONENT || 'main' }}
 
 jobs:
-  copy-assets-and-dispatch:
+  dispatch-to-apt:
     runs-on: ubuntu-latest
     # Only handle stable releases - pre-releases are handled by main.yml
     if: ${{ github.event.release.prerelease == false }}
-    permissions:
-      contents: write
     steps:
       - name: Extract version info from tag
         id: version
@@ -29,67 +27,31 @@ jobs:
           if [[ $STABLE_TAG =~ ^v([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)$ ]]; then
             UPSTREAM="${BASH_REMATCH[1]}"
             REVISION="${BASH_REMATCH[2]}"
-            PRERELEASE_TAG="v${UPSTREAM}+${REVISION}_pre"
 
             echo "upstream=$UPSTREAM" >> $GITHUB_OUTPUT
             echo "revision=$REVISION" >> $GITHUB_OUTPUT
-            echo "prerelease_tag=$PRERELEASE_TAG" >> $GITHUB_OUTPUT
 
             echo "Stable tag: $STABLE_TAG"
             echo "Upstream: $UPSTREAM"
             echo "Revision: $REVISION"
-            echo "Pre-release tag: $PRERELEASE_TAG"
           else
             echo "Error: Tag format invalid. Expected: v{version}+{N}"
             echo "Got: $STABLE_TAG"
             exit 1
           fi
-        env:
-          GH_TOKEN: ${{ github.token }}
 
-      - name: Check if assets already attached
-        id: check_assets
+      - name: Verify release has assets
         run: |
           STABLE_TAG="${{ steps.version.outputs.stable_tag }}"
           ASSET_COUNT=$(gh release view "$STABLE_TAG" --repo ${{ github.repository }} --json assets --jq '.assets | length')
 
-          if [ "$ASSET_COUNT" -gt 0 ]; then
-            echo "has_assets=true" >> $GITHUB_OUTPUT
-            echo "Release already has $ASSET_COUNT asset(s), skipping copy"
-          else
-            echo "has_assets=false" >> $GITHUB_OUTPUT
-            echo "Release has no assets, will copy from pre-release"
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Download assets from pre-release
-        if: steps.check_assets.outputs.has_assets == 'false'
-        run: |
-          PRERELEASE_TAG="${{ steps.version.outputs.prerelease_tag }}"
-
-          echo "📥 Downloading .deb from pre-release $PRERELEASE_TAG"
-          gh release download "$PRERELEASE_TAG" --pattern "*.deb"
-
-          if ! ls *.deb 1> /dev/null 2>&1; then
-            echo "❌ Error: No .deb files downloaded from pre-release"
+          if [ "$ASSET_COUNT" -eq 0 ]; then
+            echo "❌ Error: Release has no assets attached"
+            echo "The .deb package should have been attached when the draft was created"
             exit 1
           fi
 
-          echo "✅ Downloaded packages:"
-          ls -lh *.deb
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Upload assets to stable release
-        if: steps.check_assets.outputs.has_assets == 'false'
-        run: |
-          STABLE_TAG="${{ steps.version.outputs.stable_tag }}"
-
-          echo "📤 Uploading .deb to stable release $STABLE_TAG"
-          gh release upload "$STABLE_TAG" *.deb --clobber
-
-          echo "✅ Assets uploaded successfully"
+          echo "✅ Release has $ASSET_COUNT asset(s)"
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -110,12 +72,12 @@ jobs:
       - name: Report success
         run: |
           STABLE_TAG="${{ steps.version.outputs.stable_tag }}"
-          PRERELEASE_TAG="${{ steps.version.outputs.prerelease_tag }}"
+          UPSTREAM="${{ steps.version.outputs.upstream }}"
+          REVISION="${{ steps.version.outputs.revision }}"
 
           echo "=== Stable Release Published ==="
           echo "Stable tag: $STABLE_TAG"
-          echo "Pre-release tag: $PRERELEASE_TAG"
+          echo "Debian version: ${UPSTREAM}-${REVISION}"
           echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/$STABLE_TAG"
           echo ""
-          echo "✅ Assets copied from pre-release"
           echo "✅ Dispatched to apt.hatlabs.fi stable channel"
