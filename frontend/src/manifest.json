@@ -7,7 +7,7 @@
   },
   "menu": {
     "index": {
-      "label": "APT",
+      "label": "Packages",
       "order": 50
     }
   }
