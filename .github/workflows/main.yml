@@ -144,13 +144,13 @@ jobs:
             # Generate release notes for draft
             .github/scripts/generate-release-notes.sh "$DEBIAN_VERSION" "$STABLE_TAG" draft
 
-            echo "📋 Creating draft release $STABLE_TAG (no assets initially)"
+            echo "📋 Creating draft release $STABLE_TAG with .deb package"
             gh release create "$STABLE_TAG" \
               --draft \
               --title "$STABLE_TAG" \
-              --notes-file release_notes.md
-            echo "✅ Draft release created successfully"
-            echo "⚠️  Note: .deb will be copied from pre-release when this draft is published"
+              --notes-file release_notes.md \
+              *.deb
+            echo "✅ Draft release created successfully with .deb attached"
           fi
         env:
           GH_TOKEN: ${{ github.token }}
@@ -184,10 +184,10 @@ jobs:
           echo "Draft URL: https://github.com/${{ github.repository }}/releases/tag/${STABLE_TAG}"
           echo ""
           echo "✅ Pre-release created with .deb package"
-          echo "✅ Draft release created (no assets yet)"
+          echo "✅ Draft release created with .deb attached"
           echo "✅ Dispatched to apt.hatlabs.fi unstable channel"
           echo ""
           echo "📝 To publish stable release:"
           echo "   1. Test the unstable package"
           echo "   2. Publish the draft release in GitHub UI"
-          echo "   3. release.yml will copy the .deb and dispatch to stable channel"
+          echo "   3. release.yml will dispatch to stable channel"
