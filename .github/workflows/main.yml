@@ -10,5 +10,7 @@ jobs:
     with:
       package-name: cockpit-apt
       package-description: 'Modern Cockpit interface for APT package management on Debian'
+      apt-distro: trixie
+      apt-component: main
     secrets:
       APT_REPO_PAT: ${{ secrets.APT_REPO_PAT }}
