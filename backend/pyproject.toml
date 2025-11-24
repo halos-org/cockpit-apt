@@ -22,7 +22,8 @@ dependencies = [
 ]
 
 [project.scripts]
-cockpit-apt = "cockpit_apt.cli:main"
+# Keep as cockpit-apt-bridge for backward compatibility with frontend
+cockpit-apt-bridge = "cockpit_apt.cli:main"
 
 [project.optional-dependencies]
 dev = [
