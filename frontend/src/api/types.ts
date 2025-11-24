@@ -3,51 +3,6 @@
  */
 
 /**
- * Custom section metadata for a store (deprecated - use category_metadata)
- */
-export interface CustomSection {
-  section: string;
-  label: string;
-  description: string;
-  icon?: string;
-}
-
-/**
- * Category metadata for a store (enhances auto-discovered categories)
- */
-export interface CategoryMetadata {
-  id: string;
-  label: string;
-  icon?: string; // PatternFly icon name OR file path
-  description?: string;
-}
-
-/**
- * Category information (auto-discovered from package tags)
- */
-export interface Category {
-  id: string;
-  label: string;
-  icon?: string; // PatternFly icon name OR file path
-  description?: string;
-  count: number; // Package count
-}
-
-/**
- * Store configuration from stores.yaml
- */
-export interface Store {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  repositories?: string[];
-  debtags?: string[];
-  custom_sections?: CustomSection[]; // Deprecated - kept for backward compatibility
-  category_metadata?: CategoryMetadata[]; // Optional metadata for categories
-}
-
-/**
  * Repository information with package count
  */
 export interface Repository {
@@ -57,6 +12,14 @@ export interface Repository {
   label: string;
   suite: string;
   package_count: number;
+}
+
+/**
+ * Section information with package count
+ */
+export interface Section {
+  name: string;
+  count: number;
 }
 
 /**
@@ -70,7 +33,6 @@ export interface Package {
   installed: boolean;
   upgradable: boolean;
   repository_id?: string;
-  debtags?: string[];
   // Additional fields for upgradable packages
   installedVersion?: string;
   candidateVersion?: string;
@@ -80,7 +42,6 @@ export interface Package {
  * Filter parameters for package filtering
  */
 export interface FilterParams {
-  store_id?: string;
   repository_id?: string;
   tab?: "installed" | "upgradable";
   search_query?: string;
