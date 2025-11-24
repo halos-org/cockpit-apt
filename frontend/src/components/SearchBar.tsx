@@ -43,9 +43,6 @@ export interface SearchBarProps {
   /** Callback when search should be executed (after debounce) */
   onSearch?: (query: string) => void;
 
-  /** Whether search is currently loading */
-  loading?: boolean;
-
   /** Placeholder text */
   placeholder?: string;
 
@@ -117,7 +114,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   );
 
   const showMinLengthHint = value.length > 0 && value.length < minLength;
-  const showClearButton = value.length > 0 && !loading;
 
   return (
     <div className={className}>
@@ -131,21 +127,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           aria-label="Search packages"
           validated={showMinLengthHint ? "warning" : "default"}
         />
-        {loading && (
-          <Button variant="plain" isDisabled aria-label="Searching">
-            <Spinner size="md" />
-          </Button>
-        )}
-        {showClearButton && (
-          <Button variant="plain" onClick={handleClear} aria-label="Clear search">
-            <TimesIcon />
-          </Button>
-        )}
-        {!loading && !showClearButton && (
-          <Button variant="plain" isDisabled aria-label="Search">
-            <SearchIcon />
-          </Button>
-        )}
+        <Button variant="plain" isDisabled aria-label="Search">
+          <SearchIcon />
+        </Button>
       </InputGroup>
 
       {showMinLengthHint && (

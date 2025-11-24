@@ -26,12 +26,12 @@ import {
   EmptyState,
   EmptyStateBody,
   Button,
+  Spinner,
 } from "@patternfly/react-core";
 import { SearchIcon } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { SearchBar } from "../components/SearchBar";
 import { ErrorAlert } from "../components/ErrorAlert";
-import { LoadingSkeleton } from "../components/LoadingSkeleton";
 import { useApp } from "../context/AppContext";
 import type { Package } from "../api/types";
 
@@ -102,7 +102,6 @@ export const SearchView: React.FC<SearchViewProps> = ({
         <SearchBar
           value={state.searchQuery}
           onChange={actions.setSearchQuery}
-          loading={state.packagesLoading}
           placeholder="Search for packages by name or description..."
           style={{ marginBottom: "1.5rem" }}
         />
@@ -116,7 +115,13 @@ export const SearchView: React.FC<SearchViewProps> = ({
           />
         )}
 
-        {state.packagesLoading && <LoadingSkeleton variant="table" rows={5} />}
+        {state.packagesLoading && (
+          <EmptyState titleText="Searching..." headingLevel="h3">
+            <EmptyStateBody>
+              <Spinner size="xl" aria-label="Loading packages" />
+            </EmptyStateBody>
+          </EmptyState>
+        )}
 
         {!state.packagesLoading &&
           !state.packagesError &&
