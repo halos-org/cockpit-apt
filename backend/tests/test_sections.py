@@ -250,12 +250,12 @@ filters:
     return store_dir
 
 
-def test_sections_without_store_id(mock_cache_with_marine):
-    """Test sections command without store_id returns all packages."""
+def test_sections_returns_all_packages(mock_cache_with_marine):
+    """Test sections command returns all packages."""
     mock_apt = MagicMock()
     mock_apt.Cache = MagicMock(return_value=mock_cache_with_marine)
     with patch.dict("sys.modules", {"apt": mock_apt}):
-        result = sections.execute(store_id=None)
+        result = sections.execute()
 
     # Should return all sections
     section_names = [s["name"] for s in result]
@@ -266,54 +266,3 @@ def test_sections_without_store_id(mock_cache_with_marine):
     # Check counts
     web_section = next(s for s in result if s["name"] == "web")
     assert web_section["count"] == 2  # nginx + apache2
-
-
-def test_sections_with_store_id_filters_packages(mock_cache_with_marine, temp_store_config):
-    """Test sections command with store_id only returns filtered packages."""
-    mock_apt = MagicMock()
-    mock_apt.Cache = MagicMock(return_value=mock_cache_with_marine)
-
-    with patch.dict("sys.modules", {"apt": mock_apt}):
-        with patch("cockpit_apt_bridge.utils.store_config.STORE_CONFIG_DIR", temp_store_config):
-            result = sections.execute(store_id="marine")
-
-    # Should only return sections for marine packages
-    section_names = [s["name"] for s in result]
-    assert "graphics" in section_names  # opencpn (marine)
-    assert "net" in section_names  # signalk (marine)
-    assert "web" not in section_names  # nginx, apache2 (not marine)
-
-    # Check counts
-    graphics_section = next(s for s in result if s["name"] == "graphics")
-    assert graphics_section["count"] == 1  # only opencpn
-
-    net_section = next(s for s in result if s["name"] == "net")
-    assert net_section["count"] == 1  # only signalk
-
-
-def test_sections_with_invalid_store_id(mock_cache_with_marine, temp_store_config):
-    """Test sections command with invalid store_id raises error."""
-    mock_apt = MagicMock()
-    mock_apt.Cache = MagicMock(return_value=mock_cache_with_marine)
-
-    with patch.dict("sys.modules", {"apt": mock_apt}):
-        with patch("cockpit_apt_bridge.utils.store_config.STORE_CONFIG_DIR", temp_store_config):
-            with pytest.raises(APTBridgeError) as exc_info:
-                sections.execute(store_id="invalid-store")
-
-            assert exc_info.value.code == "STORE_NOT_FOUND"
-            assert "invalid-store" in str(exc_info.value)
-
-
-def test_sections_with_store_id_empty_result(mock_apt_cache, temp_store_config):
-    """Test sections with store_id when no packages match the filter."""
-    # mock_apt_cache has no marine packages
-    mock_apt = MagicMock()
-    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
-
-    with patch.dict("sys.modules", {"apt": mock_apt}):
-        with patch("cockpit_apt_bridge.utils.store_config.STORE_CONFIG_DIR", temp_store_config):
-            result = sections.execute(store_id="marine")
-
-    # Should return empty list when no packages match
-    assert result == []
