@@ -1,7 +1,7 @@
 """
-Remove command implementation.
+Install command implementation.
 
-Removes a package using apt-get with progress reporting via Status-Fd.
+Installs a package using apt-get with progress reporting via Status-Fd.
 Progress is output as JSON lines to stdout for streaming to frontend.
 """
 
@@ -11,35 +11,21 @@ import select
 import subprocess
 from typing import Any
 
-from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
-from cockpit_apt_bridge.utils.validators import validate_package_name
-
-# Essential packages that should never be removed
-ESSENTIAL_PACKAGES = {
-    "dpkg",
-    "apt",
-    "apt-get",
-    "libc6",
-    "init",
-    "systemd",
-    "base-files",
-    "base-passwd",
-    "bash",
-    "coreutils",
-}
+from cockpit_apt.utils.errors import APTBridgeError, PackageNotFoundError
+from cockpit_apt.utils.validators import validate_package_name
 
 
 def execute(package_name: str) -> dict[str, Any] | None:
     """
-    Remove a package using apt-get.
+    Install a package using apt-get.
 
-    Uses apt-get remove with Status-Fd=3 for progress reporting.
+    Uses apt-get install with Status-Fd=3 for progress reporting.
     Outputs progress as JSON lines to stdout:
     - Progress: {"type": "progress", "percentage": int, "message": str}
     - Final: {"success": bool, "message": str, "package_name": str}
 
     Args:
-        package_name: Name of the package to remove
+        package_name: Name of the package to install
 
     Returns:
         dict with:
@@ -48,24 +34,29 @@ def execute(package_name: str) -> dict[str, Any] | None:
         - package_name: str
 
     Raises:
-        APTBridgeError: If package name is invalid, essential, or command fails
-        PackageNotFoundError: If package is not installed
+        APTBridgeError: If package name is invalid or command fails
+        PackageNotFoundError: If package doesn't exist
     """
     # Validate package name
     validate_package_name(package_name)
 
-    # Check if package is essential
-    if package_name in ESSENTIAL_PACKAGES:
-        raise APTBridgeError(
-            f"Cannot remove essential package '{package_name}'",
-            code="ESSENTIAL_PACKAGE",
-            details="Removing this package may break your system",
-        )
-
     # Prepare apt-get command with Status-Fd
     # -y: assume yes to prompts
     # -o APT::Status-Fd=3: write status to file descriptor 3
-    cmd = ["apt-get", "remove", "-y", "-o", "APT::Status-Fd=3", package_name]
+    # -o Dpkg::Options::=--force-confdef: use default for conf file prompts
+    # -o Dpkg::Options::=--force-confold: keep old conf files
+    cmd = [
+        "apt-get",
+        "install",
+        "-y",
+        "-o",
+        "APT::Status-Fd=3",
+        "-o",
+        "Dpkg::Options::=--force-confdef",
+        "-o",
+        "Dpkg::Options::=--force-confold",
+        package_name,
+    ]
 
     try:
         # Create pipe for Status-Fd (file descriptor 3)
@@ -128,25 +119,27 @@ def execute(package_name: str) -> dict[str, Any] | None:
         # Check exit code
         if process.returncode != 0:
             # Parse error from stderr
-            if "Unable to locate package" in stderr or "is not installed" in stderr:
+            if "Unable to locate package" in stderr:
                 raise PackageNotFoundError(package_name)
             elif "dpkg was interrupted" in stderr:
                 raise APTBridgeError("Package manager is locked", code="LOCKED", details=stderr)
+            elif "You don't have enough free space" in stderr:
+                raise APTBridgeError("Insufficient disk space", code="DISK_FULL", details=stderr)
             else:
                 raise APTBridgeError(
-                    f"Failed to remove package '{package_name}'",
-                    code="REMOVE_FAILED",
+                    f"Failed to install package '{package_name}'",
+                    code="INSTALL_FAILED",
                     details=stderr,
                 )
 
         # Success - output final progress
-        final_progress = {"type": "progress", "percentage": 100, "message": "Removal complete"}
+        final_progress = {"type": "progress", "percentage": 100, "message": "Installation complete"}
         print(json.dumps(final_progress), flush=True)
 
         # Output final result as single-line JSON
         final_result = {
             "success": True,
-            "message": f"Successfully removed {package_name}",
+            "message": f"Successfully installed {package_name}",
             "package_name": package_name,
         }
         print(json.dumps(final_result), flush=True)
@@ -158,7 +151,7 @@ def execute(package_name: str) -> dict[str, Any] | None:
         raise
     except Exception as e:
         raise APTBridgeError(
-            f"Error removing '{package_name}'", code="INTERNAL_ERROR", details=str(e)
+            f"Error installing '{package_name}'", code="INTERNAL_ERROR", details=str(e)
         ) from e
 
 

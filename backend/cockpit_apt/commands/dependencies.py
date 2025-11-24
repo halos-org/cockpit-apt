@@ -6,9 +6,9 @@ Gets direct dependencies of a package.
 
 from typing import Any
 
-from cockpit_apt_bridge.utils.errors import CacheError, PackageNotFoundError
-from cockpit_apt_bridge.utils.formatters import format_dependency
-from cockpit_apt_bridge.utils.validators import validate_package_name
+from cockpit_apt.utils.errors import CacheError, PackageNotFoundError
+from cockpit_apt.utils.formatters import format_dependency
+from cockpit_apt.utils.validators import validate_package_name
 
 
 def execute(package_name: str) -> list[dict[str, Any]]:

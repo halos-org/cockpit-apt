@@ -6,8 +6,8 @@ Gets list of files installed by a package.
 
 import subprocess
 
-from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
-from cockpit_apt_bridge.utils.validators import validate_package_name
+from cockpit_apt.utils.errors import APTBridgeError, PackageNotFoundError
+from cockpit_apt.utils.validators import validate_package_name
 
 
 def execute(package_name: str) -> list[str]:

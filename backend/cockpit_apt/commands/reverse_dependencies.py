@@ -4,8 +4,8 @@ Reverse-dependencies command implementation.
 Gets packages that depend on this package (reverse dependencies).
 """
 
-from cockpit_apt_bridge.utils.errors import CacheError, PackageNotFoundError
-from cockpit_apt_bridge.utils.validators import validate_package_name
+from cockpit_apt.utils.errors import CacheError, PackageNotFoundError
+from cockpit_apt.utils.validators import validate_package_name
 
 
 def execute(package_name: str) -> list[str]:

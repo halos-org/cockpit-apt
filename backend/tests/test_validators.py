@@ -4,8 +4,8 @@ Unit tests for input validation functions.
 
 import pytest
 
-from cockpit_apt_bridge.utils.errors import APTBridgeError
-from cockpit_apt_bridge.utils.validators import validate_package_name, validate_section_name
+from cockpit_apt.utils.errors import APTBridgeError
+from cockpit_apt.utils.validators import validate_package_name, validate_section_name
 
 
 class TestValidatePackageName:

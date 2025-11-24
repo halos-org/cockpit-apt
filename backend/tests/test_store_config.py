@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from cockpit_apt_bridge.utils.store_config import (
+from cockpit_apt.utils.store_config import (
     StoreConfig,
     StoreFilter,
     load_stores,

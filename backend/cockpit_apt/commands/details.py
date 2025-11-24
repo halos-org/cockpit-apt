@@ -49,9 +49,9 @@ Example:
 
 from typing import Any
 
-from cockpit_apt_bridge.utils.errors import CacheError, PackageNotFoundError
-from cockpit_apt_bridge.utils.formatters import format_dependency, format_package_details
-from cockpit_apt_bridge.utils.validators import validate_package_name
+from cockpit_apt.utils.errors import CacheError, PackageNotFoundError
+from cockpit_apt.utils.formatters import format_dependency, format_package_details
+from cockpit_apt.utils.validators import validate_package_name
 
 
 def execute(package_name: str) -> dict[str, Any]:

@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock
 
-from cockpit_apt_bridge.utils.repository_parser import (
+from cockpit_apt.utils.repository_parser import (
     Repository,
     get_package_repository,
     package_matches_repository,

@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cockpit_apt_bridge.commands import files
-from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
+from cockpit_apt.commands import files
+from cockpit_apt.utils.errors import APTBridgeError, PackageNotFoundError
 
 
 def test_files_success():

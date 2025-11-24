@@ -6,9 +6,9 @@ Lists all packages in a specific Debian section.
 
 from typing import Any
 
-from cockpit_apt_bridge.utils.errors import CacheError
-from cockpit_apt_bridge.utils.formatters import format_package
-from cockpit_apt_bridge.utils.validators import validate_section_name
+from cockpit_apt.utils.errors import CacheError
+from cockpit_apt.utils.formatters import format_package
+from cockpit_apt.utils.validators import validate_section_name
 
 
 def execute(section_name: str) -> list[dict[str, Any]]:

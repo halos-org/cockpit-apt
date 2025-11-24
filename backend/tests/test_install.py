@@ -8,8 +8,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from cockpit_apt_bridge.commands.install import _parse_status_line, execute
-from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
+from cockpit_apt.commands.install import _parse_status_line, execute
+from cockpit_apt.utils.errors import APTBridgeError, PackageNotFoundError
 
 
 class TestParseStatusLine:
@@ -69,11 +69,11 @@ class TestParseStatusLine:
 class TestExecute:
     """Test execute function."""
 
-    @patch("cockpit_apt_bridge.commands.install.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.install.os.pipe")
-    @patch("cockpit_apt_bridge.commands.install.os.close")
-    @patch("cockpit_apt_bridge.commands.install.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.install.select.select")
+    @patch("cockpit_apt.commands.install.subprocess.Popen")
+    @patch("cockpit_apt.commands.install.os.pipe")
+    @patch("cockpit_apt.commands.install.os.close")
+    @patch("cockpit_apt.commands.install.os.fdopen")
+    @patch("cockpit_apt.commands.install.select.select")
     @patch("builtins.print")
     def test_install_success(
         self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
@@ -124,11 +124,11 @@ class TestExecute:
         # Verify file descriptor was closed
         mock_close.assert_called()
 
-    @patch("cockpit_apt_bridge.commands.install.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.install.os.pipe")
-    @patch("cockpit_apt_bridge.commands.install.os.close")
-    @patch("cockpit_apt_bridge.commands.install.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.install.select.select")
+    @patch("cockpit_apt.commands.install.subprocess.Popen")
+    @patch("cockpit_apt.commands.install.os.pipe")
+    @patch("cockpit_apt.commands.install.os.close")
+    @patch("cockpit_apt.commands.install.os.fdopen")
+    @patch("cockpit_apt.commands.install.select.select")
     def test_install_package_not_found(
         self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
     ):
@@ -152,11 +152,11 @@ class TestExecute:
         with pytest.raises(PackageNotFoundError):
             execute("nonexistent")
 
-    @patch("cockpit_apt_bridge.commands.install.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.install.os.pipe")
-    @patch("cockpit_apt_bridge.commands.install.os.close")
-    @patch("cockpit_apt_bridge.commands.install.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.install.select.select")
+    @patch("cockpit_apt.commands.install.subprocess.Popen")
+    @patch("cockpit_apt.commands.install.os.pipe")
+    @patch("cockpit_apt.commands.install.os.close")
+    @patch("cockpit_apt.commands.install.os.fdopen")
+    @patch("cockpit_apt.commands.install.select.select")
     def test_install_locked(self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
         """Test installation when package manager is locked."""
         # Setup mocks
@@ -180,11 +180,11 @@ class TestExecute:
 
         assert exc_info.value.code == "LOCKED"
 
-    @patch("cockpit_apt_bridge.commands.install.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.install.os.pipe")
-    @patch("cockpit_apt_bridge.commands.install.os.close")
-    @patch("cockpit_apt_bridge.commands.install.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.install.select.select")
+    @patch("cockpit_apt.commands.install.subprocess.Popen")
+    @patch("cockpit_apt.commands.install.os.pipe")
+    @patch("cockpit_apt.commands.install.os.close")
+    @patch("cockpit_apt.commands.install.os.fdopen")
+    @patch("cockpit_apt.commands.install.select.select")
     def test_install_disk_full(self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
         """Test installation when disk is full."""
         # Setup mocks
@@ -208,10 +208,10 @@ class TestExecute:
 
         assert exc_info.value.code == "DISK_FULL"
 
-    @patch("cockpit_apt_bridge.commands.install.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.install.os.pipe")
-    @patch("cockpit_apt_bridge.commands.install.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.install.select.select")
+    @patch("cockpit_apt.commands.install.subprocess.Popen")
+    @patch("cockpit_apt.commands.install.os.pipe")
+    @patch("cockpit_apt.commands.install.os.fdopen")
+    @patch("cockpit_apt.commands.install.select.select")
     def test_install_generic_failure(self, mock_select, mock_fdopen, mock_pipe, mock_popen):
         """Test installation with generic failure."""
         # Setup mocks
@@ -243,8 +243,8 @@ class TestExecute:
         with pytest.raises(APTBridgeError):
             execute("pkg;rm -rf /")
 
-    @patch("cockpit_apt_bridge.commands.install.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.install.os.pipe")
+    @patch("cockpit_apt.commands.install.subprocess.Popen")
+    @patch("cockpit_apt.commands.install.os.pipe")
     def test_install_exception_handling(self, mock_pipe, mock_popen):
         """Test exception handling during installation."""
         # Make pipe() raise exception

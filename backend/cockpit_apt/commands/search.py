@@ -37,8 +37,8 @@ Example:
 
 from typing import Any
 
-from cockpit_apt_bridge.utils.errors import CacheError
-from cockpit_apt_bridge.utils.formatters import format_package
+from cockpit_apt.utils.errors import CacheError
+from cockpit_apt.utils.formatters import format_package
 
 
 def execute(query: str) -> list[dict[str, Any]]:
@@ -56,7 +56,7 @@ def execute(query: str) -> list[dict[str, Any]]:
     """
     # Validate query length
     if len(query) < 2:
-        from cockpit_apt_bridge.utils.errors import APTBridgeError
+        from cockpit_apt.utils.errors import APTBridgeError
 
         raise APTBridgeError("Query must be at least 2 characters", code="INVALID_QUERY")
 

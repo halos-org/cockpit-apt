@@ -11,7 +11,7 @@ import re
 import subprocess
 from typing import Any
 
-from cockpit_apt_bridge.utils.errors import APTBridgeError
+from cockpit_apt.utils.errors import APTBridgeError
 
 
 def execute() -> dict[str, Any] | None:

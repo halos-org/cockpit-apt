@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock
 
-from cockpit_apt_bridge.utils.debtag_parser import (
+from cockpit_apt.utils.debtag_parser import (
     derive_category_label,
     get_tag_facet,
     get_tags_by_facet,

@@ -1,5 +1,5 @@
 [project]
-name = "cockpit-apt-bridge"
+name = "cockpit-apt"
 version = "0.2.0"
 description = "APT package management backend for Cockpit"
 readme = "README.md"
@@ -22,7 +22,8 @@ dependencies = [
 ]
 
 [project.scripts]
-cockpit-apt-bridge = "cockpit_apt_bridge.cli:main"
+# Keep as cockpit-apt-bridge for backward compatibility with frontend
+cockpit-apt-bridge = "cockpit_apt.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -45,13 +46,13 @@ python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "--cov=cockpit_apt_bridge",
+    "--cov=cockpit_apt",
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
 
 [tool.coverage.run]
-source = ["cockpit_apt_bridge"]
+source = ["cockpit_apt"]
 omit = ["*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]
@@ -91,7 +92,7 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.pyright]
-include = ["cockpit_apt_bridge"]
+include = ["cockpit_apt"]
 exclude = ["**/__pycache__", "**/node_modules", ".venv", ".uv"]
 stubPath = "stubs"
 pythonVersion = "3.11"

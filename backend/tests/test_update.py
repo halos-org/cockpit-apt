@@ -8,14 +8,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from cockpit_apt_bridge.commands.update import execute
-from cockpit_apt_bridge.utils.errors import APTBridgeError
+from cockpit_apt.commands.update import execute
+from cockpit_apt.utils.errors import APTBridgeError
 
 
 class TestExecute:
     """Test execute function."""
 
-    @patch("cockpit_apt_bridge.commands.update.subprocess.Popen")
+    @patch("cockpit_apt.commands.update.subprocess.Popen")
     @patch("builtins.print")
     def test_update_success(self, mock_print, mock_popen):
         """Test successful package list update."""
@@ -50,7 +50,7 @@ class TestExecute:
         # Verify progress was printed
         assert mock_print.call_count >= 1
 
-    @patch("cockpit_apt_bridge.commands.update.subprocess.Popen")
+    @patch("cockpit_apt.commands.update.subprocess.Popen")
     @patch("builtins.print")
     def test_update_with_ignored_repos(self, mock_print, mock_popen):
         """Test update with some ignored repositories."""
@@ -73,7 +73,7 @@ class TestExecute:
         # Should complete successfully even with ignored repos
         assert result is None
 
-    @patch("cockpit_apt_bridge.commands.update.subprocess.Popen")
+    @patch("cockpit_apt.commands.update.subprocess.Popen")
     def test_update_failure(self, mock_popen):
         """Test update failure."""
         output_lines = [
@@ -95,7 +95,7 @@ class TestExecute:
 
         assert exc_info.value.code == "UPDATE_FAILED"
 
-    @patch("cockpit_apt_bridge.commands.update.subprocess.Popen")
+    @patch("cockpit_apt.commands.update.subprocess.Popen")
     def test_update_locked(self, mock_popen):
         """Test update when package manager is locked."""
         output_lines = [
@@ -116,7 +116,7 @@ class TestExecute:
 
         assert exc_info.value.code == "LOCKED"
 
-    @patch("cockpit_apt_bridge.commands.update.subprocess.Popen")
+    @patch("cockpit_apt.commands.update.subprocess.Popen")
     def test_update_exception_handling(self, mock_popen):
         """Test exception handling during update."""
         # Make Popen raise exception
@@ -128,7 +128,7 @@ class TestExecute:
 
         assert exc_info.value.code == "INTERNAL_ERROR"
 
-    @patch("cockpit_apt_bridge.commands.update.subprocess.Popen")
+    @patch("cockpit_apt.commands.update.subprocess.Popen")
     @patch("builtins.print")
     def test_update_progress_reporting(self, mock_print, mock_popen):
         """Test that progress is reported during update."""

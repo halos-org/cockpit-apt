@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.11"
 
 [[package]]
-name = "cockpit-apt-bridge"
+name = "cockpit-apt"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [

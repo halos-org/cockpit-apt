@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cockpit_apt_bridge.commands import search
-from cockpit_apt_bridge.utils.errors import APTBridgeError
+from cockpit_apt.commands import search
+from cockpit_apt.utils.errors import APTBridgeError
 from tests.conftest import MockCache, MockPackage
 
 

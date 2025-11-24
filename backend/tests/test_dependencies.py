@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cockpit_apt_bridge.commands import dependencies, reverse_dependencies
-from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
+from cockpit_apt.commands import dependencies, reverse_dependencies
+from cockpit_apt.utils.errors import APTBridgeError, PackageNotFoundError
 from tests.conftest import MockCache, MockDependency, MockPackage
 
 

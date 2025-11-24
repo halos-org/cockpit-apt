@@ -2,8 +2,8 @@
 
 from unittest.mock import MagicMock
 
-from cockpit_apt_bridge.utils.store_config import StoreConfig, StoreFilter
-from cockpit_apt_bridge.utils.store_filter import (
+from cockpit_apt.utils.store_config import StoreConfig, StoreFilter
+from cockpit_apt.utils.store_filter import (
     count_matching_packages,
     filter_packages,
     matches_store_filter,

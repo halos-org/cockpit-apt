@@ -8,18 +8,18 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from cockpit_apt_bridge.commands.remove import execute
-from cockpit_apt_bridge.utils.errors import APTBridgeError, PackageNotFoundError
+from cockpit_apt.commands.remove import execute
+from cockpit_apt.utils.errors import APTBridgeError, PackageNotFoundError
 
 
 class TestExecute:
     """Test execute function."""
 
-    @patch("cockpit_apt_bridge.commands.remove.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.remove.os.pipe")
-    @patch("cockpit_apt_bridge.commands.remove.os.close")
-    @patch("cockpit_apt_bridge.commands.remove.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.remove.select.select")
+    @patch("cockpit_apt.commands.remove.subprocess.Popen")
+    @patch("cockpit_apt.commands.remove.os.pipe")
+    @patch("cockpit_apt.commands.remove.os.close")
+    @patch("cockpit_apt.commands.remove.os.fdopen")
+    @patch("cockpit_apt.commands.remove.select.select")
     @patch("builtins.print")
     def test_remove_success(
         self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
@@ -71,11 +71,11 @@ class TestExecute:
 
             assert exc_info.value.code == "ESSENTIAL_PACKAGE"
 
-    @patch("cockpit_apt_bridge.commands.remove.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.remove.os.pipe")
-    @patch("cockpit_apt_bridge.commands.remove.os.close")
-    @patch("cockpit_apt_bridge.commands.remove.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.remove.select.select")
+    @patch("cockpit_apt.commands.remove.subprocess.Popen")
+    @patch("cockpit_apt.commands.remove.os.pipe")
+    @patch("cockpit_apt.commands.remove.os.close")
+    @patch("cockpit_apt.commands.remove.os.fdopen")
+    @patch("cockpit_apt.commands.remove.select.select")
     def test_remove_not_installed(
         self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
     ):
@@ -99,11 +99,11 @@ class TestExecute:
         with pytest.raises(PackageNotFoundError):
             execute("notinstalled")
 
-    @patch("cockpit_apt_bridge.commands.remove.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.remove.os.pipe")
-    @patch("cockpit_apt_bridge.commands.remove.os.close")
-    @patch("cockpit_apt_bridge.commands.remove.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.remove.select.select")
+    @patch("cockpit_apt.commands.remove.subprocess.Popen")
+    @patch("cockpit_apt.commands.remove.os.pipe")
+    @patch("cockpit_apt.commands.remove.os.close")
+    @patch("cockpit_apt.commands.remove.os.fdopen")
+    @patch("cockpit_apt.commands.remove.select.select")
     def test_remove_locked(self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
         """Test removal when package manager is locked."""
         # Setup mocks
@@ -127,11 +127,11 @@ class TestExecute:
 
         assert exc_info.value.code == "LOCKED"
 
-    @patch("cockpit_apt_bridge.commands.remove.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.remove.os.pipe")
-    @patch("cockpit_apt_bridge.commands.remove.os.close")
-    @patch("cockpit_apt_bridge.commands.remove.os.fdopen")
-    @patch("cockpit_apt_bridge.commands.remove.select.select")
+    @patch("cockpit_apt.commands.remove.subprocess.Popen")
+    @patch("cockpit_apt.commands.remove.os.pipe")
+    @patch("cockpit_apt.commands.remove.os.close")
+    @patch("cockpit_apt.commands.remove.os.fdopen")
+    @patch("cockpit_apt.commands.remove.select.select")
     def test_remove_generic_failure(
         self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
     ):
@@ -165,8 +165,8 @@ class TestExecute:
         with pytest.raises(APTBridgeError):
             execute("pkg;rm -rf /")
 
-    @patch("cockpit_apt_bridge.commands.remove.subprocess.Popen")
-    @patch("cockpit_apt_bridge.commands.remove.os.pipe")
+    @patch("cockpit_apt.commands.remove.subprocess.Popen")
+    @patch("cockpit_apt.commands.remove.os.pipe")
     def test_remove_exception_handling(self, mock_pipe, mock_popen):
         """Test exception handling during removal."""
         # Make pipe() raise exception

@@ -19,11 +19,11 @@ override_dh_auto_install:
 		echo "Rebuilding backend for install phase..."; \
 		cd backend && pip3 install --prefix=/usr --root=$(CURDIR)/debian/tmp .; \
 	fi
-	# Install backend Python package
+	# Install backend Python package (renamed from cockpit_apt_bridge to cockpit_apt)
 	mkdir -p $(CURDIR)/debian/cockpit-apt/usr/lib/python3/dist-packages
-	cp -r $(CURDIR)/debian/tmp/usr/local/lib/python*/dist-packages/cockpit_apt_bridge $(CURDIR)/debian/cockpit-apt/usr/lib/python3/dist-packages/
+	cp -r $(CURDIR)/debian/tmp/usr/local/lib/python*/dist-packages/cockpit_apt $(CURDIR)/debian/cockpit-apt/usr/lib/python3/dist-packages/
 	# Install dist-info directory with robust handling
-	@distinfo_dir=$$(find $(CURDIR)/debian/tmp/usr/local/lib/python*/dist-packages -maxdepth 1 -type d -name 'cockpit_apt_bridge-*.dist-info' | head -n 1); \
+	@distinfo_dir=$$(find $(CURDIR)/debian/tmp/usr/local/lib/python*/dist-packages -maxdepth 1 -type d -name 'cockpit_apt-*.dist-info' | head -n 1); \
 	if [ -z "$$distinfo_dir" ]; then \
 		echo "Error: .dist-info directory not found" >&2; exit 1; \
 	fi; \

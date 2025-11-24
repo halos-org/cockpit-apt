@@ -31,7 +31,7 @@ References:
 
 import re
 
-from cockpit_apt_bridge.utils.errors import APTBridgeError
+from cockpit_apt.utils.errors import APTBridgeError
 
 
 def validate_package_name(name: str) -> None:

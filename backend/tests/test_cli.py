@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cockpit_apt_bridge import cli
+from cockpit_apt import cli
 
 
 class TestCLIDispatcher:
@@ -196,7 +196,7 @@ class TestCLIDispatcher:
         with (
             patch("sys.argv", ["cockpit-apt-bridge", "search", "test"]),
             patch(
-                "cockpit_apt_bridge.commands.search.execute", side_effect=RuntimeError("Unexpected")
+                "cockpit_apt.commands.search.execute", side_effect=RuntimeError("Unexpected")
             ),
             pytest.raises(SystemExit) as exc_info,
         ):
