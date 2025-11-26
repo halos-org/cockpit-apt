@@ -63,11 +63,11 @@ def test_matches_origin_only():
 
 
 def test_matches_section_only():
-    """Match by section only."""
-    pkg = create_mock_package("test-pkg", section="net")
+    """Match by section only (with mandatory origin)."""
+    pkg = create_mock_package("test-pkg", origin="Test Origin", section="net")
 
     filters = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=["net"],
         include_tags=[],
         include_packages=[],
@@ -78,11 +78,11 @@ def test_matches_section_only():
 
 
 def test_matches_tags_only():
-    """Match by tags only."""
-    pkg = create_mock_package("test-pkg", tags="field::marine, role::app")
+    """Match by tags only (with mandatory origin)."""
+    pkg = create_mock_package("test-pkg", origin="Test Origin", tags="field::marine, role::app")
 
     filters = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=[],
         include_tags=["field::marine"],
         include_packages=[],
@@ -93,11 +93,11 @@ def test_matches_tags_only():
 
 
 def test_matches_explicit_package_only():
-    """Match by explicit package name."""
-    pkg = create_mock_package("signalk-server")
+    """Match by explicit package name (with mandatory origin)."""
+    pkg = create_mock_package("signalk-server", origin="Test Origin")
 
     filters = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=[],
         include_tags=[],
         include_packages=["signalk-server"],
@@ -173,11 +173,11 @@ def test_no_match_origin():
 
 
 def test_no_match_section():
-    """Package doesn't match section filter."""
-    pkg = create_mock_package("test-pkg", section="admin")
+    """Package doesn't match section filter (has matching origin but wrong section)."""
+    pkg = create_mock_package("test-pkg", origin="Test Origin", section="admin")
 
     filters = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=["net", "web"],
         include_tags=[],
         include_packages=[],
@@ -188,11 +188,11 @@ def test_no_match_section():
 
 
 def test_no_match_tags():
-    """Package doesn't match tags filter."""
-    pkg = create_mock_package("test-pkg", tags="field::aviation, role::app")
+    """Package doesn't match tags filter (has matching origin but wrong tags)."""
+    pkg = create_mock_package("test-pkg", origin="Test Origin", tags="field::aviation, role::app")
 
     filters = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=[],
         include_tags=["field::marine"],
         include_packages=[],
@@ -203,11 +203,11 @@ def test_no_match_tags():
 
 
 def test_no_match_package_name():
-    """Package doesn't match explicit package list."""
-    pkg = create_mock_package("other-package")
+    """Package doesn't match explicit package list (has matching origin but wrong name)."""
+    pkg = create_mock_package("other-package", origin="Test Origin")
 
     filters = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=[],
         include_tags=[],
         include_packages=["signalk-server", "grafana"],
@@ -233,7 +233,7 @@ def test_matches_with_missing_metadata():
 
     # Should fail section filter
     filters2 = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=["net"],
         include_tags=[],
         include_packages=[],
@@ -243,7 +243,7 @@ def test_matches_with_missing_metadata():
 
     # Should fail tags filter
     filters3 = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=[],
         include_tags=["field::marine"],
         include_packages=[],
@@ -253,11 +253,11 @@ def test_matches_with_missing_metadata():
 
 
 def test_matches_explicit_package_ignores_missing_metadata():
-    """Explicit package match works even with missing metadata."""
-    pkg = create_mock_package("signalk-server")  # No other metadata
+    """Explicit package match works even with missing metadata (except origin)."""
+    pkg = create_mock_package("signalk-server", origin="Test Origin")  # Has origin, no other metadata
 
     filters = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=[],
         include_tags=[],
         include_packages=["signalk-server"],
@@ -269,10 +269,10 @@ def test_matches_explicit_package_ignores_missing_metadata():
 
 def test_matches_multiple_tags_any():
     """Package needs to match ANY of the specified tags (OR logic)."""
-    pkg = create_mock_package("test-pkg", tags="field::marine, role::app")
+    pkg = create_mock_package("test-pkg", origin="Test Origin", tags="field::marine, role::app")
 
     filters = StoreFilter(
-        include_origins=[],
+        include_origins=["Test Origin"],
         include_sections=[],
         include_tags=["field::marine", "field::aviation"],  # Matches first
         include_packages=[],

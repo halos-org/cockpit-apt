@@ -146,6 +146,9 @@ def _matches_packages_filter(package: apt.Package, packages: list[str]) -> bool:
 def count_matching_packages(cache: apt.Cache, store: StoreConfig) -> int:
     """Count how many packages in the cache match the store's filters.
 
+    Uses origin pre-filtering for performance optimization since container
+    packages always come from custom repositories.
+
     Args:
         cache: APT cache object
         store: Store configuration with filter criteria
@@ -153,16 +156,18 @@ def count_matching_packages(cache: apt.Cache, store: StoreConfig) -> int:
     Returns:
         Number of matching packages
     """
-    count = 0
-    for package in cache:
-        if matches_store_filter(package, store):
-            count += 1
-
-    return count
+    # Use optimized filter_packages and count results
+    matching = filter_packages(cache, store)
+    return len(matching)
 
 
 def filter_packages(cache: apt.Cache, store: StoreConfig) -> list[apt.Package]:
     """Get all packages that match the store's filters.
+
+    Performance optimization: Origin filtering is mandatory for container stores,
+    so we pre-filter by origin first (fast), then apply additional filters only
+    to the pre-filtered set. This can reduce the filter set by 99% for typical
+    container stores.
 
     Args:
         cache: APT cache object
@@ -171,16 +176,83 @@ def filter_packages(cache: apt.Cache, store: StoreConfig) -> list[apt.Package]:
     Returns:
         List of matching packages
     """
-    matching = []
+    filters = store.filters
+    total_packages = len(cache)
+
+    # Pre-filter by origin (mandatory and fast)
+    # This is the most selective filter for container stores
+    origin_candidates = []
     for package in cache:
-        if matches_store_filter(package, store):
+        if _matches_origin_filter(package, filters.include_origins):
+            origin_candidates.append(package)
+
+    logger.debug(
+        "Store '%s': Origin pre-filter matched %d/%d packages (%.1f%% reduction)",
+        store.id,
+        len(origin_candidates),
+        total_packages,
+        100 * (1 - len(origin_candidates) / total_packages) if total_packages > 0 else 0,
+    )
+
+    # Check if we have additional filters beyond origin
+    has_additional_filters = any(
+        [
+            filters.include_sections,
+            filters.include_tags,
+            filters.include_packages,
+        ]
+    )
+
+    if not has_additional_filters:
+        # Only origin filter specified - return all origin matches
+        logger.info(
+            "Store '%s' matched %d packages out of %d total (origin-only filter)",
+            store.id,
+            len(origin_candidates),
+            total_packages,
+        )
+        return origin_candidates
+
+    # Apply additional filters to the pre-filtered set
+    matching = []
+    for package in origin_candidates:
+        # Check additional filters (sections, tags, packages)
+        if _matches_additional_filters(package, filters):
             matching.append(package)
 
     logger.info(
-        "Store '%s' matched %d packages out of %d total",
+        "Store '%s' matched %d packages out of %d total (pre-filtered from %d origin matches)",
         store.id,
         len(matching),
-        len(cache),
+        total_packages,
+        len(origin_candidates),
     )
 
     return matching
+
+
+def _matches_additional_filters(package: apt.Package, filters) -> bool:  # type: ignore[no-untyped-def]
+    """Check if package matches additional filters (sections, tags, packages).
+
+    Helper function for optimized filtering after origin pre-filtering.
+
+    Args:
+        package: APT package object
+        filters: StoreFilter with additional filter criteria
+
+    Returns:
+        True if package matches any additional filter criteria (OR logic)
+    """
+    additional_matches = []
+
+    if filters.include_sections:
+        additional_matches.append(_matches_section_filter(package, filters.include_sections))
+
+    if filters.include_tags:
+        additional_matches.append(_matches_tags_filter(package, filters.include_tags))
+
+    if filters.include_packages:
+        additional_matches.append(_matches_packages_filter(package, filters.include_packages))
+
+    # Return True if ANY additional filter matched (OR logic)
+    return any(additional_matches)

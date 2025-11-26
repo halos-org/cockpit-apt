@@ -12,9 +12,9 @@ from cockpit_apt.utils.store_config import (
 )
 
 
-def test_store_filter_requires_at_least_one_filter():
-    """StoreFilter must have at least one filter type specified."""
-    # Valid: has one filter type
+def test_store_filter_requires_origins():
+    """StoreFilter must have non-empty include_origins."""
+    # Valid: has origins
     filter1 = StoreFilter(
         include_origins=["test"],
         include_sections=[],
@@ -23,12 +23,21 @@ def test_store_filter_requires_at_least_one_filter():
     )
     assert filter1.include_origins == ["test"]
 
-    # Invalid: no filter types
-    with pytest.raises(ValueError, match="At least one filter type"):
+    # Invalid: empty origins list
+    with pytest.raises(ValueError, match="include_origins is required"):
         StoreFilter(
             include_origins=[],
             include_sections=[],
             include_tags=[],
+            include_packages=[],
+        )
+
+    # Invalid: empty origins with other filters populated
+    with pytest.raises(ValueError, match="include_origins is required"):
+        StoreFilter(
+            include_origins=[],
+            include_sections=["net"],
+            include_tags=["field::marine"],
             include_packages=[],
         )
 
@@ -223,6 +232,8 @@ id: store2
 name: Store Two
 description: Second store
 filters:
+  include_origins:
+    - Origin2
   include_sections:
     - net
 """)
@@ -263,20 +274,36 @@ filters:
         assert stores[0].name == "First Store"
 
 
-def test_load_stores_handles_empty_filters():
-    """load_stores rejects configs with no filter criteria."""
+def test_load_stores_handles_empty_origins():
+    """load_stores rejects configs with empty include_origins."""
     with TemporaryDirectory() as tmpdir:
         tmppath = Path(tmpdir)
 
         (tmppath / "empty.yaml").write_text("""
 id: empty
-name: Empty Filters
-description: Store with no filters
+name: Empty Origins
+description: Store with empty origins (invalid)
 filters:
   include_origins: []
   include_sections: []
   include_tags: []
   include_packages: []
+""")
+
+        stores = load_stores(config_dir=tmppath)
+        assert len(stores) == 0
+
+        # Even with other filters, empty origins should fail
+        (tmppath / "empty2.yaml").write_text("""
+id: empty2
+name: Empty Origins 2
+description: Store with empty origins but other filters
+filters:
+  include_origins: []
+  include_sections:
+    - net
+  include_tags:
+    - field::marine
 """)
 
         stores = load_stores(config_dir=tmppath)

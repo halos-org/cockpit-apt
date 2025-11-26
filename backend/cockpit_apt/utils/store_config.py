@@ -23,7 +23,13 @@ STORE_CONFIG_DIR = Path("/etc/container-apps/stores")
 
 @dataclass
 class StoreFilter:
-    """Filter criteria for a store."""
+    """Filter criteria for a store.
+
+    Origin filtering is mandatory for performance optimization since container
+    packages always come from custom repositories, never from upstream Debian
+    or Raspberry Pi repositories. This enables efficient pre-filtering before
+    applying more expensive tag/section filters.
+    """
 
     include_origins: list[str]
     include_sections: list[str]
@@ -31,16 +37,18 @@ class StoreFilter:
     include_packages: list[str]
 
     def __post_init__(self) -> None:
-        """Validate that at least one filter type is specified."""
-        if not any(
-            [
-                self.include_origins,
-                self.include_sections,
-                self.include_tags,
-                self.include_packages,
-            ]
-        ):
-            raise ValueError("At least one filter type must be specified")
+        """Validate that include_origins is non-empty.
+
+        Container store packages always originate from custom repositories
+        (never from upstream Debian/Raspberry Pi), so origin filtering is
+        mandatory for performance optimization.
+        """
+        if not self.include_origins:
+            raise ValueError(
+                "include_origins is required and must be non-empty. "
+                "Container packages always come from custom repositories, "
+                "enabling performance optimization through origin pre-filtering."
+            )
 
 
 @dataclass
