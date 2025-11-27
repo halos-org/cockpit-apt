@@ -30,6 +30,7 @@ Example Usage:
     $ cockpit-apt-bridge list-section web
 """
 
+import argparse
 import sys
 from typing import NoReturn
 
@@ -37,6 +38,7 @@ from cockpit_apt.commands import (
     dependencies,
     details,
     files,
+    filter_packages,
     install,
     list_installed,
     list_repositories,
@@ -65,6 +67,8 @@ Commands:
   list-installed                    List all installed packages
   list-upgradable                   List packages with available upgrades
   list-repositories                 List all APT repositories
+  filter-packages [OPTIONS]         Filter packages by repo, tab, search, limit
+                                    OPTIONS: [--repo ID] [--tab TAB] [--search QUERY] [--limit N]
   dependencies PACKAGE              Get direct dependencies of a package
   reverse-dependencies PACKAGE      Get packages that depend on a package
   files PACKAGE                     List files installed by a package (installed only)
@@ -80,6 +84,7 @@ Examples:
   cockpit-apt-bridge list-installed
   cockpit-apt-bridge list-upgradable
   cockpit-apt-bridge list-repositories
+  cockpit-apt-bridge filter-packages --tab installed --search nginx
   cockpit-apt-bridge dependencies nginx
   cockpit-apt-bridge reverse-dependencies libc6
   cockpit-apt-bridge files nginx
@@ -142,6 +147,40 @@ def main() -> NoReturn:
 
         elif command == "list-repositories":
             result = list_repositories.execute()
+
+        elif command == "filter-packages":
+            # Parse filter-packages arguments using argparse
+            parser = argparse.ArgumentParser(
+                prog="cockpit-apt-bridge filter-packages",
+                description="Filter packages by repository, tab, search query, and limit",
+                add_help=False,  # Don't add -h/--help (breaks JSON output)
+            )
+            parser.add_argument("--repo", dest="repository_id", help="Repository ID to filter by")
+            parser.add_argument(
+                "--tab",
+                choices=["installed", "upgradable"],
+                help="Tab filter (installed or upgradable)",
+            )
+            parser.add_argument("--search", dest="search_query", help="Search query")
+            parser.add_argument(
+                "--limit", type=int, default=1000, help="Maximum number of results (default: 1000)"
+            )
+
+            try:
+                args = parser.parse_args(sys.argv[2:])
+            except SystemExit:
+                # argparse calls sys.exit on error - catch and convert to our error
+                raise APTBridgeError(
+                    "Invalid filter-packages arguments. Use: [--repo ID] [--tab TAB] [--search QUERY] [--limit N]",
+                    code="INVALID_ARGUMENTS",
+                ) from None
+
+            result = filter_packages.execute(
+                repository_id=args.repository_id,
+                tab=args.tab,
+                search_query=args.search_query,
+                limit=args.limit,
+            )
 
         elif command == "dependencies":
             if len(sys.argv) < 3:

@@ -205,3 +205,109 @@ class TestCLIDispatcher:
         assert exc_info.value.code == 2
         captured = capsys.readouterr()
         assert "Unexpected error" in captured.err
+
+    def test_filter_packages_no_args(self, mock_apt_cache):
+        """Test filter-packages command with no arguments."""
+        mock_apt = MagicMock()
+        mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "filter-packages"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
+
+        assert exc_info.value.code == 0
+
+    def test_filter_packages_with_tab(self, mock_apt_cache):
+        """Test filter-packages command with --tab argument."""
+        mock_apt = MagicMock()
+        mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "filter-packages", "--tab", "installed"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
+
+        assert exc_info.value.code == 0
+
+    def test_filter_packages_with_search(self, mock_apt_cache):
+        """Test filter-packages command with --search argument."""
+        mock_apt = MagicMock()
+        mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "filter-packages", "--search", "nginx"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
+
+        assert exc_info.value.code == 0
+
+    def test_filter_packages_with_all_args(self, mock_apt_cache):
+        """Test filter-packages command with all arguments."""
+        mock_apt = MagicMock()
+        mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch(
+                "sys.argv",
+                [
+                    "cockpit-apt-bridge",
+                    "filter-packages",
+                    "--repo",
+                    "debian:stable",
+                    "--tab",
+                    "installed",
+                    "--search",
+                    "nginx",
+                    "--limit",
+                    "50",
+                ],
+            ),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
+
+        assert exc_info.value.code == 0
+
+    def test_filter_packages_invalid_tab(self, mock_apt_cache, capsys):
+        """Test filter-packages command with invalid tab value."""
+        mock_apt = MagicMock()
+        mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "filter-packages", "--tab", "invalid"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
+
+        # argparse validation should catch this
+        assert exc_info.value.code == 1
+
+        captured = capsys.readouterr()
+        assert "Invalid filter-packages arguments" in captured.err
+
+    def test_filter_packages_invalid_limit(self, mock_apt_cache, capsys):
+        """Test filter-packages command with invalid limit value."""
+        mock_apt = MagicMock()
+        mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "filter-packages", "--limit", "notanumber"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
+
+        # argparse type validation should catch this
+        assert exc_info.value.code == 1
+
+        captured = capsys.readouterr()
+        assert "Invalid filter-packages arguments" in captured.err
