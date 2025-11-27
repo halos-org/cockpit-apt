@@ -37,6 +37,7 @@ from cockpit_apt.commands import (
     dependencies,
     details,
     files,
+    filter_packages,
     install,
     list_installed,
     list_repositories,
@@ -65,6 +66,8 @@ Commands:
   list-installed                    List all installed packages
   list-upgradable                   List packages with available upgrades
   list-repositories                 List all APT repositories
+  filter-packages [OPTIONS]         Filter packages by repo, tab, search, limit
+                                    OPTIONS: [--repo ID] [--tab TAB] [--search QUERY] [--limit N]
   dependencies PACKAGE              Get direct dependencies of a package
   reverse-dependencies PACKAGE      Get packages that depend on a package
   files PACKAGE                     List files installed by a package (installed only)
@@ -80,6 +83,7 @@ Examples:
   cockpit-apt-bridge list-installed
   cockpit-apt-bridge list-upgradable
   cockpit-apt-bridge list-repositories
+  cockpit-apt-bridge filter-packages --tab installed --search nginx
   cockpit-apt-bridge dependencies nginx
   cockpit-apt-bridge reverse-dependencies libc6
   cockpit-apt-bridge files nginx
@@ -142,6 +146,67 @@ def main() -> NoReturn:
 
         elif command == "list-repositories":
             result = list_repositories.execute()
+
+        elif command == "filter-packages":
+            # Parse optional parameters from command line
+            # Format: filter-packages [--repo ID] [--tab TAB] [--search QUERY] [--limit N]
+            repository_id = None
+            tab = None
+            search_query = None
+            limit = 1000
+
+            i = 2
+            while i < len(sys.argv):
+                if sys.argv[i] == "--repo":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--repo requires a repository ID argument",
+                            code="INVALID_ARGUMENTS",
+                        )
+                    repository_id = sys.argv[i + 1]
+                    i += 2
+                elif sys.argv[i] == "--tab":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--tab requires an argument (installed or upgradable)",
+                            code="INVALID_ARGUMENTS",
+                        )
+                    tab = sys.argv[i + 1]
+                    i += 2
+                elif sys.argv[i] == "--search":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--search requires a search query argument",
+                            code="INVALID_ARGUMENTS",
+                        )
+                    search_query = sys.argv[i + 1]
+                    i += 2
+                elif sys.argv[i] == "--limit":
+                    if i + 1 >= len(sys.argv):
+                        raise APTBridgeError(
+                            "--limit requires a number argument",
+                            code="INVALID_ARGUMENTS",
+                        )
+                    try:
+                        limit = int(sys.argv[i + 1])
+                    except ValueError:
+                        raise APTBridgeError(
+                            f"Invalid limit value: {sys.argv[i + 1]}",
+                            code="INVALID_ARGUMENTS",
+                        ) from None
+                    i += 2
+                else:
+                    raise APTBridgeError(
+                        f"Unknown filter-packages parameter: {sys.argv[i]}",
+                        code="INVALID_ARGUMENTS",
+                    )
+
+            result = filter_packages.execute(
+                repository_id=repository_id,
+                tab=tab,
+                search_query=search_query,
+                limit=limit,
+            )
 
         elif command == "dependencies":
             if len(sys.argv) < 3:
