@@ -97,6 +97,8 @@ const initialState: AppState = {
  */
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(initialState);
+  // Track the latest package load request to ignore stale responses
+  const packageRequestIdRef = React.useRef(0);
 
   // Load stores on mount
   const loadStores = useCallback(async () => {
@@ -124,6 +126,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Load packages - reads from current state, no dependencies on state values
   const loadPackages = useCallback(async (params?: FilterParams) => {
+    // Increment request ID to track this request
+    const requestId = ++packageRequestIdRef.current;
+
     setState((prev) => {
       const filterParams: FilterParams = {
         store_id: params?.store_id ?? prev.activeStore ?? undefined,
@@ -136,17 +141,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // Start loading
       filterPackages(filterParams)
         .then((response) => {
-          setState((current) => ({
-            ...current,
-            packages: response.packages,
-            totalPackageCount: response.total_count,
-            limitedResults: response.limited,
-            packagesLoading: false,
-          }));
+          // Only apply results if this is still the latest request
+          if (requestId === packageRequestIdRef.current) {
+            setState((current) => ({
+              ...current,
+              packages: response.packages,
+              totalPackageCount: response.total_count,
+              limitedResults: response.limited,
+              packagesLoading: false,
+            }));
+          }
         })
         .catch((e) => {
-          const error = e instanceof APTBridgeError ? e.message : String(e);
-          setState((current) => ({ ...current, packagesError: error, packagesLoading: false }));
+          // Only apply error if this is still the latest request
+          if (requestId === packageRequestIdRef.current) {
+            const error = e instanceof APTBridgeError ? e.message : String(e);
+            setState((current) => ({ ...current, packagesError: error, packagesLoading: false }));
+          }
         });
 
       return { ...prev, packages: [], packagesLoading: true, packagesError: null };
