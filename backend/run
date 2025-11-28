@@ -24,7 +24,7 @@ readonly SCRIPT="$PROJECT_ROOT/$(basename "$0")"
 
 function devtools {
   #@ Run command in devtools container (backend)
-  docker compose -f docker/docker-compose.devtools.yml run --rm devtools "$@"
+  docker compose -f ../docker/docker-compose.devtools.yml run --rm -w /workspace/backend devtools "$@"
 }
 
 ################################################################################
