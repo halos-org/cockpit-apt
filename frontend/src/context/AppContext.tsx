@@ -149,7 +149,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setState((current) => ({ ...current, packagesError: error, packagesLoading: false }));
         });
 
-      return { ...prev, packagesLoading: true, packagesError: null };
+      return { ...prev, packages: [], packagesLoading: true, packagesError: null };
     });
   }, []);
 
