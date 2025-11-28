@@ -50,7 +50,7 @@ interface Route {
  * Cockpit provides paths like ['apt', 'sections', 'admin']
  * We handle paths starting with or without 'apt'
  */
-function parseRoute(path: string[]): Route {
+export function parseRoute(path: string[]): Route {
   // Handle both ['apt', ...] and [...]
   const subpath = path[0] === "apt" ? path.slice(1) : path;
 
@@ -64,8 +64,9 @@ function parseRoute(path: string[]): Route {
     if (subpath.length === 1) {
       return { view: "sections", params: {} };
     }
-    // /sections/:section
-    return { view: "section-packages", params: { section: subpath[1] || "" } };
+    // /sections/:section (URL-encoded to handle slashes in section names)
+    const encodedSection = subpath[1] || "";
+    return { view: "section-packages", params: { section: decodeURIComponent(encodedSection) } };
   }
 
   // /package/:name
@@ -121,7 +122,8 @@ function App() {
   // Navigation handlers
   const handleNavigateToSearch = () => navigateTo("search");
   const handleNavigateToSections = () => navigateTo("sections");
-  const handleNavigateToSection = (section: string) => navigateTo(`sections/${section}`);
+  const handleNavigateToSection = (section: string) =>
+    navigateTo(`sections/${encodeURIComponent(section)}`);
   const handleNavigateToPackage = (name: string) => navigateTo(`package/${name}`);
   const handleNavigateToInstalled = () => navigateTo("installed");
   const handleNavigateToUpdates = () => navigateTo("updates");

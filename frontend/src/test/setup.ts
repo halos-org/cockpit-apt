@@ -34,3 +34,16 @@ afterEach(() => {
   addEventListener: () => {},
   removeEventListener: () => {},
 };
+
+// Mock window.matchMedia for dark theme support
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => true,
+  }),
+});
