@@ -38,9 +38,6 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
   const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
   const [upgradingPackage, setUpgradingPackage] = useState<string | null>(null);
 
-  // Get active store for store-aware messaging
-  const activeStore = state.stores.find((s) => s.id === state.activeStore);
-
   // Set tab to "upgradable" on mount
   useEffect(() => {
     actions.setActiveTab("upgradable");
@@ -101,19 +98,13 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
 
   // No updates available
   if (state.packages.length === 0) {
-    // Store-aware messaging
-    const titleText = activeStore
-      ? `No updates available for ${activeStore.name}`
-      : "System is up to date";
-    const bodyText = activeStore
-      ? `All packages from ${activeStore.name} are up to date. Check back later for new updates.`
-      : "All installed packages are up to date. Check back later for new updates.";
-
     return (
       <PageSection>
         <Title headingLevel="h1">Available Updates</Title>
-        <EmptyState icon={CheckCircleIcon} titleText={titleText} headingLevel="h2">
-          <EmptyStateBody>{bodyText}</EmptyStateBody>
+        <EmptyState icon={CheckCircleIcon} titleText="System is up to date" headingLevel="h2">
+          <EmptyStateBody>
+            All installed packages are up to date. Check back later for new updates.
+          </EmptyStateBody>
           <Button variant="primary" onClick={() => actions.loadPackages()}>
             Check for updates
           </Button>

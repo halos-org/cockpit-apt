@@ -31,15 +31,8 @@ import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { useEffect, useState } from "react";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
-import { listPackagesByCategory, listPackagesBySection } from "../lib/api";
+import { listPackagesBySection } from "../lib/api";
 import { Package } from "../lib/types";
-
-/**
- * Determines if a store should display categories mode
- */
-function shouldShowCategories(store: any): boolean {
-  return Boolean(store?.category_metadata && store.category_metadata.length > 0);
-}
 
 interface SectionPackageListViewProps {
   sectionName: string;
@@ -58,7 +51,7 @@ export function SectionPackageListView({
   onInstall,
   onRemove,
 }: SectionPackageListViewProps) {
-  const { state, actions } = useApp();
+  const { actions } = useApp();
   const [packages, setPackages] = useState<Package[]>([]);
   const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,20 +60,14 @@ export function SectionPackageListView({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [actioningPackage, setActioningPackage] = useState<string | null>(null);
 
-  // Determine if we're in category mode based on active store
-  const showCategories = Boolean(
-    state.activeStore &&
-      state.stores.length > 0 &&
-      shouldShowCategories(state.stores.find((s) => s.id === state.activeStore))
-  );
-  const displayLabel = showCategories ? "Categories" : "Sections";
-  const itemLabel = showCategories ? "category" : "section";
+  const displayLabel = "Sections";
+  const itemLabel = "section";
 
-  // Load packages in section/category
+  // Load packages in section
   useEffect(() => {
     loadPackages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sectionName, showCategories]);
+  }, [sectionName]);
 
   // Filter packages when filter type changes
   useEffect(() => {
@@ -101,10 +88,7 @@ export function SectionPackageListView({
     try {
       setLoading(true);
       setError(null);
-      // Call appropriate API based on mode
-      const result = showCategories
-        ? await listPackagesByCategory(sectionName, state.activeStore || undefined)
-        : await listPackagesBySection(sectionName);
+      const result = await listPackagesBySection(sectionName);
       setPackages(result);
     } catch (err) {
       setError(err as Error);
@@ -195,7 +179,9 @@ export function SectionPackageListView({
           {sectionName}
         </Title>
         <EmptyState icon={CubesIcon} titleText="No packages found" headingLevel="h2">
-          <EmptyStateBody>No packages found in the {sectionName} {itemLabel}.</EmptyStateBody>
+          <EmptyStateBody>
+            No packages found in the {sectionName} {itemLabel}.
+          </EmptyStateBody>
           <Button variant="primary" onClick={onNavigateToSections}>
             Back to {displayLabel.toLowerCase()}
           </Button>

@@ -173,12 +173,12 @@ def test_list_section_cache_error():
         assert exc_info.value.code == "CACHE_ERROR"
 
 
-# Store filtering tests
+# Section tests with diverse packages
 
 
 @pytest.fixture
 def marine_packages():
-    """Fixture providing marine-themed test packages for store filtering."""
+    """Fixture providing diverse test packages across multiple sections."""
     packages = []
 
     # Marine packages with field::marine tag
@@ -228,26 +228,8 @@ def marine_packages():
 
 @pytest.fixture
 def mock_cache_with_marine(marine_packages):
-    """Fixture providing a mock APT cache with marine and non-marine packages."""
+    """Fixture providing a mock APT cache with diverse packages."""
     return MockCache(marine_packages)
-
-
-@pytest.fixture
-def temp_store_config(tmp_path):
-    """Create temporary store config for testing."""
-    store_dir = tmp_path / "stores"
-    store_dir.mkdir()
-
-    store_file = store_dir / "marine.yaml"
-    store_file.write_text("""id: marine
-name: Marine Navigation & Monitoring
-description: Marine apps
-filters:
-  include_tags:
-    - field::marine
-""")
-
-    return store_dir
 
 
 def test_sections_returns_all_packages(mock_cache_with_marine):

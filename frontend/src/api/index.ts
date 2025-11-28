@@ -3,15 +3,7 @@
  * Provides typed Promise-based interface to cockpit-apt-bridge
  */
 
-import type {
-  APIError,
-  Category,
-  FilterPackagesResponse,
-  FilterParams,
-  Package,
-  Repository,
-  Store,
-} from "./types";
+import type { APIError, FilterPackagesResponse, FilterParams, Repository } from "./types";
 
 /**
  * Custom error class for API errors
@@ -109,29 +101,18 @@ async function executeCommand<T>(
 }
 
 /**
- * List all configured stores
+ * List all repositories
  */
-export async function listStores(): Promise<Store[]> {
-  return executeCommand<Store[]>("list-stores");
+export async function listRepositories(): Promise<Repository[]> {
+  return executeCommand<Repository[]>("list-repositories");
 }
 
 /**
- * List all repositories, optionally filtered by store
- */
-export async function listRepositories(storeId?: string): Promise<Repository[]> {
-  const args = storeId ? ["--store", storeId] : [];
-  return executeCommand<Repository[]>("list-repositories", args);
-}
-
-/**
- * Filter packages with cascade filtering
+ * Filter packages
  */
 export async function filterPackages(params: FilterParams = {}): Promise<FilterPackagesResponse> {
   const args: string[] = [];
 
-  if (params.store_id) {
-    args.push("--store", params.store_id);
-  }
   if (params.repository_id) {
     args.push("--repo", params.repository_id);
   }
@@ -146,31 +127,6 @@ export async function filterPackages(params: FilterParams = {}): Promise<FilterP
   }
 
   return executeCommand<FilterPackagesResponse>("filter-packages", args);
-}
-
-/**
- * List categories for a store (auto-discovered from package tags)
- * Categories are extracted from package category:: tags
- * Optionally enhanced with metadata from store configuration
- */
-export async function listCategories(storeId?: string): Promise<Category[]> {
-  const args = storeId ? ["--store", storeId] : [];
-  return executeCommand<Category[]>("list-categories", args);
-}
-
-/**
- * List packages in a specific category for a store
- * Only packages matching the store filter (if provided) are included
- */
-export async function listPackagesByCategory(
-  categoryId: string,
-  storeId?: string
-): Promise<Package[]> {
-  const args = [categoryId];
-  if (storeId) {
-    args.push("--store", storeId);
-  }
-  return executeCommand<Package[]>("list-packages-by-category", args);
 }
 
 /**

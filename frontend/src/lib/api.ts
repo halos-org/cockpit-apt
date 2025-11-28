@@ -33,7 +33,6 @@
  *   const details = await getPackageDetails('nginx');
  */
 
-import type { Category } from "../api/types";
 import { cache } from "./cache-manager";
 import { translateError } from "./error-handler";
 import type { Dependency, Package, PackageDetails, Section, UpgradablePackage } from "./types";
@@ -152,16 +151,12 @@ export async function getPackageDetails(
 /**
  * List all Debian sections with package counts
  *
- * @param storeId Optional store ID to filter packages
  * @param useCache Whether to use cached results (default: true)
  * @returns List of sections sorted by name
  * @throws APTError if command fails
  */
-export async function listSections(
-  storeId?: string,
-  useCache: boolean = true
-): Promise<Section[]> {
-  const cacheKey = storeId ? `sections:${storeId}` : "sections";
+export async function listSections(useCache: boolean = true): Promise<Section[]> {
+  const cacheKey = "sections";
 
   // Check cache
   if (useCache) {
@@ -171,14 +166,8 @@ export async function listSections(
     }
   }
 
-  // Build command
-  const command = ["sections"];
-  if (storeId) {
-    command.push("--store", storeId);
-  }
-
   // Execute command
-  const result = (await executeCommand(command)) as Section[];
+  const result = (await executeCommand(["sections"])) as Section[];
 
   // Cache result
   cache.set(cacheKey, result);
@@ -210,83 +199,6 @@ export async function listPackagesBySection(
 
   // Execute command
   const result = (await executeCommand(["list-section", sectionName])) as Package[];
-
-  // Cache result
-  cache.set(cacheKey, result);
-
-  return result;
-}
-
-/**
- * List categories for a store (auto-discovered from package tags)
- * Categories are extracted from package category:: tags
- * Optionally enhanced with metadata from store configuration
- *
- * @param storeId Optional store ID to filter categories
- * @param useCache Whether to use cached results (default: true)
- * @returns List of categories with package counts
- * @throws APTError if command fails
- */
-export async function listCategories(
-  storeId?: string,
-  useCache: boolean = true
-): Promise<Category[]> {
-  const cacheKey = storeId ? `categories:${storeId}` : "categories:all";
-
-  // Check cache
-  if (useCache) {
-    const cached = cache.get<Category[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-  }
-
-  // Execute command
-  const args = ["list-categories"];
-  if (storeId) {
-    args.push("--store", storeId);
-  }
-  const result = (await executeCommand(args)) as Category[];
-
-  // Cache result
-  cache.set(cacheKey, result);
-
-  return result;
-}
-
-/**
- * List packages in a specific category for a store
- * Only packages matching the store filter (if provided) are included
- *
- * @param categoryId Category ID (e.g., "navigation", "monitoring")
- * @param storeId Optional store ID to filter packages
- * @param useCache Whether to use cached results (default: true)
- * @returns List of packages in the category
- * @throws APTError if command fails
- */
-export async function listPackagesByCategory(
-  categoryId: string,
-  storeId?: string,
-  useCache: boolean = true
-): Promise<Package[]> {
-  const cacheKey = storeId
-    ? `categories:${storeId}:packages:${categoryId}`
-    : `categories:all:packages:${categoryId}`;
-
-  // Check cache
-  if (useCache) {
-    const cached = cache.get<Package[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-  }
-
-  // Execute command
-  const args = ["list-packages-by-category", categoryId];
-  if (storeId) {
-    args.push("--store", storeId);
-  }
-  const result = (await executeCommand(args)) as Package[];
 
   // Cache result
   cache.set(cacheKey, result);

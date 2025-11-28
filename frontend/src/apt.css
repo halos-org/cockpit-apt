@@ -44,12 +44,6 @@
   flex-wrap: wrap;
 }
 
-.store-toggle-group {
-  display: flex;
-  gap: var(--pf-t--global--spacer--sm);
-  align-items: center;
-}
-
 /* Custom section badge styling */
 .custom-section-badge {
   position: relative;

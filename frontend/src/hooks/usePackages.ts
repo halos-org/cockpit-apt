@@ -23,7 +23,6 @@
 
 import { useEffect, useState } from "react";
 import * as api from "../lib/api";
-import type { Category } from "../api/types";
 import { APTError } from "../lib/error-handler";
 import type { Package, PackageDetails, Section, UpgradablePackage } from "../lib/types";
 
@@ -178,10 +177,7 @@ export function usePackageDetails(
  *   );
  * }
  */
-export function useSections(
-  storeId?: string | null,
-  enabled: boolean = true
-): UseQueryResult<Section[]> {
+export function useSections(enabled: boolean = true): UseQueryResult<Section[]> {
   const [data, setData] = useState<Section[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<APTError | null>(null);
@@ -196,7 +192,7 @@ export function useSections(
     setError(null);
 
     try {
-      const result = await api.listSections(storeId ?? undefined);
+      const result = await api.listSections();
       setData(result);
     } catch (err) {
       setError(err as APTError);
@@ -208,65 +204,7 @@ export function useSections(
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storeId, enabled]);
-
-  return { data, loading, error, refetch: fetchData };
-}
-
-/**
- * Hook for listing categories for a store
- *
- * @param storeId Optional store ID to filter categories
- * @param enabled Whether to run the query (default: true)
- * @returns Query result with categories, loading state, and error
- *
- * @example
- * function CategoriesView({ storeId }) {
- *   const { data: categories, loading, error } = useCategories(storeId);
- *
- *   if (loading) return <LoadingSkeleton />;
- *   if (error) return <ErrorAlert error={error} />;
- *
- *   return (
- *     <Grid>
- *       {categories.map(cat => (
- *         <CategoryCard key={cat.id} category={cat} />
- *       ))}
- *     </Grid>
- *   );
- * }
- */
-export function useCategories(
-  storeId?: string,
-  enabled: boolean = true
-): UseQueryResult<Category[]> {
-  const [data, setData] = useState<Category[] | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<APTError | null>(null);
-
-  const fetchData = async () => {
-    if (!enabled) {
-      setData(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await api.listCategories(storeId);
-      setData(result);
-    } catch (err) {
-      setError(err as APTError);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storeId, enabled]);
+  }, [enabled]);
 
   return { data, loading, error, refetch: fetchData };
 }

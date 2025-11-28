@@ -2,20 +2,17 @@
  * SectionCard Component
  *
  * Displays a single Debian section as a clickable card with icon, label, and count.
- * Used in sections browsing mode (All Packages or stores without category_metadata).
  *
  * Features:
  * - Displays section icon based on Debian section name
  * - Shows archive area prefix if applicable (contrib, non-free, etc.)
  * - Shows package count badge
- * - Optional description from custom_sections metadata
  * - Keyboard accessible (Enter/Space)
  * - Click navigation to section packages
  */
 
 import { Badge, Card, CardBody, CardHeader, CardTitle } from "@patternfly/react-core";
 import React from "react";
-import type { CustomSection } from "../api/types";
 import type { Section } from "../lib/types";
 
 export interface SectionCardProps {
@@ -23,8 +20,6 @@ export interface SectionCardProps {
   section: Section;
   /** Icon element to render (pre-rendered for flexibility) */
   icon: React.ReactNode;
-  /** Optional custom section metadata for enhanced display */
-  customSection?: CustomSection;
   /** Archive area prefix (e.g., "contrib", "non-free") */
   archivePrefix?: string | null;
   /** Archive area label for display */
@@ -38,7 +33,6 @@ export interface SectionCardProps {
 export const SectionCard: React.FC<SectionCardProps> = ({
   section,
   icon,
-  customSection,
   archivePrefix,
   archiveLabel,
   displayName,
@@ -84,22 +78,9 @@ export const SectionCard: React.FC<SectionCardProps> = ({
       </CardTitle>
 
       <CardBody>
-        <div>
-          <Badge isRead>
-            {section.count} package{section.count !== 1 ? "s" : ""}
-          </Badge>
-        </div>
-        {customSection?.description && (
-          <div
-            style={{
-              marginTop: "0.5rem",
-              fontSize: "0.875rem",
-              color: "var(--pf-v5-global--Color--200)",
-            }}
-          >
-            {customSection.description}
-          </div>
-        )}
+        <Badge isRead>
+          {section.count} package{section.count !== 1 ? "s" : ""}
+        </Badge>
       </CardBody>
     </Card>
   );

@@ -8,7 +8,7 @@ handling errors and formatting output as JSON.
 Commands:
     search QUERY                      - Search for packages matching QUERY
     details PACKAGE                   - Get detailed information about a package
-    sections [--store ID]             - List all Debian sections with package counts
+    sections                          - List all Debian sections with package counts
     list-section SECTION              - List all packages in a section
     list-installed                    - List all installed packages
     list-upgradable                   - List packages with available upgrades

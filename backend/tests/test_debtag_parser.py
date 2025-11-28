@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock
 
 from cockpit_apt.utils.debtag_parser import (
-    derive_category_label,
     get_tag_facet,
     get_tags_by_facet,
     has_tag,
@@ -261,47 +260,3 @@ def test_real_world_tag_example():
     # Get all implementation tags
     impl_tags = get_tags_by_facet(pkg, "implemented-in")
     assert impl_tags == ["javascript"]
-
-
-# Tests for derive_category_label
-
-
-def test_derive_category_label_single_word():
-    """Derive label from single-word category ID."""
-    assert derive_category_label("navigation") == "Navigation"
-    assert derive_category_label("monitoring") == "Monitoring"
-    assert derive_category_label("communication") == "Communication"
-
-
-def test_derive_category_label_hyphenated():
-    """Derive label from hyphenated category ID."""
-    assert derive_category_label("chart-plotters") == "Chart Plotters"
-    assert derive_category_label("data-visualization") == "Data Visualization"
-    assert derive_category_label("web-services") == "Web Services"
-
-
-def test_derive_category_label_underscored():
-    """Derive label from underscored category ID."""
-    assert derive_category_label("chart_plotters") == "Chart Plotters"
-    assert derive_category_label("data_visualization") == "Data Visualization"
-
-
-def test_derive_category_label_mixed():
-    """Derive label from mixed separators."""
-    assert derive_category_label("chart-plotter_tools") == "Chart Plotter Tools"
-
-
-def test_derive_category_label_preserves_case():
-    """Title case properly capitalizes each word."""
-    assert derive_category_label("iot-devices") == "Iot Devices"
-    assert derive_category_label("3d-printing") == "3D Printing"
-
-
-def test_derive_category_label_empty():
-    """Handle empty category ID."""
-    assert derive_category_label("") == ""
-
-
-def test_derive_category_label_single_char():
-    """Handle single character."""
-    assert derive_category_label("a") == "A"

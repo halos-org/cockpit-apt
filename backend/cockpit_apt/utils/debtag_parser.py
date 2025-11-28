@@ -168,28 +168,3 @@ def get_tags_by_facet(package: apt.Package, facet: str) -> list[str]:
             values.append(tag_value)
 
     return values
-
-
-def derive_category_label(category_id: str) -> str:
-    """Derive a human-readable label from a category ID.
-
-    Converts category IDs like "navigation" or "chart-plotters" to
-    title-cased labels like "Navigation" or "Chart Plotters".
-
-    Args:
-        category_id: Category identifier (e.g., "navigation", "chart-plotters")
-
-    Returns:
-        Human-readable label
-
-    Example:
-        >>> derive_category_label("navigation")
-        'Navigation'
-        >>> derive_category_label("chart-plotters")
-        'Chart Plotters'
-    """
-    # Replace hyphens and underscores with spaces
-    label = category_id.replace("-", " ").replace("_", " ")
-
-    # Title case the result
-    return label.title()

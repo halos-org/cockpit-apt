@@ -3,15 +3,13 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { APTBridgeError, filterPackages, listRepositories, listStores } from "../api";
-import type { FilterParams, Package, Repository, Store } from "../api/types";
+import { APTBridgeError, filterPackages, listRepositories } from "../api";
+import type { FilterParams, Package, Repository } from "../api/types";
 import {
   loadActiveRepository,
-  loadActiveStore,
   loadActiveTab,
   loadSearchQuery,
   saveActiveRepository,
-  saveActiveStore,
   saveActiveTab,
   saveSearchQuery,
 } from "../utils/storage";
@@ -21,12 +19,10 @@ import {
  */
 export interface AppState {
   // Data
-  stores: Store[];
   repositories: Repository[];
   packages: Package[];
 
   // Filters
-  activeStore: string | null;
   activeRepository: string | null;
   activeTab: "installed" | "upgradable" | "available";
   searchQuery: string;
@@ -47,12 +43,10 @@ export interface AppState {
  */
 export interface AppActions {
   // Data loading
-  loadStores: () => Promise<void>;
-  loadRepositories: (storeId?: string) => Promise<void>;
+  loadRepositories: () => Promise<void>;
   loadPackages: (params?: FilterParams) => Promise<void>;
 
   // Filter actions
-  setActiveStore: (storeId: string | null) => void;
   setActiveRepository: (repoId: string | null) => void;
   setActiveTab: (tab: "installed" | "upgradable" | "available") => void;
   setSearchQuery: (query: string) => void;
@@ -77,10 +71,8 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
  * Initial state
  */
 const initialState: AppState = {
-  stores: [],
   repositories: [],
   packages: [],
-  activeStore: loadActiveStore(),
   activeRepository: loadActiveRepository(),
   activeTab: loadActiveTab() || "available",
   searchQuery: loadSearchQuery(),
@@ -100,23 +92,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Track the latest package load request to ignore stale responses
   const packageRequestIdRef = React.useRef(0);
 
-  // Load stores on mount
-  const loadStores = useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true, error: null }));
-    try {
-      const stores = await listStores();
-      setState((prev) => ({ ...prev, stores, loading: false }));
-    } catch (e) {
-      const error = e instanceof APTBridgeError ? e.message : String(e);
-      setState((prev) => ({ ...prev, error, loading: false }));
-    }
-  }, []);
-
   // Load repositories
-  const loadRepositories = useCallback(async (storeId?: string) => {
+  const loadRepositories = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const repositories = await listRepositories(storeId);
+      const repositories = await listRepositories();
       setState((prev) => ({ ...prev, repositories, loading: false }));
     } catch (e) {
       const error = e instanceof APTBridgeError ? e.message : String(e);
@@ -131,7 +111,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     setState((prev) => {
       const filterParams: FilterParams = {
-        store_id: params?.store_id ?? prev.activeStore ?? undefined,
         repository_id: params?.repository_id ?? prev.activeRepository ?? undefined,
         tab: params?.tab ?? (prev.activeTab !== "available" ? prev.activeTab : undefined),
         search_query: params?.search_query ?? (prev.searchQuery || undefined),
@@ -164,13 +143,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Set active store
-  const setActiveStore = useCallback((storeId: string | null) => {
-    setState((prev) => ({ ...prev, activeStore: storeId, activeRepository: null }));
-    saveActiveStore(storeId);
-    saveActiveRepository(null);
-  }, []);
-
   // Set active repository
   const setActiveRepository = useCallback((repoId: string | null) => {
     setState((prev) => ({ ...prev, activeRepository: repoId }));
@@ -194,39 +166,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, error: null, packagesError: null }));
   }, []);
 
-  // Refresh all data - reads current activeStore from state
+  // Refresh all data
   const refresh = useCallback(async () => {
-    await loadStores();
-    setState((prev) => {
-      void loadRepositories(prev.activeStore ?? undefined);
-      return prev;
-    });
+    await loadRepositories();
     await loadPackages();
-  }, [loadStores, loadRepositories, loadPackages]);
+  }, [loadRepositories, loadPackages]);
 
   // Load initial data on mount
   useEffect(() => {
-    void loadStores();
-    void loadRepositories(state.activeStore ?? undefined);
-  }, [loadStores, loadRepositories]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Reload repositories when active store changes
-  useEffect(() => {
-    void loadRepositories(state.activeStore ?? undefined);
-  }, [state.activeStore, loadRepositories]);
+    void loadRepositories();
+  }, [loadRepositories]);
 
   // Reload packages when filters change
   useEffect(() => {
     void loadPackages();
-  }, [loadPackages, state.activeStore, state.activeRepository, state.activeTab, state.searchQuery]);
+  }, [loadPackages, state.activeRepository, state.activeTab, state.searchQuery]);
 
   // Memoize actions to prevent unnecessary re-renders
   const actions: AppActions = useMemo(
     () => ({
-      loadStores,
       loadRepositories,
       loadPackages,
-      setActiveStore,
       setActiveRepository,
       setActiveTab,
       setSearchQuery,
@@ -234,10 +194,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       refresh,
     }),
     [
-      loadStores,
       loadRepositories,
       loadPackages,
-      setActiveStore,
       setActiveRepository,
       setActiveTab,
       setSearchQuery,

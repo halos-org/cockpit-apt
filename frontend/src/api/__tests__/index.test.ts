@@ -7,13 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  APTBridgeError,
-  filterPackages,
-  formatErrorMessage,
-  listRepositories,
-  listStores,
-} from "../index";
+import { APTBridgeError, filterPackages, formatErrorMessage, listRepositories } from "../index";
 
 // Mock the global cockpit object
 const mockSpawn = vi.fn();
@@ -28,66 +22,8 @@ describe("API Wrapper", () => {
     vi.clearAllMocks();
   });
 
-  describe("listStores", () => {
-    it("should parse valid JSON response", async () => {
-      const mockStores = [{ id: "marine", name: "Marine Apps", repositories: ["marine"] }];
-
-      let streamCallback: ((data: string) => void) | null = null;
-      let doneCallback: ((data: string | null) => void) | null = null;
-
-      const mockProc: Spawn = {
-        stream: vi.fn((cb: (data: string) => void): Spawn => {
-          streamCallback = cb;
-          return mockProc;
-        }),
-        done: vi.fn((cb: (data: string | null) => void): Spawn => {
-          doneCallback = cb;
-          return mockProc;
-        }),
-        fail: vi.fn().mockReturnThis(),
-        close: vi.fn().mockReturnThis(),
-      };
-
-      mockSpawn.mockReturnValue(mockProc);
-
-      const promise = listStores();
-
-      // Simulate stdout data
-      if (streamCallback) streamCallback(JSON.stringify(mockStores));
-      if (doneCallback) doneCallback(null);
-
-      const result = await promise;
-      expect(result).toEqual(mockStores);
-      expect(mockSpawn).toHaveBeenCalledWith(
-        ["cockpit-apt-bridge", "list-stores"],
-        expect.any(Object)
-      );
-    });
-
-    it("should handle backend errors", async () => {
-      const mockError = {
-        error: "Failed to load stores",
-        code: "CONFIG_ERROR",
-      };
-
-      const mockProc = {
-        stream: vi.fn().mockReturnThis(),
-        done: vi.fn().mockReturnThis(),
-        fail: vi.fn((callback) => {
-          callback(JSON.stringify(mockError), null);
-          return mockProc;
-        }),
-      };
-
-      mockSpawn.mockReturnValue(mockProc);
-
-      await expect(listStores()).rejects.toThrow(APTBridgeError);
-      await expect(listStores()).rejects.toThrow("Failed to load stores");
-    });
-  });
-
   describe("listRepositories", () => {
-    it("should call with store filter", async () => {
+    it("should list repositories", async () => {
       const mockRepos = [
         {
           id: "marine:stable",
@@ -113,10 +49,10 @@ describe("API Wrapper", () => {
 
       mockSpawn.mockReturnValue(mockProc);
 
-      const result = await listRepositories("marine");
+      const result = await listRepositories();
       expect(result).toEqual(mockRepos);
       expect(mockSpawn).toHaveBeenCalledWith(
-        ["cockpit-apt-bridge", "list-repositories", "--store", "marine"],
+        ["cockpit-apt-bridge", "list-repositories"],
         expect.any(Object)
       );
     });
@@ -147,7 +83,6 @@ describe("API Wrapper", () => {
       mockSpawn.mockReturnValue(mockProc);
 
       await filterPackages({
-        store_id: "marine",
         repository_id: "marine:stable",
         tab: "installed",
         search_query: "signal",
@@ -158,8 +93,6 @@ describe("API Wrapper", () => {
         [
           "cockpit-apt-bridge",
           "filter-packages",
-          "--store",
-          "marine",
           "--repo",
           "marine:stable",
           "--tab",

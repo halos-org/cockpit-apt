@@ -6,7 +6,6 @@ const STORAGE_PREFIX = "cockpit-apt:";
 
 // Storage keys
 const KEYS = {
-  ACTIVE_STORE: `${STORAGE_PREFIX}activeStore`,
   ACTIVE_REPOSITORY: `${STORAGE_PREFIX}activeRepository`,
   ACTIVE_TAB: `${STORAGE_PREFIX}activeTab`,
   SEARCH_QUERY: `${STORAGE_PREFIX}searchQuery`,
@@ -92,24 +91,6 @@ function removeItem(key: string): void {
   } catch (e) {
     console.error("Failed to remove from localStorage:", e);
   }
-}
-
-/**
- * Save active store ID
- */
-export function saveActiveStore(storeId: string | null): void {
-  if (storeId === null) {
-    removeItem(KEYS.ACTIVE_STORE);
-  } else {
-    saveItem(KEYS.ACTIVE_STORE, storeId);
-  }
-}
-
-/**
- * Load active store ID
- */
-export function loadActiveStore(): string | null {
-  return loadItem(KEYS.ACTIVE_STORE);
 }
 
 /**
