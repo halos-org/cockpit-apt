@@ -3,13 +3,7 @@
  * Provides typed Promise-based interface to cockpit-apt-bridge
  */
 
-import type {
-  APIError,
-  FilterPackagesResponse,
-  FilterParams,
-  Package,
-  Repository,
-} from "./types";
+import type { APIError, FilterPackagesResponse, FilterParams, Repository } from "./types";
 
 /**
  * Custom error class for API errors

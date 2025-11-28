@@ -26,12 +26,11 @@ import {
   TextInput,
   InputGroup,
   Button,
-  Spinner,
   FormHelperText,
   HelperText,
   HelperTextItem,
 } from "@patternfly/react-core";
-import { SearchIcon, TimesIcon } from "@patternfly/react-icons";
+import { SearchIcon } from "@patternfly/react-icons";
 
 export interface SearchBarProps {
   /** Current search value */
@@ -63,7 +62,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChange,
   onSearch,
-  loading = false,
   placeholder = "Search packages...",
   debounceMs = 300,
   minLength = 2,

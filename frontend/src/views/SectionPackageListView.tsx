@@ -179,7 +179,9 @@ export function SectionPackageListView({
           {sectionName}
         </Title>
         <EmptyState icon={CubesIcon} titleText="No packages found" headingLevel="h2">
-          <EmptyStateBody>No packages found in the {sectionName} {itemLabel}.</EmptyStateBody>
+          <EmptyStateBody>
+            No packages found in the {sectionName} {itemLabel}.
+          </EmptyStateBody>
           <Button variant="primary" onClick={onNavigateToSections}>
             Back to {displayLabel.toLowerCase()}
           </Button>

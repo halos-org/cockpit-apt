@@ -7,12 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  APTBridgeError,
-  filterPackages,
-  formatErrorMessage,
-  listRepositories,
-} from "../index";
+import { APTBridgeError, filterPackages, formatErrorMessage, listRepositories } from "../index";
 
 // Mock the global cockpit object
 const mockSpawn = vi.fn();
