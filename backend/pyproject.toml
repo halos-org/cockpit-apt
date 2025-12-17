@@ -81,7 +81,11 @@ select = [
     "ARG", # flake8-unused-arguments
     "SIM", # flake8-simplify
 ]
-ignore = []
+ignore = [
+    "SIM117",  # Multiple with statements - often clearer as-is
+    "B904",    # raise-without-from-inside-except - not always appropriate
+    "E501",    # Line too long - handled by formatter
+]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Unused imports in __init__.py

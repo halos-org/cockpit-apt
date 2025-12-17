@@ -183,6 +183,29 @@ No local Python installation required - all commands run in Docker:
 ./run clean
 ```
 
+### Pre-commit Hooks
+
+This project uses [lefthook](https://github.com/evilmartians/lefthook) for pre-commit hooks to run lint checks locally before commits.
+
+```bash
+# Install lefthook (one-time)
+brew install lefthook
+
+# Enable hooks in this repo
+./run hooks-install
+```
+
+**What it checks:**
+
+- `ruff check` (backend) - Python linting
+- `npm run lint` (frontend) - TypeScript linting
+
+**Skip hooks when needed:**
+
+```bash
+git commit --no-verify -m "WIP: message"
+```
+
 ### Option 2: VSCode Dev Container (Recommended for IDE Users)
 
 Full IDE integration with Pylance, debugging, and extensions inside the container:

@@ -4,5 +4,5 @@
 set -e
 
 echo "Running ruff linting..."
-docker compose -f docker/docker-compose.devtools.yml run --rm --user root devtools bash -c "cd backend && uv sync --extra dev && uv run ruff check --ignore SIM117,B904,E501 ."
+docker compose -f docker/docker-compose.devtools.yml run --rm --user root devtools bash -c "cd backend && uv sync --extra dev && uv run ruff check ."
 echo "✅ Linting complete"

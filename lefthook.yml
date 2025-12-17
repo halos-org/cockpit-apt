@@ -1,0 +1,30 @@
+pre-commit:
+  parallel: true
+  commands:
+    # Python backend
+    backend-ruff:
+      root: "backend/"
+      glob: "*.py"
+      run: |
+        if command -v uv >/dev/null 2>&1; then
+          cd backend && uv run ruff check .
+        elif command -v ruff >/dev/null 2>&1; then
+          cd backend && ruff check .
+        else
+          echo "WARNING: ruff not found, skipping"
+          exit 0
+        fi
+      fail_text: "Run 'ruff check .' in backend/ to see issues."
+
+    # TypeScript frontend
+    frontend-lint:
+      root: "frontend/"
+      glob: "*.{ts,tsx}"
+      run: |
+        if [ -d frontend/node_modules ]; then
+          cd frontend && npm run lint
+        else
+          echo "WARNING: frontend/node_modules not found, skipping"
+          exit 0
+        fi
+      fail_text: "Run 'npm run lint' in frontend/ to see issues."
