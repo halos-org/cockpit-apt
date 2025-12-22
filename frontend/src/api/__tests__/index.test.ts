@@ -97,11 +97,45 @@ describe("API Wrapper", () => {
           "marine:stable",
           "--tab",
           "installed",
-          "--search",
-          "signal",
+          "--search=signal",
           "--limit",
           "50",
         ],
+        expect.any(Object)
+      );
+    });
+
+    it("should handle dash-prefixed search queries correctly", async () => {
+      const mockResponse = {
+        packages: [],
+        total_count: 0,
+        applied_filters: [],
+        limit: 1000,
+        limited: false,
+      };
+
+      const mockProc = {
+        stream: vi.fn((callback) => {
+          callback(JSON.stringify(mockResponse));
+          return mockProc;
+        }),
+        done: vi.fn((callback) => {
+          callback();
+          return mockProc;
+        }),
+        fail: vi.fn().mockReturnThis(),
+      };
+
+      mockSpawn.mockReturnValue(mockProc);
+
+      // This would previously fail because argparse would interpret "-test" as a flag
+      await filterPackages({
+        search_query: "-test",
+      });
+
+      // Using --search=VALUE format prevents argparse misinterpretation
+      expect(mockSpawn).toHaveBeenCalledWith(
+        ["cockpit-apt-bridge", "filter-packages", "--search=-test"],
         expect.any(Object)
       );
     });

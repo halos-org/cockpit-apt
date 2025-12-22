@@ -311,3 +311,47 @@ class TestCLIDispatcher:
 
         captured = capsys.readouterr()
         assert "Invalid filter-packages arguments" in captured.err
+
+    def test_filter_packages_dash_prefixed_search_combined_format(self, mock_apt_cache):
+        """Test filter-packages command with dash-prefixed search using --search=VALUE format.
+
+        This tests the fix for the bug where searching for strings starting with
+        a dash (e.g., "-test") would fail because argparse would interpret the
+        value as a separate flag. The frontend now uses --search=VALUE format
+        to prevent this.
+        """
+        mock_apt = MagicMock()
+        mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "filter-packages", "--search=-test"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
+
+        # Should succeed - argparse correctly interprets --search=-test as search value "-test"
+        assert exc_info.value.code == 0
+
+    def test_filter_packages_dash_prefixed_search_separate_format(self, mock_apt_cache, capsys):
+        """Test filter-packages command with dash-prefixed search using --search VALUE format.
+
+        This documents the original bug: when passing --search and -test as separate
+        arguments, argparse interprets -test as a flag, not a value.
+        """
+        mock_apt = MagicMock()
+        mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+        with (
+            patch.dict("sys.modules", {"apt": mock_apt}),
+            patch("sys.argv", ["cockpit-apt-bridge", "filter-packages", "--search", "-test"]),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            cli.main()
+
+        # This fails because argparse treats "-test" as a flag, not a value
+        # The frontend fix uses --search=VALUE format to avoid this
+        assert exc_info.value.code == 1
+
+        captured = capsys.readouterr()
+        assert "Invalid filter-packages arguments" in captured.err

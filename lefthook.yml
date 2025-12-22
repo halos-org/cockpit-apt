@@ -7,9 +7,9 @@ pre-commit:
       glob: "*.py"
       run: |
         if command -v uv >/dev/null 2>&1; then
-          cd backend && uv run ruff check .
+          uv run ruff check .
         elif command -v ruff >/dev/null 2>&1; then
-          cd backend && ruff check .
+          ruff check .
         else
           echo "WARNING: ruff not found, skipping"
           exit 0
@@ -21,8 +21,8 @@ pre-commit:
       root: "frontend/"
       glob: "*.{ts,tsx}"
       run: |
-        if [ -d frontend/node_modules ]; then
-          cd frontend && npm run lint
+        if [ -d node_modules ]; then
+          npm run lint
         else
           echo "WARNING: frontend/node_modules not found, skipping"
           exit 0

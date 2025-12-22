@@ -120,7 +120,9 @@ export async function filterPackages(params: FilterParams = {}): Promise<FilterP
     args.push("--tab", params.tab);
   }
   if (params.search_query) {
-    args.push("--search", params.search_query);
+    // Use --search=VALUE format to prevent argparse from interpreting
+    // dash-prefixed search queries as separate arguments
+    args.push(`--search=${params.search_query}`);
   }
   if (params.limit !== undefined) {
     args.push("--limit", params.limit.toString());
