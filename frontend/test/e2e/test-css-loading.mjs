@@ -1,5 +1,16 @@
-// Test CSS loading on halos.local using Playwright
+// Test CSS loading using Playwright
+//
+// Environment variables:
+//   COCKPIT_TEST_HOST - Required. The test host (e.g., myhostname.local:9090)
 import { chromium } from 'playwright';
+
+const testHost = process.env.COCKPIT_TEST_HOST;
+if (!testHost) {
+  console.error('Error: COCKPIT_TEST_HOST environment variable is required.');
+  console.error('Set it to your Cockpit host, e.g.: export COCKPIT_TEST_HOST=myhostname.local:9090');
+  process.exit(1);
+}
+const baseUrl = `https://${testHost}`;
 
 (async () => {
   const browser = await chromium.launch({
@@ -25,11 +36,11 @@ import { chromium } from 'playwright';
     }
   });
 
-  console.log('Loading https://halos.local:9090/...\n');
+  console.log(`Loading ${baseUrl}/...\n`);
 
   try {
     // First login to Cockpit
-    await page.goto('https://halos.local:9090/', {
+    await page.goto(`${baseUrl}/`, {
       waitUntil: 'networkidle',
       timeout: 30000
     });
@@ -45,7 +56,7 @@ import { chromium } from 'playwright';
     console.log('Logged in. Now loading /apt...\n');
 
     // Now navigate to apt
-    await page.goto('https://halos.local:9090/apt', {
+    await page.goto(`${baseUrl}/apt`, {
       waitUntil: 'networkidle',
       timeout: 30000
     });

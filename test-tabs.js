@@ -1,11 +1,22 @@
 #!/usr/bin/env node
 /**
- * Quick test to verify tabs work on halos.local
+ * Quick test to verify tabs work
+ *
+ * Environment variables:
+ *   COCKPIT_TEST_HOST - Required. The test host (e.g., myhostname.local:9090)
  */
 const { chromium } = require('playwright');
 
+const testHost = process.env.COCKPIT_TEST_HOST;
+if (!testHost) {
+  console.error('Error: COCKPIT_TEST_HOST environment variable is required.');
+  console.error('Set it to your Cockpit host, e.g.: export COCKPIT_TEST_HOST=myhostname.local:9090');
+  process.exit(1);
+}
+const baseUrl = `https://${testHost}`;
+
 (async () => {
-  console.log('🧪 Testing cockpit-apt tabs on halos.local...\n');
+  console.log(`🧪 Testing cockpit-apt tabs on ${testHost}...\n`);
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -32,8 +43,8 @@ const { chromium } = require('playwright');
   });
 
   try {
-    console.log('📍 Navigating to https://halos.local:9090/apt...');
-    await page.goto('https://halos.local:9090/apt', {
+    console.log(`📍 Navigating to ${baseUrl}/apt...`);
+    await page.goto(`${baseUrl}/apt`, {
       waitUntil: 'networkidle',
       timeout: 10000
     });

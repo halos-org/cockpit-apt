@@ -2,10 +2,22 @@
  * Playwright E2E Test Configuration
  *
  * Tests the cockpit-apt UI in a real Cockpit environment.
- * Requires Cockpit to be running on halos.local:9090.
+ * Requires Cockpit to be running on the target host.
+ *
+ * Environment variables:
+ *   COCKPIT_TEST_HOST - Required. The test host (e.g., myhostname.local:9090)
  */
 
 import { defineConfig, devices } from '@playwright/test';
+
+// Require test host from environment
+const testHost = process.env.COCKPIT_TEST_HOST;
+if (!testHost) {
+  throw new Error(
+    'COCKPIT_TEST_HOST environment variable is required.\n' +
+    'Set it to your Cockpit host, e.g.: export COCKPIT_TEST_HOST=myhostname.local:9090'
+  );
+}
 
 export default defineConfig({
   testDir: './e2e',
@@ -30,7 +42,7 @@ export default defineConfig({
 
   use: {
     // Base URL for tests
-    baseURL: 'https://halos.local:9090',
+    baseURL: `https://${testHost}`,
 
     // Collect trace on failure
     trace: 'on-first-retry',

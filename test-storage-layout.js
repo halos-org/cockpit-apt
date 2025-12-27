@@ -1,8 +1,19 @@
 #!/usr/bin/env node
 /**
  * Capture Storage page layout for comparison
+ *
+ * Environment variables:
+ *   COCKPIT_TEST_HOST - Required. The test host (e.g., myhostname.local:9090)
  */
 const playwright = require('playwright');
+
+const testHost = process.env.COCKPIT_TEST_HOST;
+if (!testHost) {
+  console.error('Error: COCKPIT_TEST_HOST environment variable is required.');
+  console.error('Set it to your Cockpit host, e.g.: export COCKPIT_TEST_HOST=myhostname.local:9090');
+  process.exit(1);
+}
+const baseUrl = `https://${testHost}`;
 
 (async () => {
   console.log('📸 Capturing Storage page layout...\n');
@@ -17,7 +28,7 @@ const playwright = require('playwright');
 
   try {
     console.log('📍 Navigating to login page...');
-    await page.goto('https://halos.local:9090/', {
+    await page.goto(`${baseUrl}/`, {
       waitUntil: 'networkidle',
       timeout: 10000
     });
@@ -31,7 +42,7 @@ const playwright = require('playwright');
 
     // Navigate to Storage
     console.log('📍 Navigating to Storage...');
-    await page.goto('https://halos.local:9090/storage', {
+    await page.goto(`${baseUrl}/storage`, {
       waitUntil: 'networkidle',
       timeout: 10000
     });

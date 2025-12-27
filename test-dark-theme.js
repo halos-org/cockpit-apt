@@ -1,8 +1,19 @@
 #!/usr/bin/env node
 /**
  * Test dark theme support
+ *
+ * Environment variables:
+ *   COCKPIT_TEST_HOST - Required. The test host (e.g., myhostname.local:9090)
  */
 const playwright = require('playwright');
+
+const testHost = process.env.COCKPIT_TEST_HOST;
+if (!testHost) {
+  console.error('Error: COCKPIT_TEST_HOST environment variable is required.');
+  console.error('Set it to your Cockpit host, e.g.: export COCKPIT_TEST_HOST=myhostname.local:9090');
+  process.exit(1);
+}
+const baseUrl = `https://${testHost}`;
 
 (async () => {
   console.log('🌙 Testing dark theme...\n');
@@ -16,7 +27,7 @@ const playwright = require('playwright');
   const page = await context.newPage();
 
   try {
-    await page.goto('https://halos.local:9090/', { waitUntil: 'networkidle', timeout: 10000 });
+    await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle', timeout: 10000 });
     await page.fill('#login-user-input', 'claude');
     await page.fill('#login-password-input', 'claude123');
     await page.click('#login-button');
@@ -24,7 +35,7 @@ const playwright = require('playwright');
 
     // Navigate to APT (light theme by default)
     console.log('📸 Capturing light theme...');
-    await page.goto('https://halos.local:9090/apt', { waitUntil: 'networkidle', timeout: 10000 });
+    await page.goto(`${baseUrl}/apt`, { waitUntil: 'networkidle', timeout: 10000 });
     await page.waitForTimeout(1000);
     await page.screenshot({ path: '/tmp/apt-light.png', fullPage: true });
     console.log('Saved: /tmp/apt-light.png');
