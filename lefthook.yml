@@ -28,3 +28,7 @@ pre-commit:
           exit 0
         fi
       fail_text: "Run 'npm run lint' in frontend/ to see issues."
+
+    check-hostnames:
+      run: .github/scripts/check-hardcoded-hostnames.sh
+      fail_text: "Hard-coded hostname references found. See error above for details."
