@@ -1,0 +1,10 @@
+# Cockpit modules bundle web fonts as part of the application assets
+# These are not system-wide fonts, they're embedded in the web UI
+cockpit-apt: font-in-non-font-package [usr/share/cockpit/apt/*.woff2]
+cockpit-apt: font-outside-font-dir [usr/share/cockpit/apt/*.woff2]
+
+# index.html is the Cockpit module entry point, not documentation
+cockpit-apt: package-contains-documentation-outside-usr-share-doc [usr/share/cockpit/apt/index.html]
+
+# cockpit-apt-bridge is an internal tool invoked by Cockpit, not a user-facing command
+cockpit-apt: no-manual-page [usr/bin/cockpit-apt-bridge]

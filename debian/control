@@ -8,7 +8,7 @@ Homepage: https://github.com/hatlabs/cockpit-apt
 
 Package: cockpit-apt
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}, cockpit (>= 276), python3-apt
+Depends: ${misc:Depends}, cockpit (>= 276), python3, python3-apt
 Description: Modern APT package manager interface for Cockpit
  A web-based package manager interface for Cockpit that provides:
   - Browse packages by Debian section (games, web, development, etc.)
