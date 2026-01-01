@@ -7,22 +7,46 @@ runs:
     - name: Check version consistency
       shell: bash
       run: |
-        set -e
+        set -euo pipefail
 
         # Read canonical version from VERSION file
         if [ ! -f "VERSION" ]; then
-          echo "VERSION file not found"
+          echo "ERROR: VERSION file not found"
           exit 1
         fi
-        VERSION_FILE=$(cat VERSION | tr -d '[:space:]')
+        VERSION_FILE=$(tr -d '[:space:]' < VERSION)
+        if [ -z "$VERSION_FILE" ]; then
+          echo "ERROR: VERSION file is empty"
+          exit 1
+        fi
         echo "VERSION file:           $VERSION_FILE"
 
+        # Check backend/pyproject.toml exists
+        if [ ! -f "backend/pyproject.toml" ]; then
+          echo "ERROR: backend/pyproject.toml not found"
+          exit 1
+        fi
+
         # Extract version from backend/pyproject.toml
-        PYPROJECT_VERSION=$(grep -m1 '^version = ' backend/pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+        PYPROJECT_VERSION=$(grep -m1 '^version = "' backend/pyproject.toml | sed 's/version = "\([^"]*\)".*/\1/' || true)
+        if [ -z "$PYPROJECT_VERSION" ]; then
+          echo "ERROR: Could not extract version from backend/pyproject.toml"
+          exit 1
+        fi
         echo "backend/pyproject.toml: $PYPROJECT_VERSION"
 
+        # Check frontend/package.json exists
+        if [ ! -f "frontend/package.json" ]; then
+          echo "ERROR: frontend/package.json not found"
+          exit 1
+        fi
+
         # Extract version from frontend/package.json
-        PACKAGE_VERSION=$(grep -m1 '"version":' frontend/package.json | sed 's/.*"version": "\(.*\)".*/\1/')
+        PACKAGE_VERSION=$(grep -m1 '"version"' frontend/package.json | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || true)
+        if [ -z "$PACKAGE_VERSION" ]; then
+          echo "ERROR: Could not extract version from frontend/package.json"
+          exit 1
+        fi
         echo "frontend/package.json:  $PACKAGE_VERSION"
 
         # Compare
