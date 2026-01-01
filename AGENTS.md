@@ -63,11 +63,11 @@ Note: Same .deb binary (0.2.0-N) is used for both pre-release and stable tags
 # Bump major version (0.2.0 -> 1.0.0)
 ./run bumpversion major
 
-# Commit the changes
-git add VERSION backend/pyproject.toml frontend/package.json
-git commit -m "chore: bump version to $(cat VERSION)"
+# Push the automatically created commit
 git push origin main
 ```
+
+**Note:** The working directory must be clean before bumping. bumpversion automatically commits the version change (configured with `commit = True` in `.bumpversion.cfg`).
 
 **What happens automatically:**
 1. CI reads VERSION file

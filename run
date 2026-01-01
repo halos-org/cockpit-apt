@@ -180,10 +180,9 @@ function bumpversion {
   # Run bumpversion
   bumpversion "$BUMP_TYPE"
 
-  echo "✅ Version bumped successfully"
-  echo "📝 Remember to commit the version changes:"
-  echo "   git add VERSION backend/pyproject.toml frontend/package.json"
-  echo "   git commit -m \"chore: bump version to \$(cat VERSION)\""
+  echo "✅ Version bumped and committed successfully"
+  echo "📝 Push to remote:"
+  echo "   git push origin main"
 }
 
 ################################################################################
