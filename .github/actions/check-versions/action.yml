@@ -1,0 +1,50 @@
+name: 'Check Version Consistency'
+description: 'Verify VERSION file matches pyproject.toml and package.json versions'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check version consistency
+      shell: bash
+      run: |
+        set -e
+
+        # Read canonical version from VERSION file
+        if [ ! -f "VERSION" ]; then
+          echo "VERSION file not found"
+          exit 1
+        fi
+        VERSION_FILE=$(cat VERSION | tr -d '[:space:]')
+        echo "VERSION file:           $VERSION_FILE"
+
+        # Extract version from backend/pyproject.toml
+        PYPROJECT_VERSION=$(grep -m1 '^version = ' backend/pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+        echo "backend/pyproject.toml: $PYPROJECT_VERSION"
+
+        # Extract version from frontend/package.json
+        PACKAGE_VERSION=$(grep -m1 '"version":' frontend/package.json | sed 's/.*"version": "\(.*\)".*/\1/')
+        echo "frontend/package.json:  $PACKAGE_VERSION"
+
+        # Compare
+        FAILED=0
+
+        if [ "$VERSION_FILE" != "$PYPROJECT_VERSION" ]; then
+          echo ""
+          echo "Version mismatch: VERSION ($VERSION_FILE) != backend/pyproject.toml ($PYPROJECT_VERSION)"
+          FAILED=1
+        fi
+
+        if [ "$VERSION_FILE" != "$PACKAGE_VERSION" ]; then
+          echo ""
+          echo "Version mismatch: VERSION ($VERSION_FILE) != frontend/package.json ($PACKAGE_VERSION)"
+          FAILED=1
+        fi
+
+        if [ $FAILED -eq 1 ]; then
+          echo ""
+          echo "Use './run bumpversion [patch|minor|major]' to update versions consistently."
+          exit 1
+        fi
+
+        echo ""
+        echo "Version check passed: $VERSION_FILE"
