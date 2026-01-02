@@ -32,3 +32,7 @@ pre-commit:
     check-hostnames:
       run: .github/scripts/check-hardcoded-hostnames.sh
       fail_text: "Hard-coded hostname references found. See error above for details."
+
+    check-changelog:
+      run: .github/scripts/check-changelog-edits.sh
+      fail_text: "Direct debian/changelog edits are not allowed. Use './run bumpversion' instead."
