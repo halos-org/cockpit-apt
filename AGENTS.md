@@ -84,6 +84,8 @@ git push origin main
 3. `release.yml` copies .deb from pre-release to stable release
 4. `release.yml` dispatches to apt.hatlabs.fi stable channel
 
+**CI Enforcement**: PRs that change package-affecting files must include a VERSION bump or CI will fail. Changes to docs, tests, CI config, and dev tooling are automatically excluded.
+
 ### Key Benefits
 
 ✅ Auto-incrementing revisions (no manual coordination)
