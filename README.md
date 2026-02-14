@@ -83,7 +83,7 @@ Modern APT package manager interface for Cockpit, providing a user-friendly grap
 
 ```bash
 # Download the latest release
-wget https://github.com/hatlabs/cockpit-apt/releases/latest/download/cockpit-apt_0.1.0-1_all.deb
+wget https://github.com/halos-org/cockpit-apt/releases/latest/download/cockpit-apt_0.1.0-1_all.deb
 
 # Install the package
 sudo apt install ./cockpit-apt_0.1.0-1_all.deb
@@ -98,7 +98,7 @@ Then access Cockpit APT at `https://your-server:9090/apt`
 
 ```bash
 # Clone repository
-git clone https://github.com/hatlabs/cockpit-apt.git
+git clone https://github.com/halos-org/cockpit-apt.git
 cd cockpit-apt
 
 # Build frontend
@@ -136,7 +136,7 @@ For development with AI assistants, use the halos-distro workspace for full cont
 
 ```bash
 # Clone the workspace
-git clone https://github.com/hatlabs/halos-distro.git
+git clone https://github.com/halos-org/halos-distro.git
 cd halos-distro
 
 # Get all sub-repositories including cockpit-apt
@@ -282,7 +282,7 @@ Or use the convenience commands:
 
 ```bash
 # Clone repository
-git clone https://github.com/hatlabs/cockpit-apt.git
+git clone https://github.com/halos-org/cockpit-apt.git
 cd cockpit-apt
 
 # Build Docker development environment
@@ -609,14 +609,14 @@ GNU Lesser General Public License v2.1 - see [LICENSE](LICENSE) file for details
 - **[Cockpit Project](https://cockpit-project.org/)** - Web-based server administration
 - **[python-apt](https://apt-team.pages.debian.net/python-apt/)** - Python interface to APT
 - **[PatternFly](https://www.patternfly.org/)** - Enterprise UI design system
-- **[HaLOS](https://github.com/hatlabs/halos-distro)** - Hat Labs Operating System (parent project)
+- **[HaLOS](https://github.com/halos-org/halos-distro)** - Hat Labs Operating System (parent project)
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/hatlabs/cockpit-apt/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/hatlabs/cockpit-apt/discussions)
+- **Issues**: [GitHub Issues](https://github.com/halos-org/cockpit-apt/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/halos-org/cockpit-apt/discussions)
 - **Documentation**: See links above
 
 ---
 
-Made with ❤️ by Hat Labs • Part of the [HaLOS](https://github.com/hatlabs/halos-distro) ecosystem
+Made with ❤️ by Hat Labs • Part of the [HaLOS](https://github.com/halos-org/halos-distro) ecosystem

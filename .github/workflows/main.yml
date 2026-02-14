@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   build-release:
-    uses: hatlabs/shared-workflows/.github/workflows/build-release.yml@main
+    uses: halos-org/shared-workflows/.github/workflows/build-release.yml@main
     with:
       package-name: cockpit-apt
       package-description: 'Modern Cockpit interface for APT package management on Debian'

@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: cockpit-apt
 Upstream-Contact: Matti Airas <matti.airas@hatlabs.fi>
-Source: https://github.com/hatlabs/cockpit-apt
+Source: https://github.com/halos-org/cockpit-apt
 
 Files: *
 Copyright: 2025 Hat Labs Oy

@@ -6,4 +6,4 @@ on:
 
 jobs:
   checks:
-    uses: hatlabs/shared-workflows/.github/workflows/pr-checks.yml@main
+    uses: halos-org/shared-workflows/.github/workflows/pr-checks.yml@main
