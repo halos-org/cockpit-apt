@@ -4,9 +4,12 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   publish:
-    uses: hatlabs/shared-workflows/.github/workflows/publish-stable.yml@main
+    uses: halos-org/shared-workflows/.github/workflows/publish-stable.yml@main
     with:
       apt-distro: trixie
       apt-component: main

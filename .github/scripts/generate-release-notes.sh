@@ -88,8 +88,8 @@ This is the source code release. For Debian packages, see [apt.hatlabs.fi](https
 ### Development
 
 For development setup and build commands, see:
-- [README.md](https://github.com/hatlabs/cockpit-apt/blob/main/README.md) - Installation and usage
-- [CLAUDE.md](https://github.com/hatlabs/cockpit-apt/blob/main/CLAUDE.md) - Development guide
+- [README.md](https://github.com/halos-org/cockpit-apt/blob/main/README.md) - Installation and usage
+- [CLAUDE.md](https://github.com/halos-org/cockpit-apt/blob/main/CLAUDE.md) - Development guide
 - \`./run help\` - Available build and development commands
 EOF
     ;;
@@ -120,8 +120,8 @@ This is the source code release. For Debian packages, see [apt.hatlabs.fi](https
 ### Development
 
 For development setup and build commands, see:
-- [README.md](https://github.com/hatlabs/cockpit-apt/blob/main/README.md) - Installation and usage
-- [CLAUDE.md](https://github.com/hatlabs/cockpit-apt/blob/main/CLAUDE.md) - Development guide
+- [README.md](https://github.com/halos-org/cockpit-apt/blob/main/README.md) - Installation and usage
+- [CLAUDE.md](https://github.com/halos-org/cockpit-apt/blob/main/CLAUDE.md) - Development guide
 - \`./run help\` - Available build and development commands
 EOF
     ;;
