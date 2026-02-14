@@ -8,3 +8,6 @@ cockpit-apt: package-contains-documentation-outside-usr-share-doc [usr/share/coc
 
 # cockpit-apt-bridge is an internal tool invoked by Cockpit, not a user-facing command
 cockpit-apt: no-manual-page [usr/bin/cockpit-apt-bridge]
+
+# CI generates debian/changelog dynamically, so there is no ITP bug to close
+cockpit-apt: initial-upload-closes-no-bugs
