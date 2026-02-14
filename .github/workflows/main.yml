@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.repository }}-main-release
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   build-release:
     uses: halos-org/shared-workflows/.github/workflows/build-release.yml@main
