@@ -132,12 +132,12 @@ sudo systemctl restart cockpit
 
 ### Agentic Coding Setup (Claude Code, GitHub Copilot, etc.)
 
-For development with AI assistants, use the halos-distro workspace for full context:
+For development with AI assistants, use the halos workspace for full context:
 
 ```bash
 # Clone the workspace
-git clone https://github.com/halos-org/halos-distro.git
-cd halos-distro
+git clone https://github.com/halos-org/halos.git
+cd halos
 
 # Get all sub-repositories including cockpit-apt
 ./run repos:clone
@@ -146,7 +146,7 @@ cd halos-distro
 # Claude Code gets full context across all repos
 ```
 
-See `halos-distro/docs/` for development workflows:
+See `halos/docs/` for development workflows:
 - `LIFE_WITH_CLAUDE.md` - Quick start guide
 - `IMPLEMENTATION_CHECKLIST.md` - Development checklist
 - `DEVELOPMENT_WORKFLOW.md` - Detailed workflows
@@ -609,7 +609,7 @@ GNU Lesser General Public License v2.1 - see [LICENSE](LICENSE) file for details
 - **[Cockpit Project](https://cockpit-project.org/)** - Web-based server administration
 - **[python-apt](https://apt-team.pages.debian.net/python-apt/)** - Python interface to APT
 - **[PatternFly](https://www.patternfly.org/)** - Enterprise UI design system
-- **[HaLOS](https://github.com/halos-org/halos-distro)** - Hat Labs Operating System (parent project)
+- **[HaLOS](https://github.com/halos-org/halos)** - Hat Labs Operating System (parent project)
 
 ## Support
 
@@ -619,4 +619,4 @@ GNU Lesser General Public License v2.1 - see [LICENSE](LICENSE) file for details
 
 ---
 
-Made with ❤️ by Hat Labs • Part of the [HaLOS](https://github.com/halos-org/halos-distro) ecosystem
+Made with ❤️ by Hat Labs • Part of the [HaLOS](https://github.com/halos-org/halos) ecosystem

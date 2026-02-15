@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Lint check for hard-coded hostname references.
-# See docs/HOSTNAME_POLICY.md in halos-distro for the full policy.
+# See docs/HOSTNAME_POLICY.md in halos for the full policy.
 #
 # Usage: Run from repository root.
 #
