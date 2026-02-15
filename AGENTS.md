@@ -4,16 +4,16 @@
 
 ## 🎯 For Agentic Coding: Use the HaLOS Workspace
 
-This repository should be used as part of the halos-distro workspace for AI-assisted development:
+This repository should be used as part of the halos workspace for AI-assisted development:
 
 ```bash
 # Clone workspace and all repos
-git clone https://github.com/halos-org/halos-distro.git
-cd halos-distro
+git clone https://github.com/halos-org/halos.git
+cd halos
 ./run repos:clone
 ```
 
-See `halos-distro/docs/` for development workflows and guidance.
+See `halos/docs/` for development workflows and guidance.
 
 ## About This Project
 
@@ -233,7 +233,7 @@ docs/                             # Documentation
 
 ## Issue Creation & Implementation
 
-**MANDATORY:** All GitHub issues must require following `halos-distro/docs/IMPLEMENTATION_CHECKLIST.md` during implementation. Include this requirement in the issue body when creating issues.
+**MANDATORY:** All GitHub issues must require following `halos/docs/IMPLEMENTATION_CHECKLIST.md` during implementation. Include this requirement in the issue body when creating issues.
 
 ## Development Workflow
 
@@ -807,4 +807,4 @@ Follow conventional commit format:
 - [PatternFly React](https://www.patternfly.org/get-started/develop/)
 - [Debian Policy - Sections](https://www.debian.org/doc/debian-policy/ch-archive.html#s-subsections)
 
-Part of the [HaLOS](https://github.com/halos-org/halos-distro) distribution.
+Part of the [HaLOS](https://github.com/halos-org/halos) distribution.
