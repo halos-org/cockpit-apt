@@ -21,6 +21,7 @@ from cockpit_apt.commands import (
     search,
     sections,
     update,
+    upgrade,
 )
 
 __all__ = [
@@ -38,4 +39,5 @@ __all__ = [
     "install",
     "remove",
     "update",
+    "upgrade",
 ]

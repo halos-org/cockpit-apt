@@ -622,6 +622,29 @@ export async function removePackage(
 }
 
 /**
+ * Upgrade all upgradable packages (apt-get upgrade)
+ *
+ * @param onProgress Optional progress callback
+ * @throws APTError if upgrade fails
+ */
+export async function upgradeAllPackages(
+  onProgress?: (progress: { percentage: number; message: string }) => void
+): Promise<void> {
+  const result = (await executeWithProgress(["upgrade"], onProgress)) as {
+    success: boolean;
+  };
+
+  if (!result.success) {
+    throw translateError(new Error("Upgrade failed"));
+  }
+
+  // Invalidate caches after successful upgrade
+  invalidateCache("installed");
+  invalidateCache("upgradable");
+  invalidateCache("details:");
+}
+
+/**
  * Update package lists (apt-get update)
  *
  * @param onProgress Optional progress callback

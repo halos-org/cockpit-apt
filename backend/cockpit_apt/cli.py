@@ -49,6 +49,7 @@ from cockpit_apt.commands import (
     search,
     sections,
     update,
+    upgrade,
 )
 from cockpit_apt.utils.errors import APTBridgeError, format_error
 from cockpit_apt.utils.formatters import to_json
@@ -75,6 +76,7 @@ Commands:
   install PACKAGE                   Install a package (with progress)
   remove PACKAGE                    Remove a package (with progress)
   update                            Update package lists (with progress)
+  upgrade                           Upgrade all upgradable packages (with progress)
 
 Examples:
   cockpit-apt-bridge search nginx
@@ -91,6 +93,7 @@ Examples:
   cockpit-apt-bridge install cowsay
   cockpit-apt-bridge remove cowsay
   cockpit-apt-bridge update
+  cockpit-apt-bridge upgrade
 """
     print(usage, file=sys.stderr)
 
@@ -226,6 +229,9 @@ def main() -> NoReturn:
 
         elif command == "update":
             result = update.execute()
+
+        elif command == "upgrade":
+            result = upgrade.execute()
 
         elif command in ("--help", "-h", "help"):
             print_usage()

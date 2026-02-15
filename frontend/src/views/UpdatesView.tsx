@@ -26,7 +26,7 @@ import { useEffect, useState } from "react";
 import type { Package } from "../api/types";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
-import { installPackage } from "../lib/api";
+import { installPackage, upgradeAllPackages } from "../lib/api";
 
 interface UpdatesViewProps {
   onNavigateToPackage: (name: string) => void;
@@ -37,6 +37,12 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
   const [filterText, setFilterText] = useState("");
   const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
   const [upgradingPackage, setUpgradingPackage] = useState<string | null>(null);
+  const [upgradingAll, setUpgradingAll] = useState(false);
+  const [upgradeError, setUpgradeError] = useState<Error | null>(null);
+  const [upgradeProgress, setUpgradeProgress] = useState<{
+    percentage: number;
+    message: string;
+  } | null>(null);
 
   // Set tab to "upgradable" on mount
   useEffect(() => {
@@ -57,14 +63,31 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
     }
   }, [filterText, state.packages]);
 
+  const handleUpgradeAll = async () => {
+    try {
+      setUpgradingAll(true);
+      setUpgradeError(null);
+      setUpgradeProgress({ percentage: 0, message: "Starting upgrade..." });
+      await upgradeAllPackages((progress) => {
+        setUpgradeProgress(progress);
+      });
+      await actions.loadPackages();
+    } catch (err) {
+      setUpgradeError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setUpgradingAll(false);
+      setUpgradeProgress(null);
+    }
+  };
+
   const handleUpgrade = async (packageName: string) => {
     try {
       setUpgradingPackage(packageName);
+      setUpgradeError(null);
       await installPackage(packageName); // Install with newer version = upgrade
-      // Reload packages after upgrade
       await actions.loadPackages();
     } catch (err) {
-      console.error("Upgrade failed:", err);
+      setUpgradeError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setUpgradingPackage(null);
     }
@@ -134,17 +157,36 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
           <ToolbarItem>
             <Button
               variant="primary"
-              onClick={() => {
-                // TODO: Implement upgrade all
-                console.log("Upgrade all packages");
-              }}
-              isDisabled={upgradingPackage !== null}
+              onClick={handleUpgradeAll}
+              isLoading={upgradingAll}
+              isDisabled={upgradingPackage !== null || upgradingAll}
             >
               Upgrade All
             </Button>
           </ToolbarItem>
         </ToolbarContent>
       </Toolbar>
+
+      {upgradeError && (
+        <ErrorAlert
+          error={upgradeError}
+          onDismiss={() => setUpgradeError(null)}
+          title="Upgrade failed"
+          style={{ marginBottom: "1rem" }}
+        />
+      )}
+
+      {upgradeProgress && (
+        <div
+          style={{
+            marginBottom: "1rem",
+            fontSize: "0.875rem",
+            color: "var(--pf-v5-global--Color--200)",
+          }}
+        >
+          {upgradeProgress.percentage}% - {upgradeProgress.message}
+        </div>
+      )}
 
       {filteredPackages.length === 0 ? (
         <EmptyState icon={SearchIcon} titleText="No matches" headingLevel="h3">
@@ -185,7 +227,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
                     size="sm"
                     onClick={() => handleUpgrade(pkg.name)}
                     isLoading={upgradingPackage === pkg.name}
-                    isDisabled={upgradingPackage !== null}
+                    isDisabled={upgradingPackage !== null || upgradingAll}
                   >
                     Upgrade
                   </Button>

@@ -7,7 +7,7 @@
  * - Handles loading and error states correctly
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Package } from "../../api/types";
 import { UpdatesView } from "../UpdatesView";
@@ -34,15 +34,25 @@ let mockAppState: any = {
   packagesError: null,
 };
 
+const mockLoadPackages = vi.fn();
+
 // Mock AppContext to control state
 vi.mock("../../context/AppContext", () => ({
   useApp: () => ({
     state: mockAppState,
     actions: {
       setActiveTab: vi.fn(),
-      loadPackages: vi.fn(),
+      loadPackages: mockLoadPackages,
     },
   }),
+}));
+
+// Mock API functions
+const mockUpgradeAllPackages = vi.fn();
+const mockInstallPackage = vi.fn();
+vi.mock("../../lib/api", () => ({
+  upgradeAllPackages: (...args: unknown[]) => mockUpgradeAllPackages(...args),
+  installPackage: (...args: unknown[]) => mockInstallPackage(...args),
 }));
 
 describe("UpdatesView - Empty State Messages", () => {
@@ -191,6 +201,98 @@ describe("UpdatesView - Loading and Error States", () => {
       expect(screen.getByText("Available Updates")).toBeInTheDocument();
       // ErrorAlert should be rendered
       expect(screen.queryByText("System is up to date")).not.toBeInTheDocument();
+    });
+  });
+});
+
+describe("UpdatesView - Upgrade All", () => {
+  const mockPackages: Package[] = [
+    {
+      name: "nginx",
+      version: "1.18.0",
+      summary: "Web server",
+      section: "web",
+      installed: true,
+      upgradable: true,
+      installedVersion: "1.17.0",
+      candidateVersion: "1.18.0",
+    },
+    {
+      name: "curl",
+      version: "7.68.0",
+      summary: "Command line tool",
+      section: "net",
+      installed: true,
+      upgradable: true,
+      installedVersion: "7.67.0",
+      candidateVersion: "7.68.0",
+    },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockAppState = {
+      packages: mockPackages,
+      packagesLoading: false,
+      packagesError: null,
+    };
+    mockUpgradeAllPackages.mockResolvedValue(undefined);
+    mockLoadPackages.mockResolvedValue(undefined);
+  });
+
+  it("should show Upgrade All button when updates exist", () => {
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: /upgrade all/i })).toBeInTheDocument();
+  });
+
+  it("should disable Upgrade All button while upgrading", async () => {
+    // Make upgradeAllPackages hang so we can check disabled state
+    let resolveUpgrade!: () => void;
+    mockUpgradeAllPackages.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveUpgrade = resolve;
+        })
+    );
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const button = screen.getByRole("button", { name: /upgrade all/i });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(button).toBeDisabled();
+    });
+
+    // Clean up
+    resolveUpgrade();
+  });
+
+  it("should show error alert when upgrade fails", async () => {
+    mockUpgradeAllPackages.mockRejectedValue(new Error("Upgrade failed"));
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const button = screen.getByRole("button", { name: /upgrade all/i });
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    // Title and message body both contain "Upgrade failed"
+    expect(screen.getAllByText("Upgrade failed").length).toBeGreaterThan(0);
+  });
+
+  it("should reload packages on successful upgrade", async () => {
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const button = screen.getByRole("button", { name: /upgrade all/i });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(mockUpgradeAllPackages).toHaveBeenCalled();
+      expect(mockLoadPackages).toHaveBeenCalled();
     });
   });
 });
