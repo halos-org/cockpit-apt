@@ -1,11 +1,11 @@
 [project]
 name = "cockpit-apt"
-version = "0.3.1"
+version = "0.3.2"
 description = "APT package management backend for Cockpit"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-    {name = "Hat Labs", email = "info@hatlabs.fi"}
+    {name = "Matti Airas", email = "matti.airas@hatlabs.fi"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",

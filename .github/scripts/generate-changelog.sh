@@ -47,8 +47,8 @@ DISTRIBUTION="unstable"
 URGENCY="medium"
 
 # Maintainer information
-MAINTAINER_NAME="${MAINTAINER_NAME:-Hat Labs}"
-MAINTAINER_EMAIL="${MAINTAINER_EMAIL:-info@hatlabs.fi}"
+MAINTAINER_NAME="${MAINTAINER_NAME:-Matti Airas}"
+MAINTAINER_EMAIL="${MAINTAINER_EMAIL:-matti.airas@hatlabs.fi}"
 
 # Date in RFC 2822 format
 DATE=$(date -R)
