@@ -811,5 +811,76 @@ describe("API Functions", () => {
       // Cache should be invalidated (tested indirectly by ensuring operations complete)
       expect(mockSpawn).toHaveBeenCalled();
     });
+
+    describe("upgradeAllPackages", () => {
+      it("should upgrade all packages", async () => {
+        mockSpawn.mockReturnValue(
+          createSuccessfulSpawn({ success: true, message: "Upgrade complete" })
+        );
+
+        await api.upgradeAllPackages();
+
+        expect(mockSpawn).toHaveBeenCalledWith(
+          expect.arrayContaining(["cockpit-apt-bridge", "upgrade"]),
+          expect.objectContaining({ superuser: "require" })
+        );
+      });
+
+      it("should handle upgrade failure", async () => {
+        const errorJson = JSON.stringify({
+          error: "Failed to upgrade packages",
+          code: "UPGRADE_FAILED",
+        });
+
+        mockSpawn.mockReturnValue(createFailedSpawn(errorJson));
+
+        await expect(api.upgradeAllPackages()).rejects.toThrow("Failed to upgrade packages");
+      });
+
+      it("should invalidate caches after successful upgrade", async () => {
+        // Pre-populate caches
+        const packages: Package[] = [
+          {
+            name: "nginx",
+            summary: "HTTP server",
+            version: "1.18.0",
+            installed: true,
+            section: "web",
+          },
+        ];
+        const upgradable: UpgradablePackage[] = [
+          {
+            name: "nginx",
+            summary: "HTTP server",
+            installedVersion: "1.17.0",
+            candidateVersion: "1.18.0",
+          },
+        ];
+
+        mockSpawn.mockReturnValueOnce(createSuccessfulSpawn(packages));
+        await api.listInstalledPackages();
+
+        mockSpawn.mockReturnValueOnce(createSuccessfulSpawn(upgradable));
+        await api.listUpgradablePackages();
+
+        expect(mockSpawn).toHaveBeenCalledTimes(2);
+
+        // Now upgrade
+        mockSpawn.mockReturnValueOnce(
+          createSuccessfulSpawn({ success: true, message: "Upgrade complete" })
+        );
+        await api.upgradeAllPackages();
+
+        // After upgrade, caches should be invalidated - new requests needed
+        mockSpawn.mockReturnValueOnce(createSuccessfulSpawn(packages));
+        await api.listInstalledPackages();
+
+        mockSpawn.mockReturnValueOnce(createSuccessfulSpawn(upgradable));
+        await api.listUpgradablePackages();
+
+        // 2 initial + 1 upgrade + 2 re-fetches = 5
+        expect(mockSpawn).toHaveBeenCalledTimes(5);
+      });
+    });
   });
 });
