@@ -11,7 +11,9 @@ import {
   Bullseye,
   Button,
   EmptyState,
+  EmptyStateActions,
   EmptyStateBody,
+  EmptyStateFooter,
   PageSection,
   Spinner,
   TextInput,
@@ -152,14 +154,18 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
             <EmptyStateBody>
               All installed packages are up to date. Check back later for new updates.
             </EmptyStateBody>
-            <Button
-              variant="primary"
-              onClick={handleCheckForUpdates}
-              isLoading={checkingForUpdates}
-              isDisabled={checkingForUpdates}
-            >
-              Check for updates
-            </Button>
+            <EmptyStateFooter style={{ marginTop: "1rem" }}>
+              <EmptyStateActions>
+                <Button
+                  variant="primary"
+                  onClick={handleCheckForUpdates}
+                  isLoading={checkingForUpdates}
+                  isDisabled={checkingForUpdates}
+                >
+                  Check for updates
+                </Button>
+              </EmptyStateActions>
+            </EmptyStateFooter>
           </EmptyState>
         ) : (
           <EmptyState
@@ -171,14 +177,18 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
               Package lists have not been downloaded yet. Check for updates to download package
               lists and see available updates.
             </EmptyStateBody>
-            <Button
-              variant="primary"
-              onClick={handleCheckForUpdates}
-              isLoading={checkingForUpdates}
-              isDisabled={checkingForUpdates}
-            >
-              Check for updates
-            </Button>
+            <EmptyStateFooter style={{ marginTop: "1rem" }}>
+              <EmptyStateActions>
+                <Button
+                  variant="primary"
+                  onClick={handleCheckForUpdates}
+                  isLoading={checkingForUpdates}
+                  isDisabled={checkingForUpdates}
+                >
+                  Check for updates
+                </Button>
+              </EmptyStateActions>
+            </EmptyStateFooter>
           </EmptyState>
         )}
       </PageSection>
