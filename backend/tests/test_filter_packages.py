@@ -261,7 +261,72 @@ def test_filter_response_structure(mock_apt_cache):
     assert "applied_filters" in result
     assert "limit" in result
     assert "limited" in result
+    assert "apt_lists_populated" in result
     assert isinstance(result["packages"], list)
     assert isinstance(result["total_count"], int)
     assert isinstance(result["applied_filters"], list)
     assert isinstance(result["limited"], bool)
+    assert isinstance(result["apt_lists_populated"], bool)
+
+
+def test_apt_lists_populated_true(mock_apt_cache, tmp_path):
+    """Test apt_lists_populated is True when _Packages files exist."""
+    lists_dir = tmp_path / "lists"
+    lists_dir.mkdir()
+    (lists_dir / "archive.ubuntu.com_ubuntu_dists_jammy_main_binary-amd64_Packages").touch()
+
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_LISTS_DIR", lists_dir):
+            result = filter_packages.execute()
+
+    assert result["apt_lists_populated"] is True
+
+
+def test_apt_lists_populated_true_compressed(mock_apt_cache, tmp_path):
+    """Test apt_lists_populated is True when compressed _Packages.gz files exist."""
+    lists_dir = tmp_path / "lists"
+    lists_dir.mkdir()
+    (lists_dir / "archive.ubuntu.com_ubuntu_dists_jammy_main_binary-amd64_Packages.gz").touch()
+
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_LISTS_DIR", lists_dir):
+            result = filter_packages.execute()
+
+    assert result["apt_lists_populated"] is True
+
+
+def test_apt_lists_populated_false_empty_dir(mock_apt_cache, tmp_path):
+    """Test apt_lists_populated is False when no _Packages files exist."""
+    lists_dir = tmp_path / "lists"
+    lists_dir.mkdir()
+    # Create a non-Packages file (lock file, partial, etc.)
+    (lists_dir / "lock").touch()
+
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_LISTS_DIR", lists_dir):
+            result = filter_packages.execute()
+
+    assert result["apt_lists_populated"] is False
+
+
+def test_apt_lists_populated_false_no_dir(mock_apt_cache, tmp_path):
+    """Test apt_lists_populated is False when lists directory doesn't exist."""
+    nonexistent_dir = tmp_path / "nonexistent"
+
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_LISTS_DIR", nonexistent_dir):
+            result = filter_packages.execute()
+
+    assert result["apt_lists_populated"] is False

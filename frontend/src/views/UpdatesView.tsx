@@ -20,13 +20,13 @@ import {
   ToolbarContent,
   ToolbarItem,
 } from "@patternfly/react-core";
-import { CheckCircleIcon, SearchIcon } from "@patternfly/react-icons";
+import { CheckCircleIcon, ExclamationTriangleIcon, SearchIcon } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { useEffect, useState } from "react";
 import type { Package } from "../api/types";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
-import { installPackage, upgradeAllPackages } from "../lib/api";
+import { installPackage, updatePackageLists, upgradeAllPackages } from "../lib/api";
 
 interface UpdatesViewProps {
   onNavigateToPackage: (name: string) => void;
@@ -43,6 +43,8 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
     percentage: number;
     message: string;
   } | null>(null);
+  const [checkingForUpdates, setCheckingForUpdates] = useState(false);
+  const [checkError, setCheckError] = useState<Error | null>(null);
 
   // Set tab to "upgradable" on mount
   useEffect(() => {
@@ -119,19 +121,66 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
     );
   }
 
+  const handleCheckForUpdates = async () => {
+    try {
+      setCheckingForUpdates(true);
+      setCheckError(null);
+      await updatePackageLists();
+      await actions.loadPackages();
+    } catch (err) {
+      setCheckError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setCheckingForUpdates(false);
+    }
+  };
+
   // No updates available
   if (state.packages.length === 0) {
     return (
       <PageSection>
         <Title headingLevel="h1">Available Updates</Title>
-        <EmptyState icon={CheckCircleIcon} titleText="System is up to date" headingLevel="h2">
-          <EmptyStateBody>
-            All installed packages are up to date. Check back later for new updates.
-          </EmptyStateBody>
-          <Button variant="primary" onClick={() => actions.loadPackages()}>
-            Check for updates
-          </Button>
-        </EmptyState>
+        {checkError && (
+          <ErrorAlert
+            error={checkError}
+            onDismiss={() => setCheckError(null)}
+            title="Failed to check for updates"
+            style={{ marginBottom: "1rem" }}
+          />
+        )}
+        {state.aptListsPopulated ? (
+          <EmptyState icon={CheckCircleIcon} titleText="System is up to date" headingLevel="h2">
+            <EmptyStateBody>
+              All installed packages are up to date. Check back later for new updates.
+            </EmptyStateBody>
+            <Button
+              variant="primary"
+              onClick={handleCheckForUpdates}
+              isLoading={checkingForUpdates}
+              isDisabled={checkingForUpdates}
+            >
+              Check for updates
+            </Button>
+          </EmptyState>
+        ) : (
+          <EmptyState
+            icon={ExclamationTriangleIcon}
+            titleText="Package lists not available"
+            headingLevel="h2"
+          >
+            <EmptyStateBody>
+              Package lists have not been downloaded yet. Check for updates to download package
+              lists and see available updates.
+            </EmptyStateBody>
+            <Button
+              variant="primary"
+              onClick={handleCheckForUpdates}
+              isLoading={checkingForUpdates}
+              isDisabled={checkingForUpdates}
+            >
+              Check for updates
+            </Button>
+          </EmptyState>
+        )}
       </PageSection>
     );
   }

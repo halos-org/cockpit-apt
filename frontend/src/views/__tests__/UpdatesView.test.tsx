@@ -50,9 +50,11 @@ vi.mock("../../context/AppContext", () => ({
 // Mock API functions
 const mockUpgradeAllPackages = vi.fn();
 const mockInstallPackage = vi.fn();
+const mockUpdatePackageLists = vi.fn();
 vi.mock("../../lib/api", () => ({
   upgradeAllPackages: (...args: unknown[]) => mockUpgradeAllPackages(...args),
   installPackage: (...args: unknown[]) => mockInstallPackage(...args),
+  updatePackageLists: (...args: unknown[]) => mockUpdatePackageLists(...args),
 }));
 
 describe("UpdatesView - Empty State Messages", () => {
@@ -63,13 +65,16 @@ describe("UpdatesView - Empty State Messages", () => {
       packagesLoading: false,
       packagesError: null,
     };
+    mockUpdatePackageLists.mockResolvedValue(undefined);
+    mockLoadPackages.mockResolvedValue(undefined);
   });
 
-  it("should show generic message when no updates", async () => {
+  it("should show 'up to date' when no updates and apt lists populated", async () => {
     mockAppState = {
       packages: [],
       packagesLoading: false,
       packagesError: null,
+      aptListsPopulated: true,
     };
 
     render(<UpdatesView onNavigateToPackage={vi.fn()} />);
@@ -80,6 +85,66 @@ describe("UpdatesView - Empty State Messages", () => {
         screen.getByText("All installed packages are up to date. Check back later for new updates.")
       ).toBeInTheDocument();
     });
+
+    expect(screen.queryByText("Package lists not available")).not.toBeInTheDocument();
+  });
+
+  it("should show 'package lists not available' when apt lists are empty", async () => {
+    mockAppState = {
+      packages: [],
+      packagesLoading: false,
+      packagesError: null,
+      aptListsPopulated: false,
+    };
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Package lists not available")).toBeInTheDocument();
+      expect(screen.getByText(/Package lists have not been downloaded yet/)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("System is up to date")).not.toBeInTheDocument();
+  });
+
+  it("should call updatePackageLists when 'Check for updates' is clicked", async () => {
+    mockAppState = {
+      packages: [],
+      packagesLoading: false,
+      packagesError: null,
+      aptListsPopulated: false,
+    };
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const button = screen.getByRole("button", { name: /check for updates/i });
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(mockUpdatePackageLists).toHaveBeenCalled();
+    expect(mockLoadPackages).toHaveBeenCalled();
+  });
+
+  it("should show error when updatePackageLists fails", async () => {
+    mockUpdatePackageLists.mockRejectedValue(new Error("apt update failed"));
+    mockAppState = {
+      packages: [],
+      packagesLoading: false,
+      packagesError: null,
+      aptListsPopulated: false,
+    };
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const button = screen.getByRole("button", { name: /check for updates/i });
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(screen.getByText("Failed to check for updates")).toBeInTheDocument();
   });
 });
 
