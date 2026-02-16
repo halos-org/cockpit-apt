@@ -5,7 +5,7 @@
  * Each card shows section name, package count, and icon.
  */
 
-import { EmptyState, EmptyStateBody, Grid, GridItem, Title } from "@patternfly/react-core";
+import { EmptyState, EmptyStateBody, Grid, GridItem, Spinner, Title } from "@patternfly/react-core";
 import {
   BookIcon,
   CodeIcon,
@@ -32,6 +32,7 @@ import { useSections } from "../hooks/usePackages";
 
 export interface SectionsViewProps {
   onNavigateToSection?: (sectionName: string) => void;
+  updatingPackageLists?: boolean;
 }
 
 const ARCHIVE_PREFIXES = ["contrib/", "non-free/", "non-free-firmware/"] as const;
@@ -135,7 +136,10 @@ function sortSections(
   });
 }
 
-export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection }) => {
+export const SectionsView: React.FC<SectionsViewProps> = ({
+  onNavigateToSection,
+  updatingPackageLists,
+}) => {
   const { data: sections, loading, error, refetch } = useSections();
 
   const sortedSections = sections ? sortSections(sections) : [];
@@ -156,7 +160,15 @@ export const SectionsView: React.FC<SectionsViewProps> = ({ onNavigateToSection 
 
       {loading && <LoadingSkeleton variant="card" rows={8} />}
 
-      {!loading && !error && sortedSections.length === 0 && (
+      {!loading && !error && updatingPackageLists && sortedSections.length === 0 && (
+        <EmptyState icon={Spinner} titleText="Updating package lists..." headingLevel="h4">
+          <EmptyStateBody>
+            Package lists are being downloaded. This may take a moment.
+          </EmptyStateBody>
+        </EmptyState>
+      )}
+
+      {!loading && !error && !updatingPackageLists && sortedSections.length === 0 && (
         <EmptyState icon={CubesIcon} titleText="No sections found" headingLevel="h4">
           <EmptyStateBody>No package sections are available in the APT cache.</EmptyStateBody>
         </EmptyState>

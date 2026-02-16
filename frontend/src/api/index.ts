@@ -132,6 +132,56 @@ export async function filterPackages(params: FilterParams = {}): Promise<FilterP
 }
 
 /**
+ * Update APT package lists with progress reporting
+ */
+export async function updatePackageLists(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+
+    const proc = cockpit.spawn(["cockpit-apt-bridge", "update"], {
+      err: "out",
+      superuser: "require",
+    });
+
+    let stdout = "";
+
+    proc.stream((data: string) => {
+      stdout += data;
+    });
+
+    proc.done(() => {
+      if (settled) return;
+      settled = true;
+
+      // Parse the last JSON line for the final result
+      const lines = stdout.trim().split("\n");
+      for (let i = lines.length - 1; i >= 0; i--) {
+        try {
+          const parsed = JSON.parse(lines[i] || "");
+          if (parsed.error) {
+            reject(new APTBridgeError(parsed.error, parsed.code, parsed.details));
+            return;
+          }
+          if (parsed.success !== undefined) {
+            resolve();
+            return;
+          }
+        } catch {
+          // Not JSON, continue
+        }
+      }
+      resolve();
+    });
+
+    proc.fail((error: unknown) => {
+      if (settled) return;
+      settled = true;
+      reject(new APTBridgeError(String(error || "Update failed"), "UPDATE_FAILED"));
+    });
+  });
+}
+
+/**
  * Format error message for user display
  */
 export function formatErrorMessage(error: unknown): string {
