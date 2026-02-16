@@ -9,66 +9,21 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from cockpit_apt.commands.upgrade import _parse_status_line, execute
+from cockpit_apt.commands.upgrade import execute
 from cockpit_apt.utils.errors import APTBridgeError
 
-
-class TestParseStatusLine:
-    """Test _parse_status_line helper function."""
-
-    def test_parse_pmstatus_line(self):
-        line = "pmstatus:nginx:25.5:Installing nginx"
-        result = _parse_status_line(line)
-
-        assert result is not None
-        assert result["percentage"] == 25
-        assert "nginx" in result["message"]
-
-    def test_parse_dlstatus_line(self):
-        line = "dlstatus:curl:50.0:Downloading curl"
-        result = _parse_status_line(line)
-
-        assert result is not None
-        assert result["percentage"] == 50
-        assert "curl" in result["message"]
-
-    def test_parse_line_with_colon_in_message(self):
-        line = "pmstatus:vim:75.0:Setting up: vim"
-        result = _parse_status_line(line)
-
-        assert result is not None
-        assert result["percentage"] == 75
-        assert ":" in result["message"]
-
-    def test_parse_empty_message(self):
-        line = "pmstatus:git:100.0:"
-        result = _parse_status_line(line)
-
-        assert result is not None
-        assert result["percentage"] == 100
-        assert "git" in result["message"].lower()
-
-    def test_parse_invalid_line(self):
-        assert _parse_status_line("") is None
-        assert _parse_status_line("invalid") is None
-        assert _parse_status_line("pmstatus:only:two") is None
-        assert _parse_status_line("unknown:pkg:50:msg") is None
-
-    def test_parse_invalid_percentage(self):
-        line = "pmstatus:pkg:invalid:message"
-        result = _parse_status_line(line)
-
-        assert result is None
+# Mock paths target the shared module where subprocess calls now live
+_MOD = "cockpit_apt.utils.apt_progress"
 
 
 class TestExecute:
     """Test execute function."""
 
-    @patch("cockpit_apt.commands.upgrade.subprocess.Popen")
-    @patch("cockpit_apt.commands.upgrade.os.pipe")
-    @patch("cockpit_apt.commands.upgrade.os.close")
-    @patch("cockpit_apt.commands.upgrade.os.fdopen")
-    @patch("cockpit_apt.commands.upgrade.select.select")
+    @patch(f"{_MOD}.subprocess.Popen")
+    @patch(f"{_MOD}.os.pipe")
+    @patch(f"{_MOD}.os.close")
+    @patch(f"{_MOD}.os.fdopen")
+    @patch(f"{_MOD}.select.select")
     @patch("builtins.print")
     def test_upgrade_success(
         self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
@@ -110,11 +65,11 @@ class TestExecute:
 
         mock_close.assert_called()
 
-    @patch("cockpit_apt.commands.upgrade.subprocess.Popen")
-    @patch("cockpit_apt.commands.upgrade.os.pipe")
-    @patch("cockpit_apt.commands.upgrade.os.close")
-    @patch("cockpit_apt.commands.upgrade.os.fdopen")
-    @patch("cockpit_apt.commands.upgrade.select.select")
+    @patch(f"{_MOD}.subprocess.Popen")
+    @patch(f"{_MOD}.os.pipe")
+    @patch(f"{_MOD}.os.close")
+    @patch(f"{_MOD}.os.fdopen")
+    @patch(f"{_MOD}.select.select")
     def test_upgrade_locked(self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
         """Test upgrade when package manager is locked."""
         mock_pipe.return_value = (3, 4)
@@ -135,11 +90,11 @@ class TestExecute:
 
         assert exc_info.value.code == "LOCKED"
 
-    @patch("cockpit_apt.commands.upgrade.subprocess.Popen")
-    @patch("cockpit_apt.commands.upgrade.os.pipe")
-    @patch("cockpit_apt.commands.upgrade.os.close")
-    @patch("cockpit_apt.commands.upgrade.os.fdopen")
-    @patch("cockpit_apt.commands.upgrade.select.select")
+    @patch(f"{_MOD}.subprocess.Popen")
+    @patch(f"{_MOD}.os.pipe")
+    @patch(f"{_MOD}.os.close")
+    @patch(f"{_MOD}.os.fdopen")
+    @patch(f"{_MOD}.select.select")
     def test_upgrade_disk_full(self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen):
         """Test upgrade when disk is full."""
         mock_pipe.return_value = (3, 4)
@@ -160,11 +115,11 @@ class TestExecute:
 
         assert exc_info.value.code == "DISK_FULL"
 
-    @patch("cockpit_apt.commands.upgrade.subprocess.Popen")
-    @patch("cockpit_apt.commands.upgrade.os.pipe")
-    @patch("cockpit_apt.commands.upgrade.os.close")
-    @patch("cockpit_apt.commands.upgrade.os.fdopen")
-    @patch("cockpit_apt.commands.upgrade.select.select")
+    @patch(f"{_MOD}.subprocess.Popen")
+    @patch(f"{_MOD}.os.pipe")
+    @patch(f"{_MOD}.os.close")
+    @patch(f"{_MOD}.os.fdopen")
+    @patch(f"{_MOD}.select.select")
     def test_upgrade_generic_failure(
         self, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
     ):
@@ -187,8 +142,8 @@ class TestExecute:
 
         assert exc_info.value.code == "UPGRADE_FAILED"
 
-    @patch("cockpit_apt.commands.upgrade.subprocess.Popen")
-    @patch("cockpit_apt.commands.upgrade.os.pipe")
+    @patch(f"{_MOD}.subprocess.Popen")
+    @patch(f"{_MOD}.os.pipe")
     def test_upgrade_exception_handling(self, mock_pipe, mock_popen):
         """Test exception handling during upgrade."""
         mock_pipe.side_effect = Exception("Pipe creation failed")
@@ -198,10 +153,10 @@ class TestExecute:
 
         assert exc_info.value.code == "INTERNAL_ERROR"
 
-    @patch("cockpit_apt.commands.upgrade.subprocess.Popen")
-    @patch("cockpit_apt.commands.upgrade.os.pipe")
-    @patch("cockpit_apt.commands.upgrade.os.close")
-    def test_popen_failure_closes_both_fds(self, mock_close, mock_pipe, mock_popen):
+    @patch(f"{_MOD}.os.close")
+    @patch(f"{_MOD}.os.pipe")
+    @patch(f"{_MOD}.subprocess.Popen")
+    def test_popen_failure_closes_both_fds(self, mock_popen, mock_pipe, mock_close):
         """Test that both pipe FDs are closed if Popen raises."""
         mock_pipe.return_value = (3, 4)
         mock_popen.side_effect = OSError("Failed to exec")
@@ -213,11 +168,11 @@ class TestExecute:
         mock_close.assert_any_call(3)
         mock_close.assert_any_call(4)
 
-    @patch("cockpit_apt.commands.upgrade.subprocess.Popen")
-    @patch("cockpit_apt.commands.upgrade.os.pipe")
-    @patch("cockpit_apt.commands.upgrade.os.close")
-    @patch("cockpit_apt.commands.upgrade.os.fdopen")
-    @patch("cockpit_apt.commands.upgrade.select.select")
+    @patch(f"{_MOD}.subprocess.Popen")
+    @patch(f"{_MOD}.os.pipe")
+    @patch(f"{_MOD}.os.close")
+    @patch(f"{_MOD}.os.fdopen")
+    @patch(f"{_MOD}.select.select")
     @patch("builtins.print")
     def test_non_monotonic_progress_reported(
         self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
@@ -257,11 +212,11 @@ class TestExecute:
         # The key assertion: 25 appears after 100, proving no monotonicity guard
         assert progress_calls == [50, 100, 25, 100]
 
-    @patch("cockpit_apt.commands.upgrade.subprocess.Popen")
-    @patch("cockpit_apt.commands.upgrade.os.pipe")
-    @patch("cockpit_apt.commands.upgrade.os.close")
-    @patch("cockpit_apt.commands.upgrade.os.fdopen")
-    @patch("cockpit_apt.commands.upgrade.select.select")
+    @patch(f"{_MOD}.subprocess.Popen")
+    @patch(f"{_MOD}.os.pipe")
+    @patch(f"{_MOD}.os.close")
+    @patch(f"{_MOD}.os.fdopen")
+    @patch(f"{_MOD}.select.select")
     @patch("builtins.print")
     def test_success_message(
         self, mock_print, mock_select, mock_fdopen, mock_close, mock_pipe, mock_popen
