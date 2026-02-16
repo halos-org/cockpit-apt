@@ -18,7 +18,7 @@ import { ArrowUpIcon, CubesIcon, LayerGroupIcon, SearchIcon } from "@patternfly/
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { RepositoryDropdown } from "./components/RepositoryDropdown";
-import { AppProvider } from "./context/AppContext";
+import { AppProvider, useApp } from "./context/AppContext";
 import { InstalledView } from "./views/InstalledView";
 import { PackageDetailsView } from "./views/PackageDetailsView";
 import { SearchView } from "./views/SearchView";
@@ -102,6 +102,7 @@ function navigateTo(path: string) {
  * Main application component
  */
 function App() {
+  const { state } = useApp();
   const [route, setRoute] = useState<Route>(parseRoute(cockpit.location.path));
 
   // Listen to cockpit location changes
@@ -195,7 +196,12 @@ function App() {
         );
 
       case "sections":
-        return <SectionsView onNavigateToSection={handleNavigateToSection} />;
+        return (
+          <SectionsView
+            onNavigateToSection={handleNavigateToSection}
+            updatingPackageLists={state.updatingPackageLists}
+          />
+        );
 
       case "section-packages":
         return (

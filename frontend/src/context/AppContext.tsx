@@ -2,8 +2,16 @@
  * Application state management with React Context
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { APTBridgeError, filterPackages, listRepositories } from "../api";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { APTBridgeError, filterPackages, listRepositories, updatePackageLists } from "../api";
 import type { FilterParams, Package, Repository } from "../api/types";
 import {
   loadActiveRepository,
@@ -32,6 +40,7 @@ export interface AppState {
   error: string | null;
   packagesLoading: boolean;
   packagesError: string | null;
+  updatingPackageLists: boolean;
 
   // Metadata
   totalPackageCount: number;
@@ -81,6 +90,7 @@ const initialState: AppState = {
   error: null,
   packagesLoading: false,
   packagesError: null,
+  updatingPackageLists: false,
   totalPackageCount: 0,
   limitedResults: false,
   aptListsPopulated: true,
@@ -92,7 +102,9 @@ const initialState: AppState = {
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(initialState);
   // Track the latest package load request to ignore stale responses
-  const packageRequestIdRef = React.useRef(0);
+  const packageRequestIdRef = useRef(0);
+  // Guard against concurrent auto-updates
+  const aptUpdateInFlight = useRef(false);
 
   // Load repositories
   const loadRepositories = useCallback(async () => {
@@ -132,6 +144,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               aptListsPopulated: response.apt_lists_populated,
               packagesLoading: false,
             }));
+
+            // Auto-trigger apt update if package lists are missing
+            if (!response.apt_lists_populated && !aptUpdateInFlight.current) {
+              aptUpdateInFlight.current = true;
+              setState((current) => ({ ...current, updatingPackageLists: true }));
+              updatePackageLists()
+                .then(() => {
+                  // Read fresh filter state via setState callback to avoid stale closure
+                  setState((current) => {
+                    const freshParams: FilterParams = {
+                      repository_id: current.activeRepository ?? undefined,
+                      tab: current.activeTab !== "available" ? current.activeTab : undefined,
+                      search_query: current.searchQuery || undefined,
+                      limit: 1000,
+                    };
+                    packageRequestIdRef.current++;
+                    const reloadId = packageRequestIdRef.current;
+                    filterPackages(freshParams)
+                      .then((freshResponse) => {
+                        if (reloadId === packageRequestIdRef.current) {
+                          setState((c) => ({
+                            ...c,
+                            updatingPackageLists: false,
+                            packages: freshResponse.packages,
+                            totalPackageCount: freshResponse.total_count,
+                            limitedResults: freshResponse.limited,
+                          }));
+                        }
+                      })
+                      .catch((e) => {
+                        const msg = e instanceof APTBridgeError ? e.message : String(e);
+                        setState((c) => ({
+                          ...c,
+                          updatingPackageLists: false,
+                          error: msg,
+                        }));
+                      });
+                    return current; // No state change from this setState
+                  });
+                })
+                .catch((e) => {
+                  // updatePackageLists itself failed
+                  const msg = e instanceof APTBridgeError ? e.message : String(e);
+                  setState((current) => ({
+                    ...current,
+                    updatingPackageLists: false,
+                    error: msg,
+                  }));
+                })
+                .finally(() => {
+                  aptUpdateInFlight.current = false;
+                });
+            }
           }
         })
         .catch((e) => {

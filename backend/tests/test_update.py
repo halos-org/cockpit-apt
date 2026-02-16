@@ -74,8 +74,8 @@ class TestExecute:
         assert result is None
 
     @patch("cockpit_apt.commands.update.subprocess.Popen")
-    def test_update_failure(self, mock_popen):
-        """Test update failure."""
+    def test_update_network_failure(self, mock_popen):
+        """Test update failure with network error detected from stdout."""
         output_lines = [
             "Err:1 http://archive.ubuntu.com/ubuntu jammy InRelease\n",
             "  Could not resolve 'archive.ubuntu.com'\n",
@@ -86,10 +86,27 @@ class TestExecute:
         mock_process.stdout.readline.side_effect = output_lines + [""]
         mock_process.wait.return_value = 100
         mock_process.returncode = 100
-        mock_process.communicate.return_value = ("Some error output", "")
         mock_popen.return_value = mock_process
 
-        # Execute and verify error
+        with pytest.raises(APTBridgeError) as exc_info:
+            execute()
+
+        assert exc_info.value.code == "NETWORK_ERROR"
+        assert "Could not resolve" in exc_info.value.details
+
+    @patch("cockpit_apt.commands.update.subprocess.Popen")
+    def test_update_failure_generic(self, mock_popen):
+        """Test generic update failure."""
+        output_lines = [
+            "E: Some unknown error\n",
+        ]
+
+        mock_process = Mock()
+        mock_process.stdout.readline.side_effect = output_lines + [""]
+        mock_process.wait.return_value = 100
+        mock_process.returncode = 100
+        mock_popen.return_value = mock_process
+
         with pytest.raises(APTBridgeError) as exc_info:
             execute()
 
@@ -100,21 +117,48 @@ class TestExecute:
         """Test update when package manager is locked."""
         output_lines = [
             "E: Could not get lock /var/lib/apt/lists/lock\n",
+            "E: dpkg was interrupted\n",
         ]
 
         mock_process = Mock()
         mock_process.stdout.readline.side_effect = output_lines + [""]
         mock_process.wait.return_value = 100
         mock_process.returncode = 100
-        # Put lock error in stderr where update.py checks for it
-        mock_process.communicate.return_value = ("", "dpkg was interrupted")
         mock_popen.return_value = mock_process
 
-        # Execute and verify error
         with pytest.raises(APTBridgeError) as exc_info:
             execute()
 
         assert exc_info.value.code == "LOCKED"
+
+    @patch("cockpit_apt.commands.update.threading.Timer")
+    @patch("cockpit_apt.commands.update.subprocess.Popen")
+    def test_update_timeout(self, mock_popen, mock_timer_cls):
+        """Test update timeout via threading.Timer killing the process."""
+        mock_process = Mock()
+        # Simulate: readline blocks, then timer fires and kills process,
+        # causing readline to return "" and the loop to exit.
+        mock_process.stdout.readline.side_effect = [""]
+        mock_process.wait.return_value = None
+        mock_process.returncode = -9  # Killed by signal
+        mock_process.kill.return_value = None
+        mock_popen.return_value = mock_process
+
+        # Capture the timer callback and invoke it immediately
+        def fake_timer(timeout, callback):
+            callback()  # Fire immediately to simulate timeout
+            timer = Mock()
+            timer.start = Mock()
+            timer.cancel = Mock()
+            return timer
+
+        mock_timer_cls.side_effect = fake_timer
+
+        with pytest.raises(APTBridgeError) as exc_info:
+            execute()
+
+        assert exc_info.value.code == "TIMEOUT"
+        mock_process.kill.assert_called_once()
 
     @patch("cockpit_apt.commands.update.subprocess.Popen")
     def test_update_exception_handling(self, mock_popen):

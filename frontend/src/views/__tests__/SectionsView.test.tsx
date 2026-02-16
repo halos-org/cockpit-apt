@@ -161,6 +161,38 @@ describe("SectionsView", () => {
         screen.getByText("No package sections are available in the APT cache.")
       ).toBeInTheDocument();
     });
+
+    it("shows updating message when updatingPackageLists is true and sections empty", () => {
+      mockHookState = {
+        data: [],
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      };
+
+      render(<SectionsView updatingPackageLists={true} />);
+
+      expect(screen.getByText("Updating package lists...")).toBeInTheDocument();
+      expect(
+        screen.getByText("Package lists are being downloaded. This may take a moment.")
+      ).toBeInTheDocument();
+      // Should NOT show the "No sections found" empty state
+      expect(screen.queryByText("No sections found")).not.toBeInTheDocument();
+    });
+
+    it("shows normal empty state when updatingPackageLists is false", () => {
+      mockHookState = {
+        data: [],
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      };
+
+      render(<SectionsView updatingPackageLists={false} />);
+
+      expect(screen.getByText("No sections found")).toBeInTheDocument();
+      expect(screen.queryByText("Updating package lists...")).not.toBeInTheDocument();
+    });
   });
 
   describe("Sections Rendering", () => {
