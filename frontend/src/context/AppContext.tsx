@@ -78,6 +78,22 @@ export interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 /**
+ * Build filter params from current state.
+ * searchQuery is only sent to the backend on the Search ("available") tab;
+ * other tabs do their own client-side filtering.
+ */
+function buildFilterParams(state: AppState, overrides?: FilterParams): FilterParams {
+  return {
+    repository_id: overrides?.repository_id ?? state.activeRepository ?? undefined,
+    tab: overrides?.tab ?? (state.activeTab !== "available" ? state.activeTab : undefined),
+    search_query:
+      overrides?.search_query ??
+      (state.activeTab === "available" && state.searchQuery ? state.searchQuery : undefined),
+    limit: overrides?.limit ?? 1000,
+  };
+}
+
+/**
  * Initial state
  */
 const initialState: AppState = {
@@ -124,12 +140,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const requestId = ++packageRequestIdRef.current;
 
     setState((prev) => {
-      const filterParams: FilterParams = {
-        repository_id: params?.repository_id ?? prev.activeRepository ?? undefined,
-        tab: params?.tab ?? (prev.activeTab !== "available" ? prev.activeTab : undefined),
-        search_query: params?.search_query ?? (prev.searchQuery || undefined),
-        limit: params?.limit ?? 1000,
-      };
+      const filterParams = buildFilterParams(prev, params);
 
       // Start loading
       filterPackages(filterParams)
@@ -153,12 +164,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 .then(() => {
                   // Read fresh filter state via setState callback to avoid stale closure
                   setState((current) => {
-                    const freshParams: FilterParams = {
-                      repository_id: current.activeRepository ?? undefined,
-                      tab: current.activeTab !== "available" ? current.activeTab : undefined,
-                      search_query: current.searchQuery || undefined,
-                      limit: 1000,
-                    };
+                    const freshParams = buildFilterParams(current);
                     packageRequestIdRef.current++;
                     const reloadId = packageRequestIdRef.current;
                     filterPackages(freshParams)
