@@ -20,11 +20,14 @@ Performance Considerations:
     Current performance is acceptable for typical usage patterns.
 """
 
+from pathlib import Path
 from typing import Any
 
 from cockpit_apt.utils.errors import CacheError
 from cockpit_apt.utils.formatters import format_package
 from cockpit_apt.utils.repository_parser import package_matches_repository
+
+APT_LISTS_DIR = Path("/var/lib/apt/lists")
 
 
 def execute(
@@ -77,6 +80,11 @@ def execute(
         cache = apt.Cache()
     except Exception as e:
         raise CacheError("Failed to open APT cache", details=str(e)) from e
+
+    # Check if apt package lists have been downloaded.
+    # Match both uncompressed (*_Packages) and compressed (*_Packages.gz, *_Packages.xz)
+    # variants since apt may store either depending on Acquire::GzipIndexes.
+    apt_lists_populated = any(APT_LISTS_DIR.glob("*_Packages*")) if APT_LISTS_DIR.is_dir() else False
 
     # Validate tab filter
     if tab and tab not in ("installed", "upgradable"):
@@ -139,6 +147,7 @@ def execute(
             "applied_filters": applied_filters,
             "limit": limit,
             "limited": total_count > limit,
+            "apt_lists_populated": apt_lists_populated,
         }
 
     except Exception as e:

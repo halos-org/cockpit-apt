@@ -215,6 +215,21 @@ def test_filter_invalid_tab():
     assert "Invalid tab filter" in str(exc_info.value)
 
 
+def test_filter_upgradable_has_different_versions(mock_apt_cache):
+    """Test that upgradable packages have distinct installed and candidate versions."""
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        result = filter_packages.execute(tab="upgradable")
+
+    assert result["total_count"] == 1
+    pkg = result["packages"][0]
+    assert pkg["name"] == "vim"
+    assert pkg["installedVersion"] == "9.0.0900"
+    assert pkg["candidateVersion"] == "9.0.1000"
+    assert pkg["installedVersion"] != pkg["candidateVersion"]
+
+
 def test_filter_skips_packages_without_candidate():
     """Test that packages without candidate version are skipped."""
     # Create package without candidate
@@ -245,7 +260,10 @@ def test_filter_package_fields(mock_apt_cache):
     assert "summary" in pkg
     assert "version" in pkg
     assert "installed" in pkg
+    assert "upgradable" in pkg
     assert "section" in pkg
+    assert "installedVersion" in pkg
+    assert "candidateVersion" in pkg
 
 
 def test_filter_response_structure(mock_apt_cache):
@@ -261,7 +279,72 @@ def test_filter_response_structure(mock_apt_cache):
     assert "applied_filters" in result
     assert "limit" in result
     assert "limited" in result
+    assert "apt_lists_populated" in result
     assert isinstance(result["packages"], list)
     assert isinstance(result["total_count"], int)
     assert isinstance(result["applied_filters"], list)
     assert isinstance(result["limited"], bool)
+    assert isinstance(result["apt_lists_populated"], bool)
+
+
+def test_apt_lists_populated_true(mock_apt_cache, tmp_path):
+    """Test apt_lists_populated is True when _Packages files exist."""
+    lists_dir = tmp_path / "lists"
+    lists_dir.mkdir()
+    (lists_dir / "archive.ubuntu.com_ubuntu_dists_jammy_main_binary-amd64_Packages").touch()
+
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_LISTS_DIR", lists_dir):
+            result = filter_packages.execute()
+
+    assert result["apt_lists_populated"] is True
+
+
+def test_apt_lists_populated_true_compressed(mock_apt_cache, tmp_path):
+    """Test apt_lists_populated is True when compressed _Packages.gz files exist."""
+    lists_dir = tmp_path / "lists"
+    lists_dir.mkdir()
+    (lists_dir / "archive.ubuntu.com_ubuntu_dists_jammy_main_binary-amd64_Packages.gz").touch()
+
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_LISTS_DIR", lists_dir):
+            result = filter_packages.execute()
+
+    assert result["apt_lists_populated"] is True
+
+
+def test_apt_lists_populated_false_empty_dir(mock_apt_cache, tmp_path):
+    """Test apt_lists_populated is False when no _Packages files exist."""
+    lists_dir = tmp_path / "lists"
+    lists_dir.mkdir()
+    # Create a non-Packages file (lock file, partial, etc.)
+    (lists_dir / "lock").touch()
+
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_LISTS_DIR", lists_dir):
+            result = filter_packages.execute()
+
+    assert result["apt_lists_populated"] is False
+
+
+def test_apt_lists_populated_false_no_dir(mock_apt_cache, tmp_path):
+    """Test apt_lists_populated is False when lists directory doesn't exist."""
+    nonexistent_dir = tmp_path / "nonexistent"
+
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_LISTS_DIR", nonexistent_dir):
+            result = filter_packages.execute()
+
+    assert result["apt_lists_populated"] is False

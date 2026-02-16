@@ -57,6 +57,7 @@ export interface FilterPackagesResponse {
   applied_filters: string[];
   limit: number;
   limited: boolean;
+  apt_lists_populated: boolean;
 }
 
 /**

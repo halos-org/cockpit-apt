@@ -36,6 +36,7 @@ export interface AppState {
   // Metadata
   totalPackageCount: number;
   limitedResults: boolean;
+  aptListsPopulated: boolean;
 }
 
 /**
@@ -82,6 +83,7 @@ const initialState: AppState = {
   packagesError: null,
   totalPackageCount: 0,
   limitedResults: false,
+  aptListsPopulated: true,
 };
 
 /**
@@ -127,6 +129,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               packages: response.packages,
               totalPackageCount: response.total_count,
               limitedResults: response.limited,
+              aptListsPopulated: response.apt_lists_populated,
               packagesLoading: false,
             }));
           }

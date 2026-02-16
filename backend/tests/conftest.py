@@ -66,6 +66,7 @@ class MockPackage:
         installed_size: int = 4096,
         dependencies: list[list[MockDependency]] | None = None,
         is_upgradable: bool = False,
+        installed_version: str | None = None,
     ):
         self.name = name
         self.is_installed = installed
@@ -92,7 +93,7 @@ class MockPackage:
         # Installed version (if package is installed)
         if installed:
             self.installed = MagicMock()
-            self.installed.version = version
+            self.installed.version = installed_version if installed_version else version
             self.installed.summary = summary
             self.installed.section = section
         else:
@@ -198,7 +199,8 @@ def sample_packages():
             version="9.0.1000",
             installed=True,
             section="editors",
-            is_upgradable=True,  # Has upgrade available
+            is_upgradable=True,
+            installed_version="9.0.0900",
         ),
         MockPackage(
             "emacs",

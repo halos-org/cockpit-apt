@@ -84,12 +84,17 @@ def format_package(pkg: Any) -> dict[str, Any]:
         version = "unknown"
         section = "unknown"
 
+    installed_version = pkg.installed.version if pkg.is_installed and pkg.installed else None
+
     return {
         "name": pkg.name,
         "summary": candidate.summary if candidate else "",
         "version": version,
         "installed": pkg.is_installed,
+        "upgradable": pkg.is_upgradable,
         "section": section,
+        "installedVersion": installed_version,
+        "candidateVersion": version,
     }
 
 
