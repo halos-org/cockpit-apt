@@ -13,6 +13,7 @@ import React, {
 } from "react";
 import { APTBridgeError, filterPackages, listRepositories, updatePackageLists } from "../api";
 import type { FilterParams, Package, Repository } from "../api/types";
+import { checkAndNotifyUpdates } from "../lib/pageStatus";
 import {
   loadActiveRepository,
   loadActiveTab,
@@ -177,6 +178,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                             totalPackageCount: freshResponse.total_count,
                             limitedResults: freshResponse.limited,
                           }));
+                          checkAndNotifyUpdates();
                         }
                       })
                       .catch((e) => {
@@ -249,6 +251,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Load initial data on mount
   useEffect(() => {
     void loadRepositories();
+    checkAndNotifyUpdates();
   }, [loadRepositories]);
 
   // Reload packages when filters change
