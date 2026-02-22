@@ -8,7 +8,8 @@ const watch = process.argv.includes('--watch');
 const config = {
   entryPoints: ['src/apt.tsx'],
   bundle: true,
-  outfile: 'dist/apt.js',
+  outdir: 'dist',
+  entryNames: '[name]',
   format: 'esm',
   platform: 'browser',
   target: ['es2020'],

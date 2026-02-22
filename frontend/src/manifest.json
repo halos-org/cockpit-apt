@@ -10,5 +10,6 @@
       "label": "Packages",
       "order": 50
     }
-  }
+  },
+  "preload": ["index"]
 }

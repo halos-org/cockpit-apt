@@ -29,6 +29,7 @@ import type { Package } from "../api/types";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
 import { installPackage, updatePackageLists, upgradeAllPackages } from "../lib/api";
+import { checkAndNotifyUpdates } from "../lib/pageStatus";
 
 interface UpdatesViewProps {
   onNavigateToPackage: (name: string) => void;
@@ -76,6 +77,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
         setUpgradeProgress(progress);
       });
       await actions.loadPackages();
+      checkAndNotifyUpdates();
     } catch (err) {
       setUpgradeError(err instanceof Error ? err : new Error(String(err)));
     } finally {
@@ -90,6 +92,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
       setUpgradeError(null);
       await installPackage(packageName); // Install with newer version = upgrade
       await actions.loadPackages();
+      checkAndNotifyUpdates();
     } catch (err) {
       setUpgradeError(err instanceof Error ? err : new Error(String(err)));
     } finally {
@@ -129,6 +132,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
       setCheckError(null);
       await updatePackageLists();
       await actions.loadPackages();
+      checkAndNotifyUpdates();
     } catch (err) {
       setCheckError(err instanceof Error ? err : new Error(String(err)));
     } finally {

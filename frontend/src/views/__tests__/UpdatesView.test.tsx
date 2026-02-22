@@ -24,6 +24,9 @@ import { UpdatesView } from "../UpdatesView";
   },
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
+  transport: {
+    control: vi.fn(),
+  },
 };
 
 // Default mock for AppContext - will be overridden in tests
@@ -55,6 +58,11 @@ vi.mock("../../lib/api", () => ({
   upgradeAllPackages: (...args: unknown[]) => mockUpgradeAllPackages(...args),
   installPackage: (...args: unknown[]) => mockInstallPackage(...args),
   updatePackageLists: (...args: unknown[]) => mockUpdatePackageLists(...args),
+}));
+
+// Mock page status notifications
+vi.mock("../../lib/pageStatus", () => ({
+  checkAndNotifyUpdates: vi.fn(),
 }));
 
 describe("UpdatesView - Empty State Messages", () => {

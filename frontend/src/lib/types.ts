@@ -186,6 +186,9 @@ declare global {
     location: Location;
     addEventListener(event: "locationchanged" | "visibilitychange", callback: () => void): void;
     removeEventListener(event: "locationchanged" | "visibilitychange", callback: () => void): void;
+    transport: {
+      control(command: string, options: Record<string, unknown>): void;
+    };
   };
 
   interface Window {
