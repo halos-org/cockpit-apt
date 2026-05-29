@@ -26,8 +26,10 @@ import {
 import { ArrowUpIcon, CubesIcon, LayerGroupIcon, SearchIcon } from "@patternfly/react-icons";
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { ErrorAlert } from "./components/ErrorAlert";
 import { RepositoryDropdown } from "./components/RepositoryDropdown";
 import { AppProvider, useApp } from "./context/AppContext";
+import { installPackage, removePackage } from "./lib/api";
 import { InstalledView } from "./views/InstalledView";
 import { PackageDetailsView } from "./views/PackageDetailsView";
 import { SearchView } from "./views/SearchView";
@@ -113,6 +115,11 @@ function navigateTo(path: string) {
 function App() {
   const { state, actions } = useApp();
   const [route, setRoute] = useState<Route>(parseRoute(cockpit.location.path));
+  const [operationError, setOperationError] = useState<{
+    packageName: string;
+    operation: "install" | "remove";
+    error: Error;
+  } | null>(null);
 
   // Banner shown when package lists are missing AND we can't auto-refresh
   // them because the session lacks administrative access. Option (b) from the
@@ -146,19 +153,35 @@ function App() {
   const handleNavigateToUpdates = () => navigateTo("updates");
   const handleBack = () => window.history.back();
 
-  // Install/Remove notification handlers
-  // These are called AFTER the operation completes in child components
-  // Used for side effects like invalidating caches, showing notifications, etc.
+  // Install / Remove handlers for SearchView, SectionPackageListView, and
+  // InstalledView. PackageDetailsView performs its own install/remove with
+  // streamed progress, so these handlers are not passed to that view.
+  // Errors are surfaced via the top-level ErrorAlert banner instead of
+  // propagating to the caller, so the views' own loading-state cleanup runs.
   const handleInstall = async (packageName: string) => {
-    // Child component already performed the install
-    // Just log for now - could add toast notifications here
-    console.log("Package installed:", packageName);
+    setOperationError(null);
+    try {
+      await installPackage(packageName);
+    } catch (error) {
+      setOperationError({
+        packageName,
+        operation: "install",
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
+    }
   };
 
   const handleRemove = async (packageName: string) => {
-    // Child component already performed the remove
-    // Just log for now - could add toast notifications here
-    console.log("Package removed:", packageName);
+    setOperationError(null);
+    try {
+      await removePackage(packageName);
+    } catch (error) {
+      setOperationError({
+        packageName,
+        operation: "remove",
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
+    }
   };
 
   // Determine active tab
@@ -231,14 +254,7 @@ function App() {
         );
 
       case "package-details":
-        return (
-          <PackageDetailsView
-            packageName={route.params.name || ""}
-            onInstall={handleInstall}
-            onRemove={handleRemove}
-            onBack={handleBack}
-          />
-        );
+        return <PackageDetailsView packageName={route.params.name || ""} onBack={handleBack} />;
 
       case "installed":
         return (
@@ -275,6 +291,15 @@ function App() {
             Administrative access is required to refresh package lists. Enable administrative access
             in the top bar to update them.
           </Alert>
+        </PageSection>
+      )}
+      {operationError && (
+        <PageSection hasBodyWrapper={false}>
+          <ErrorAlert
+            error={operationError.error}
+            onDismiss={() => setOperationError(null)}
+            title={`${operationError.operation === "install" ? "Install" : "Remove"} failed: ${operationError.packageName}`}
+          />
         </PageSection>
       )}
       <PageSection hasBodyWrapper={false}>
