@@ -1,46 +1,31 @@
 import { Button, Tooltip } from "@patternfly/react-core";
-import type { ReactNode } from "react";
+import type { ButtonProps } from "@patternfly/react-core";
 
 export const ADMIN_REQUIRED_TOOLTIP = "Administrative access required";
 
-export interface AdminGatedButtonProps {
-  variant?: "primary" | "secondary" | "danger" | "link";
-  size?: "sm" | "default";
-  onClick?: () => void;
+export interface AdminGatedButtonProps extends ButtonProps {
   isAdminRequired: boolean;
-  isDisabled?: boolean;
-  isLoading?: boolean;
-  type?: "button" | "submit";
-  icon?: ReactNode;
-  children: ReactNode;
 }
 
 /**
  * Button wrapper that uses PatternFly's `isAriaDisabled` (which suppresses
  * onClick via preventDefault) when admin is required but not granted, and
  * wraps the disabled button in a tooltip explaining why.
+ *
+ * All standard `Button` props are forwarded. When any disable reason is set
+ * (`isAdminRequired`, `isAriaDisabled`, or `isDisabled`), the underlying
+ * Button is rendered with `isAriaDisabled` so click suppression composes with
+ * the admin tooltip.
  */
 export function AdminGatedButton({
-  variant = "primary",
-  size,
-  onClick,
   isAdminRequired,
+  isAriaDisabled,
   isDisabled,
-  isLoading,
-  type,
-  icon,
   children,
+  ...rest
 }: AdminGatedButtonProps) {
   const button = (
-    <Button
-      variant={variant}
-      size={size === "sm" ? "sm" : undefined}
-      onClick={onClick}
-      isAriaDisabled={isAdminRequired || isDisabled}
-      isLoading={isLoading}
-      type={type}
-      icon={icon}
-    >
+    <Button {...rest} isAriaDisabled={isAdminRequired || isAriaDisabled || isDisabled}>
       {children}
     </Button>
   );
