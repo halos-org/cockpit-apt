@@ -50,6 +50,9 @@ export interface AppState {
   aptListsPopulated: boolean;
 
   // Reactive Cockpit admin-permission state. `null` while unresolved.
+  // Unlike the rest of AppState (which comes from the bridge), this value
+  // is mirrored from React state via useAdminPermission so views consuming
+  // AppContext can read admin without a second permission subscription.
   isAdminAllowed: boolean | null;
 }
 
@@ -280,6 +283,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void loadPackages();
   }, [loadPackages, state.activeRepository, state.activeTab, state.searchQuery]);
+
+  // Retrigger loadPackages when admin permission becomes allowed and lists
+  // are still missing. Closes a first-load race: on initial mount the
+  // permission ref may not be populated yet when the first loadPackages runs,
+  // so the auto-update is skipped. When the permission resolves to allowed
+  // later, this effect re-fires loadPackages so the gated auto-update path
+  // actually runs without the user having to click Try again.
+  useEffect(() => {
+    if (state.isAdminAllowed === true && !state.aptListsPopulated) {
+      void loadPackages();
+    }
+  }, [loadPackages, state.isAdminAllowed, state.aptListsPopulated]);
 
   // Memoize actions to prevent unnecessary re-renders
   const actions: AppActions = useMemo(

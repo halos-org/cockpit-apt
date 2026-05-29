@@ -272,8 +272,8 @@ function App() {
               </AlertActionLink>
             }
           >
-            Administrative access is required to refresh package lists. Sign in with elevated
-            privileges to update them.
+            Administrative access is required to refresh package lists. Enable administrative access
+            in the top bar to update them.
           </Alert>
         </PageSection>
       )}
