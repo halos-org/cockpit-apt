@@ -88,14 +88,18 @@ describe("useAdminPermission", () => {
     const first = renderHook(() => useAdminPermission());
     expect(first.result.current.allowed).toBe(false);
     first.unmount();
-    expect(handles[0].permission.close).toHaveBeenCalled();
+    const firstHandle = handles[0];
+    if (!firstHandle) throw new Error("expected first permission handle to be recorded");
+    expect(firstHandle.permission.close).toHaveBeenCalled();
 
     const second = renderHook(() => useAdminPermission());
     expect(second.result.current.allowed).toBe(false);
     expect(cockpitMock.permission).toHaveBeenCalledTimes(2);
 
+    const secondHandle = handles[1];
+    if (!secondHandle) throw new Error("expected second permission handle to be recorded");
     act(() => {
-      handles[1].emitChanged(true);
+      secondHandle.emitChanged(true);
     });
     expect(second.result.current.allowed).toBe(true);
   });
