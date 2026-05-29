@@ -26,8 +26,10 @@ import { CheckCircleIcon, ExclamationTriangleIcon, SearchIcon } from "@patternfl
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { useEffect, useState } from "react";
 import type { Package } from "../api/types";
+import { AdminGatedButton } from "../components/AdminGatedButton";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
+import { useAdminPermission } from "../hooks/useAdminPermission";
 import { installPackage, updatePackageLists, upgradeAllPackages } from "../lib/api";
 import { checkAndNotifyUpdates } from "../lib/pageStatus";
 
@@ -37,6 +39,8 @@ interface UpdatesViewProps {
 
 export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
   const { state, actions } = useApp();
+  const { allowed: isAdminAllowed } = useAdminPermission();
+  const isAdminRequired = isAdminAllowed !== true;
   const [filterText, setFilterText] = useState("");
   const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
   const [upgradingPackage, setUpgradingPackage] = useState<string | null>(null);
@@ -160,14 +164,15 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
             </EmptyStateBody>
             <EmptyStateFooter style={{ marginTop: "1rem" }}>
               <EmptyStateActions>
-                <Button
+                <AdminGatedButton
                   variant="primary"
                   onClick={handleCheckForUpdates}
+                  isAdminRequired={isAdminRequired}
                   isLoading={checkingForUpdates}
                   isDisabled={checkingForUpdates}
                 >
                   Check for updates
-                </Button>
+                </AdminGatedButton>
               </EmptyStateActions>
             </EmptyStateFooter>
           </EmptyState>
@@ -183,14 +188,15 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
             </EmptyStateBody>
             <EmptyStateFooter style={{ marginTop: "1rem" }}>
               <EmptyStateActions>
-                <Button
+                <AdminGatedButton
                   variant="primary"
                   onClick={handleCheckForUpdates}
+                  isAdminRequired={isAdminRequired}
                   isLoading={checkingForUpdates}
                   isDisabled={checkingForUpdates}
                 >
                   Check for updates
-                </Button>
+                </AdminGatedButton>
               </EmptyStateActions>
             </EmptyStateFooter>
           </EmptyState>
@@ -218,14 +224,15 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
             />
           </ToolbarItem>
           <ToolbarItem>
-            <Button
+            <AdminGatedButton
               variant="primary"
               onClick={handleUpgradeAll}
+              isAdminRequired={isAdminRequired}
               isLoading={upgradingAll}
               isDisabled={upgradingPackage !== null || upgradingAll}
             >
               Upgrade All
-            </Button>
+            </AdminGatedButton>
           </ToolbarItem>
         </ToolbarContent>
       </Toolbar>
@@ -285,15 +292,16 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
                 </Td>
                 <Td>{pkg.summary}</Td>
                 <Td>
-                  <Button
+                  <AdminGatedButton
                     variant="primary"
                     size="sm"
                     onClick={() => handleUpgrade(pkg.name)}
+                    isAdminRequired={isAdminRequired}
                     isLoading={upgradingPackage === pkg.name}
                     isDisabled={upgradingPackage !== null || upgradingAll}
                   >
                     Upgrade
-                  </Button>
+                  </AdminGatedButton>
                 </Td>
               </Tr>
             ))}

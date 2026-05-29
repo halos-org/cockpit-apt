@@ -30,9 +30,11 @@ import {
 } from "@patternfly/react-core";
 import { SearchIcon } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
+import { AdminGatedButton } from "../components/AdminGatedButton";
 import { SearchBar } from "../components/SearchBar";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
+import { useAdminPermission } from "../hooks/useAdminPermission";
 import type { Package } from "../api/types";
 
 export interface SearchViewProps {
@@ -52,6 +54,8 @@ export const SearchView: React.FC<SearchViewProps> = ({
   onRemove,
 }) => {
   const { state, actions } = useApp();
+  const { allowed: isAdminAllowed } = useAdminPermission();
+  const isAdminRequired = isAdminAllowed !== true;
   const [operatingPackage, setOperatingPackage] = useState<string | null>(null);
 
   // Set tab to "available" on mount for search context
@@ -195,26 +199,28 @@ export const SearchView: React.FC<SearchViewProps> = ({
                       <Td onClick={(e) => e.stopPropagation()}>
                         {pkg.installed
                           ? onRemove && (
-                              <Button
+                              <AdminGatedButton
                                 variant="danger"
                                 size="sm"
                                 onClick={() => handleRemove(pkg.name)}
+                                isAdminRequired={isAdminRequired}
                                 isLoading={operatingPackage === pkg.name}
                                 isDisabled={operatingPackage === pkg.name}
                               >
                                 Remove
-                              </Button>
+                              </AdminGatedButton>
                             )
                           : onInstall && (
-                              <Button
+                              <AdminGatedButton
                                 variant="primary"
                                 size="sm"
                                 onClick={() => handleInstall(pkg.name)}
+                                isAdminRequired={isAdminRequired}
                                 isLoading={operatingPackage === pkg.name}
                                 isDisabled={operatingPackage === pkg.name}
                               >
                                 Install
-                              </Button>
+                              </AdminGatedButton>
                             )}
                       </Td>
                     </Tr>

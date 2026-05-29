@@ -13,6 +13,7 @@ import React, {
 } from "react";
 import { APTBridgeError, filterPackages, listRepositories, updatePackageLists } from "../api";
 import type { FilterParams, Package, Repository } from "../api/types";
+import { useAdminPermission } from "../hooks/useAdminPermission";
 import { checkAndNotifyUpdates } from "../lib/pageStatus";
 import {
   loadActiveRepository,
@@ -47,6 +48,9 @@ export interface AppState {
   totalPackageCount: number;
   limitedResults: boolean;
   aptListsPopulated: boolean;
+
+  // Reactive Cockpit admin-permission state. `null` while unresolved.
+  isAdminAllowed: boolean | null;
 }
 
 /**
@@ -111,6 +115,7 @@ const initialState: AppState = {
   totalPackageCount: 0,
   limitedResults: false,
   aptListsPopulated: true,
+  isAdminAllowed: null,
 };
 
 /**
@@ -122,6 +127,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const packageRequestIdRef = useRef(0);
   // Guard against concurrent auto-updates
   const aptUpdateInFlight = useRef(false);
+  // Reactive admin permission. Read via ref inside the loadPackages closure to
+  // avoid recomputing the callback (and reloading) on every permission change.
+  const { allowed: isAdminAllowed } = useAdminPermission();
+  const isAdminAllowedRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    isAdminAllowedRef.current = isAdminAllowed;
+    setState((prev) =>
+      prev.isAdminAllowed === isAdminAllowed ? prev : { ...prev, isAdminAllowed }
+    );
+  }, [isAdminAllowed]);
 
   // Load repositories
   const loadRepositories = useCallback(async () => {
@@ -157,8 +172,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               packagesLoading: false,
             }));
 
-            // Auto-trigger apt update if package lists are missing
-            if (!response.apt_lists_populated && !aptUpdateInFlight.current) {
+            // Auto-trigger apt update if package lists are missing — but only
+            // when the session has administrative access. Without it, the
+            // spawn would fail in a loop with no UI signal; the App-level
+            // banner explains the state instead.
+            if (
+              !response.apt_lists_populated &&
+              !aptUpdateInFlight.current &&
+              isAdminAllowedRef.current === true
+            ) {
               aptUpdateInFlight.current = true;
               setState((current) => ({ ...current, updatingPackageLists: true }));
               updatePackageLists()
