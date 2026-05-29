@@ -14,11 +14,7 @@
  * - Error handling with retry
  *
  * Usage:
- *   <PackageDetailsView
- *     packageName="nginx"
- *     onInstall={handleInstall}
- *     onRemove={handleRemove}
- *   />
+ *   <PackageDetailsView packageName="nginx" onBack={() => navigateBack()} />
  */
 
 import {
@@ -54,22 +50,11 @@ export interface PackageDetailsViewProps {
   /** Package name to display */
   packageName: string;
 
-  /** Callback when user installs the package */
-  onInstall?: (packageName: string) => Promise<void>;
-
-  /** Callback when user removes the package */
-  onRemove?: (packageName: string) => Promise<void>;
-
   /** Callback to navigate back */
   onBack?: () => void;
 }
 
-export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
-  packageName,
-  onInstall,
-  onRemove,
-  onBack,
-}) => {
+export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({ packageName, onBack }) => {
   const { actions } = useApp();
   const { allowed: isAdminAllowed } = useAdminPermission();
   const isAdminRequired = isAdminAllowed !== true;
@@ -139,16 +124,6 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
       } catch (e) {
         console.warn("Failed to reload global package state:", e);
       }
-
-      // Also call the optional parent callback for any side effects
-      if (onInstall) {
-        try {
-          await onInstall(details.name);
-        } catch (e) {
-          // Ignore errors from parent callback
-          console.warn("Parent onInstall callback failed:", e);
-        }
-      }
     } catch (error) {
       setOperationError(error instanceof Error ? error : new Error(String(error)));
     } finally {
@@ -177,16 +152,6 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
         await actions.loadPackages();
       } catch (e) {
         console.warn("Failed to reload global package state:", e);
-      }
-
-      // Also call the optional parent callback for any side effects
-      if (onRemove) {
-        try {
-          await onRemove(details.name);
-        } catch (e) {
-          // Ignore errors from parent callback
-          console.warn("Parent onRemove callback failed:", e);
-        }
       }
     } catch (error) {
       setOperationError(error instanceof Error ? error : new Error(String(error)));
