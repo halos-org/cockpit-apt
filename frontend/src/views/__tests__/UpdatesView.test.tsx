@@ -8,7 +8,7 @@
  */
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Package } from "../../api/types";
 import { UpdatesView } from "../UpdatesView";
 
@@ -313,6 +313,13 @@ describe("UpdatesView - Upgrade All", () => {
     mockLoadPackages.mockResolvedValue(undefined);
   });
 
+  afterEach(() => {
+    // Clean up any cockpit.permission override installed by Limited Access
+    // tests so state doesn't leak even if an assertion fails mid-test.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).cockpit.permission;
+  });
+
   it("should show Upgrade All button when updates exist", () => {
     render(<UpdatesView onNavigateToPackage={vi.fn()} />);
 
@@ -335,7 +342,9 @@ describe("UpdatesView - Upgrade All", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(button).toBeDisabled();
+      // AdminGatedButton uses isAriaDisabled (not the disabled HTML attribute)
+      // so click suppression works alongside the optional admin-required tooltip.
+      expect(button).toHaveAttribute("aria-disabled", "true");
     });
 
     // Clean up
@@ -355,6 +364,30 @@ describe("UpdatesView - Upgrade All", () => {
 
     // Title and message body both contain "Upgrade failed"
     expect(screen.getAllByText("Upgrade failed").length).toBeGreaterThan(0);
+  });
+
+  it("should disable Upgrade All in Limited Access mode and tooltip on hover", async () => {
+    // Drive the gating via cockpit.permission, exercising the real hook.
+    // The afterEach below clears the override so a mid-test assertion
+    // failure doesn't leak the mock into subsequent tests.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).cockpit.permission = vi.fn(() => ({
+      allowed: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      close: vi.fn(),
+    }));
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const button = await screen.findByRole("button", { name: /upgrade all/i });
+    await waitFor(() => {
+      expect(button).toHaveAttribute("aria-disabled", "true");
+    });
+
+    // Click should NOT invoke the upgrade because isAriaDisabled suppresses it.
+    fireEvent.click(button);
+    expect(mockUpgradeAllPackages).not.toHaveBeenCalled();
   });
 
   it("should reload packages on successful upgrade", async () => {

@@ -29,8 +29,10 @@ import {
 import { CubesIcon, FilterIcon } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { useEffect, useState } from "react";
+import { AdminGatedButton } from "../components/AdminGatedButton";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
+import { useAdminPermission } from "../hooks/useAdminPermission";
 import { listPackagesBySection } from "../lib/api";
 import { Package } from "../lib/types";
 
@@ -52,6 +54,8 @@ export function SectionPackageListView({
   onRemove,
 }: SectionPackageListViewProps) {
   const { actions } = useApp();
+  const { allowed: isAdminAllowed } = useAdminPermission();
+  const isAdminRequired = isAdminAllowed !== true;
   const [packages, setPackages] = useState<Package[]>([]);
   const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
@@ -269,25 +273,27 @@ export function SectionPackageListView({
                   <Td>{pkg.summary}</Td>
                   <Td>
                     {pkg.installed ? (
-                      <Button
+                      <AdminGatedButton
                         variant="danger"
                         size="sm"
                         onClick={() => handleAction(pkg.name, "remove")}
+                        isAdminRequired={isAdminRequired}
                         isLoading={actioningPackage === pkg.name}
                         isDisabled={actioningPackage !== null}
                       >
                         Remove
-                      </Button>
+                      </AdminGatedButton>
                     ) : (
-                      <Button
+                      <AdminGatedButton
                         variant="primary"
                         size="sm"
                         onClick={() => handleAction(pkg.name, "install")}
+                        isAdminRequired={isAdminRequired}
                         isLoading={actioningPackage === pkg.name}
                         isDisabled={actioningPackage !== null}
                       >
                         Install
-                      </Button>
+                      </AdminGatedButton>
                     )}
                   </Td>
                 </Tr>

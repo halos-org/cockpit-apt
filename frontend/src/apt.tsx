@@ -13,7 +13,16 @@
  * - /apt/updates - Available updates (future)
  */
 
-import { Page, PageSection, Tab, Tabs, TabTitleText, Title } from "@patternfly/react-core";
+import {
+  Alert,
+  AlertActionLink,
+  Page,
+  PageSection,
+  Tab,
+  Tabs,
+  TabTitleText,
+  Title,
+} from "@patternfly/react-core";
 import { ArrowUpIcon, CubesIcon, LayerGroupIcon, SearchIcon } from "@patternfly/react-icons";
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -102,8 +111,15 @@ function navigateTo(path: string) {
  * Main application component
  */
 function App() {
-  const { state } = useApp();
+  const { state, actions } = useApp();
   const [route, setRoute] = useState<Route>(parseRoute(cockpit.location.path));
+
+  // Banner shown when package lists are missing AND we can't auto-refresh
+  // them because the session lacks administrative access. Option (b) from the
+  // policy decision on halos-org/cockpit-apt#154: skip the auto-update,
+  // surface the state, do not offer permission.acquire() since Cockpit's own
+  // Limited Access banner provides the elevation affordance.
+  const showAptListsBanner = state.isAdminAllowed !== true && state.aptListsPopulated === false;
 
   // Listen to cockpit location changes
   useEffect(() => {
@@ -244,6 +260,23 @@ function App() {
 
   return (
     <Page id="apt" className="pf-m-no-sidebar">
+      {showAptListsBanner && (
+        <PageSection hasBodyWrapper={false}>
+          <Alert
+            variant="warning"
+            isInline
+            title="Package lists are out of date"
+            actionLinks={
+              <AlertActionLink onClick={() => void actions.loadPackages()}>
+                Try again
+              </AlertActionLink>
+            }
+          >
+            Administrative access is required to refresh package lists. Enable administrative access
+            in the top bar to update them.
+          </Alert>
+        </PageSection>
+      )}
       <PageSection hasBodyWrapper={false}>
         <div className="filter-controls">
           <RepositoryDropdown />

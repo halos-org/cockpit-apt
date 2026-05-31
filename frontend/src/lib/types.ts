@@ -178,6 +178,17 @@ export interface Configuration {
 
 // ==================== Cockpit Types ====================
 
+/**
+ * Reactive permission handle returned by `cockpit.permission()`.
+ * `allowed` is `null` until Cockpit resolves the state; treat null as "not yet allowed".
+ */
+export interface CockpitPermission {
+  allowed: boolean | null;
+  addEventListener(event: "changed", callback: () => void): void;
+  removeEventListener(event: "changed", callback: () => void): void;
+  close(): void;
+}
+
 /** Cockpit API declarations */
 declare global {
   const cockpit: {
@@ -189,6 +200,7 @@ declare global {
     transport: {
       control(command: string, options: Record<string, unknown>): void;
     };
+    permission?(options: { admin: boolean }): CockpitPermission;
   };
 
   interface Window {

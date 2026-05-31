@@ -42,9 +42,11 @@ import {
 } from "@patternfly/react-core";
 import { ArrowLeftIcon, CheckCircleIcon, ExternalLinkAltIcon } from "@patternfly/react-icons";
 import React, { useEffect, useState } from "react";
+import { AdminGatedButton } from "../components/AdminGatedButton";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { LoadingSkeleton } from "../components/LoadingSkeleton";
 import { useApp } from "../context/AppContext";
+import { useAdminPermission } from "../hooks/useAdminPermission";
 import { usePackageDetails } from "../hooks/usePackages";
 import { getPackageFiles, installPackage, removePackage } from "../lib/api";
 
@@ -69,12 +71,15 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
   onBack,
 }) => {
   const { actions } = useApp();
+  const { allowed: isAdminAllowed } = useAdminPermission();
+  const isAdminRequired = isAdminAllowed !== true;
   const [activeTab, setActiveTab] = useState<string | number>(0);
   const [operating, setOperating] = useState(false);
   const [operationProgress, setOperationProgress] = useState<{
     percentage: number;
     message: string;
   } | null>(null);
+  const [operationError, setOperationError] = useState<Error | null>(null);
   const [files, setFiles] = useState<string[] | null>(null);
   const [filesLoading, setFilesLoading] = useState(false);
   const [filesError, setFilesError] = useState<Error | null>(null);
@@ -117,6 +122,7 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
     if (!details) return;
 
     setOperating(true);
+    setOperationError(null);
     setOperationProgress({ percentage: 0, message: "Starting installation..." });
     try {
       // Call API directly with progress callback
@@ -144,9 +150,7 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
         }
       }
     } catch (error) {
-      // TODO: Show error alert to user
-      console.error("Install failed:", error);
-      throw error;
+      setOperationError(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setOperating(false);
       setOperationProgress(null);
@@ -157,6 +161,7 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
     if (!details) return;
 
     setOperating(true);
+    setOperationError(null);
     setOperationProgress({ percentage: 0, message: "Starting removal..." });
     try {
       // Call API directly with progress callback
@@ -184,9 +189,7 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
         }
       }
     } catch (error) {
-      // TODO: Show error alert to user
-      console.error("Remove failed:", error);
-      throw error;
+      setOperationError(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setOperating(false);
       setOperationProgress(null);
@@ -261,14 +264,15 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
         <FlexItem>
           {details.installed ? (
             <div>
-              <Button
+              <AdminGatedButton
                 variant="danger"
                 onClick={handleRemove}
+                isAdminRequired={isAdminRequired}
                 isLoading={operating}
                 isDisabled={operating}
               >
                 {operating ? "Removing..." : "Remove Package"}
-              </Button>
+              </AdminGatedButton>
               {operationProgress && (
                 <div
                   style={{
@@ -283,14 +287,15 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
             </div>
           ) : (
             <div>
-              <Button
+              <AdminGatedButton
                 variant="primary"
                 onClick={handleInstall}
+                isAdminRequired={isAdminRequired}
                 isLoading={operating}
                 isDisabled={operating}
               >
                 {operating ? "Installing..." : "Install Package"}
-              </Button>
+              </AdminGatedButton>
               {operationProgress && (
                 <div
                   style={{
@@ -306,6 +311,15 @@ export const PackageDetailsView: React.FC<PackageDetailsViewProps> = ({
           )}
         </FlexItem>
       </Flex>
+
+      {operationError && (
+        <ErrorAlert
+          error={operationError}
+          onDismiss={() => setOperationError(null)}
+          title={details.installed ? "Remove failed" : "Install failed"}
+          style={{ marginBottom: "1rem" }}
+        />
+      )}
 
       {/* Summary */}
       <div style={{ marginBottom: "1.5rem", fontSize: "1.1rem" }}>{details.summary}</div>

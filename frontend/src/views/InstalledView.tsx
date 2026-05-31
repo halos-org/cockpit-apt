@@ -24,8 +24,10 @@ import { CubesIcon, SearchIcon } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import { useEffect, useState } from "react";
 import type { Package } from "../api/types";
+import { AdminGatedButton } from "../components/AdminGatedButton";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useApp } from "../context/AppContext";
+import { useAdminPermission } from "../hooks/useAdminPermission";
 
 interface InstalledViewProps {
   onNavigateToPackage: (name: string) => void;
@@ -34,6 +36,8 @@ interface InstalledViewProps {
 
 export function InstalledView({ onNavigateToPackage, onRemove }: InstalledViewProps) {
   const { state, actions } = useApp();
+  const { allowed: isAdminAllowed } = useAdminPermission();
+  const isAdminRequired = isAdminAllowed !== true;
   const [filterText, setFilterText] = useState("");
   const [removingPackage, setRemovingPackage] = useState<string | null>(null);
   const [filteredPackages, setFilteredPackages] = useState<Package[]>([]);
@@ -162,15 +166,16 @@ export function InstalledView({ onNavigateToPackage, onRemove }: InstalledViewPr
                 <Td>{pkg.summary}</Td>
                 <Td>{pkg.section}</Td>
                 <Td>
-                  <Button
+                  <AdminGatedButton
                     variant="danger"
                     size="sm"
                     onClick={() => handleRemove(pkg.name)}
+                    isAdminRequired={isAdminRequired}
                     isLoading={removingPackage === pkg.name}
                     isDisabled={removingPackage !== null}
                   >
                     Remove
-                  </Button>
+                  </AdminGatedButton>
                 </Td>
               </Tr>
             ))}
