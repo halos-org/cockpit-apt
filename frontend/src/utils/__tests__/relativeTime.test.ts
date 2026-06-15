@@ -29,6 +29,16 @@ describe("formatRelativeTime", () => {
     expect(formatRelativeTime(iso, NOW)).toBe("2 days ago");
   });
 
+  it("returns 'just now' for an exactly-current timestamp", () => {
+    const iso = new Date(NOW).toISOString();
+    expect(formatRelativeTime(iso, NOW)).toBe("just now");
+  });
+
+  it("clamps future timestamps (clock skew) to 'just now'", () => {
+    const iso = new Date(NOW + 60 * 60 * 1000).toISOString();
+    expect(formatRelativeTime(iso, NOW)).toBe("just now");
+  });
+
   it("returns null for an unparseable timestamp", () => {
     expect(formatRelativeTime("not-a-date", NOW)).toBeNull();
   });
