@@ -76,6 +76,7 @@ describe("pageStatus", () => {
         limit: 1,
         limited: true,
         apt_lists_populated: true,
+        apt_lists_updated_at: null,
       };
       vi.mocked(api.filterPackages).mockResolvedValue(response);
 
@@ -106,6 +107,7 @@ describe("pageStatus", () => {
         limit: 1,
         limited: false,
         apt_lists_populated: true,
+        apt_lists_updated_at: null,
       };
       vi.mocked(api.filterPackages).mockResolvedValue(response);
 
@@ -125,6 +127,7 @@ describe("pageStatus", () => {
         limit: 1,
         limited: false,
         apt_lists_populated: true,
+        apt_lists_updated_at: null,
       };
       vi.mocked(api.filterPackages).mockResolvedValue(response);
 
