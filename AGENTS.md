@@ -104,7 +104,7 @@ If you need to rebuild without changing the upstream version:
 ### Version Scripts
 
 **`.github/scripts/calculate-revision.sh`**: Query git tags to find next N
-**`.github/scripts/generate-changelog.sh`**: Generate debian/changelog dynamically
+**`debian/changelog`**: Generated in CI by the shared `build-release` workflow, which wraps long commit subjects to stay lintian-clean. The repo has no local `generate-changelog.sh` override.
 **`.github/scripts/test-version-handling.sh`**: Test version format and DEP-14 compliance
 **`./run bumpversion`**: Manage VERSION file with bumpversion tool
 
