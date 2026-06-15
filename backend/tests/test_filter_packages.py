@@ -4,6 +4,8 @@ Unit tests for filter-packages command.
 Tests cascade filtering: repository → tab → search → limit
 """
 
+import os
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -348,3 +350,62 @@ def test_apt_lists_populated_false_no_dir(mock_apt_cache, tmp_path):
             result = filter_packages.execute()
 
     assert result["apt_lists_populated"] is False
+
+
+def _run_with_paths(mock_apt_cache, stamp, lists_dir):
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        with patch.object(filter_packages, "APT_UPDATE_STAMP", stamp):
+            with patch.object(filter_packages, "APT_LISTS_DIR", lists_dir):
+                return filter_packages.execute()
+
+
+def test_apt_lists_updated_at_prefers_success_stamp(mock_apt_cache, tmp_path):
+    """Uses the apt update-success-stamp mtime when present."""
+    lists_dir = tmp_path / "lists"
+    lists_dir.mkdir()
+    stamp = tmp_path / "update-success-stamp"
+    stamp.touch()
+    os.utime(stamp, (1_700_000_000, 1_700_000_000))
+
+    result = _run_with_paths(mock_apt_cache, stamp, lists_dir)
+
+    expected = datetime.fromtimestamp(1_700_000_000, tz=UTC).isoformat()
+    assert result["apt_lists_updated_at"] == expected
+
+
+def test_apt_lists_updated_at_falls_back_to_lists_dir(mock_apt_cache, tmp_path):
+    """Falls back to the lists directory mtime when the stamp is missing."""
+    lists_dir = tmp_path / "lists"
+    lists_dir.mkdir()
+    os.utime(lists_dir, (1_700_000_500, 1_700_000_500))
+    missing_stamp = tmp_path / "update-success-stamp"
+
+    result = _run_with_paths(mock_apt_cache, missing_stamp, lists_dir)
+
+    expected = datetime.fromtimestamp(1_700_000_500, tz=UTC).isoformat()
+    assert result["apt_lists_updated_at"] == expected
+
+
+def test_apt_lists_updated_at_null_when_absent(mock_apt_cache, tmp_path):
+    """Returns None when neither the stamp nor the lists directory exists."""
+    result = _run_with_paths(
+        mock_apt_cache,
+        tmp_path / "update-success-stamp",
+        tmp_path / "nonexistent",
+    )
+
+    assert result["apt_lists_updated_at"] is None
+
+
+def test_response_includes_apt_lists_updated_at(mock_apt_cache):
+    """Response always carries the apt_lists_updated_at key."""
+    mock_apt = MagicMock()
+    mock_apt.Cache = MagicMock(return_value=mock_apt_cache)
+
+    with patch.dict("sys.modules", {"apt": mock_apt}):
+        result = filter_packages.execute()
+
+    assert "apt_lists_updated_at" in result

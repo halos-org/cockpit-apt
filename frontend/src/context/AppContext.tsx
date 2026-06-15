@@ -48,6 +48,7 @@ export interface AppState {
   totalPackageCount: number;
   limitedResults: boolean;
   aptListsPopulated: boolean;
+  aptListsUpdatedAt: string | null;
 
   // Reactive Cockpit admin-permission state. `null` while unresolved.
   // Unlike the rest of AppState (which comes from the bridge), this value
@@ -118,6 +119,7 @@ const initialState: AppState = {
   totalPackageCount: 0,
   limitedResults: false,
   aptListsPopulated: true,
+  aptListsUpdatedAt: null,
   isAdminAllowed: null,
 };
 
@@ -172,6 +174,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               totalPackageCount: response.total_count,
               limitedResults: response.limited,
               aptListsPopulated: response.apt_lists_populated,
+              aptListsUpdatedAt: response.apt_lists_updated_at,
               packagesLoading: false,
             }));
 
@@ -202,6 +205,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                             packages: freshResponse.packages,
                             totalPackageCount: freshResponse.total_count,
                             limitedResults: freshResponse.limited,
+                            aptListsUpdatedAt: freshResponse.apt_lists_updated_at,
                           }));
                           checkAndNotifyUpdates();
                         }

@@ -36,6 +36,9 @@ override_dh_auto_install:
 	# Install frontend
 	mkdir -p $(CURDIR)/debian/cockpit-apt/usr/share/cockpit/apt
 	cp -r frontend/dist/* $(CURDIR)/debian/cockpit-apt/usr/share/cockpit/apt/
+	# Install apt hook that stamps the last successful update time
+	mkdir -p $(CURDIR)/debian/cockpit-apt/etc/apt/apt.conf.d
+	install -m 644 $(CURDIR)/debian/15cockpit-apt-update-stamp $(CURDIR)/debian/cockpit-apt/etc/apt/apt.conf.d/15cockpit-apt-update-stamp
 
 override_dh_auto_clean:
 	rm -rf frontend/node_modules frontend/dist

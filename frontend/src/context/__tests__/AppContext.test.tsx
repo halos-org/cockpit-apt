@@ -44,6 +44,7 @@ describe("AppContext auto-update gating", () => {
       limit: 1000,
       limited: false,
       apt_lists_populated: false,
+      apt_lists_updated_at: null,
     });
     vi.mocked(updatePackageLists).mockResolvedValue(undefined);
   });

@@ -32,6 +32,7 @@ import { useApp } from "../context/AppContext";
 import { useAdminPermission } from "../hooks/useAdminPermission";
 import { installPackage, updatePackageLists, upgradeAllPackages } from "../lib/api";
 import { checkAndNotifyUpdates } from "../lib/pageStatus";
+import { formatRelativeTime } from "../utils/relativeTime";
 
 interface UpdatesViewProps {
   onNavigateToPackage: (name: string) => void;
@@ -52,6 +53,26 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
   } | null>(null);
   const [checkingForUpdates, setCheckingForUpdates] = useState(false);
   const [checkError, setCheckError] = useState<Error | null>(null);
+  const [, setNowTick] = useState(0);
+
+  const lastChecked = state.aptListsUpdatedAt ? formatRelativeTime(state.aptListsUpdatedAt) : null;
+
+  const checkErrorAlert = checkError ? (
+    <ErrorAlert
+      error={checkError}
+      onDismiss={() => setCheckError(null)}
+      title="Failed to check for updates"
+      style={{ marginBottom: "1rem" }}
+    />
+  ) : null;
+
+  // Re-render periodically so the relative "Last checked" label keeps advancing
+  // while the view stays mounted.
+  useEffect(() => {
+    if (!state.aptListsUpdatedAt) return;
+    const id = setInterval(() => setNowTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, [state.aptListsUpdatedAt]);
 
   // Set tab to "upgradable" on mount
   useEffect(() => {
@@ -149,18 +170,14 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
     return (
       <PageSection>
         <Title headingLevel="h1">Available Updates</Title>
-        {checkError && (
-          <ErrorAlert
-            error={checkError}
-            onDismiss={() => setCheckError(null)}
-            title="Failed to check for updates"
-            style={{ marginBottom: "1rem" }}
-          />
-        )}
+        {checkErrorAlert}
         {state.aptListsPopulated ? (
           <EmptyState icon={CheckCircleIcon} titleText="System is up to date" headingLevel="h2">
             <EmptyStateBody>
               All installed packages are up to date. Check back later for new updates.
+              {lastChecked && (
+                <p style={{ marginTop: "8px", color: "#6a6e73" }}>Last checked {lastChecked}</p>
+              )}
             </EmptyStateBody>
             <EmptyStateFooter style={{ marginTop: "1rem" }}>
               <EmptyStateActions>
@@ -168,8 +185,8 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
                   variant="primary"
                   onClick={handleCheckForUpdates}
                   isAdminRequired={isAdminRequired}
-                  isLoading={checkingForUpdates}
-                  isDisabled={checkingForUpdates}
+                  isLoading={checkingForUpdates || state.updatingPackageLists}
+                  isDisabled={checkingForUpdates || state.updatingPackageLists}
                 >
                   Check for updates
                 </AdminGatedButton>
@@ -192,8 +209,8 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
                   variant="primary"
                   onClick={handleCheckForUpdates}
                   isAdminRequired={isAdminRequired}
-                  isLoading={checkingForUpdates}
-                  isDisabled={checkingForUpdates}
+                  isLoading={checkingForUpdates || state.updatingPackageLists}
+                  isDisabled={checkingForUpdates || state.updatingPackageLists}
                 >
                   Check for updates
                 </AdminGatedButton>
@@ -210,7 +227,10 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
       <Title headingLevel="h1">Available Updates</Title>
       <p style={{ marginTop: "8px", marginBottom: "16px", color: "#6a6e73" }}>
         {state.packages.length} {state.packages.length === 1 ? "update" : "updates"} available
+        {lastChecked && <> &middot; Last checked {lastChecked}</>}
       </p>
+
+      {checkErrorAlert}
 
       <Toolbar>
         <ToolbarContent>
@@ -225,11 +245,22 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
           </ToolbarItem>
           <ToolbarItem>
             <AdminGatedButton
+              variant="secondary"
+              onClick={handleCheckForUpdates}
+              isAdminRequired={isAdminRequired}
+              isLoading={checkingForUpdates}
+              isDisabled={checkingForUpdates || upgradingPackage !== null || upgradingAll}
+            >
+              Check for updates
+            </AdminGatedButton>
+          </ToolbarItem>
+          <ToolbarItem>
+            <AdminGatedButton
               variant="primary"
               onClick={handleUpgradeAll}
               isAdminRequired={isAdminRequired}
               isLoading={upgradingAll}
-              isDisabled={upgradingPackage !== null || upgradingAll}
+              isDisabled={checkingForUpdates || upgradingPackage !== null || upgradingAll}
             >
               Upgrade All
             </AdminGatedButton>
@@ -298,7 +329,7 @@ export function UpdatesView({ onNavigateToPackage }: UpdatesViewProps) {
                     onClick={() => handleUpgrade(pkg.name)}
                     isAdminRequired={isAdminRequired}
                     isLoading={upgradingPackage === pkg.name}
-                    isDisabled={upgradingPackage !== null || upgradingAll}
+                    isDisabled={checkingForUpdates || upgradingPackage !== null || upgradingAll}
                   >
                     Upgrade
                   </AdminGatedButton>

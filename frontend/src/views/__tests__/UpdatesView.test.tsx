@@ -235,6 +235,137 @@ describe("UpdatesView - With Available Updates", () => {
       expect(screen.getByText("curl")).toBeInTheDocument();
     });
   });
+
+  it("offers a 'Check for updates' button that refreshes the package list", async () => {
+    mockUpdatePackageLists.mockResolvedValue(undefined);
+    mockAppState = {
+      packages: [
+        {
+          name: "nginx",
+          version: "1.18.0",
+          summary: "Web server",
+          section: "web",
+          installed: true,
+          upgradable: true,
+          installedVersion: "1.17.0",
+          candidateVersion: "1.18.0",
+        },
+      ],
+      packagesLoading: false,
+      packagesError: null,
+    };
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const button = await screen.findByRole("button", { name: /check for updates/i });
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(mockUpdatePackageLists).toHaveBeenCalled();
+    expect(mockLoadPackages).toHaveBeenCalled();
+  });
+
+  it("shows when the package list was last checked", async () => {
+    mockAppState = {
+      packages: [
+        {
+          name: "nginx",
+          version: "1.18.0",
+          summary: "Web server",
+          section: "web",
+          installed: true,
+          upgradable: true,
+          installedVersion: "1.17.0",
+          candidateVersion: "1.18.0",
+        },
+      ],
+      packagesLoading: false,
+      packagesError: null,
+      aptListsUpdatedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+    };
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Last checked 5 minutes ago/)).toBeInTheDocument();
+    });
+  });
+
+  it("surfaces an error when the manual check fails from the populated view", async () => {
+    mockUpdatePackageLists.mockRejectedValue(new Error("apt update failed"));
+    mockAppState = {
+      packages: [
+        {
+          name: "nginx",
+          version: "1.18.0",
+          summary: "Web server",
+          section: "web",
+          installed: true,
+          upgradable: true,
+          installedVersion: "1.17.0",
+          candidateVersion: "1.18.0",
+        },
+      ],
+      packagesLoading: false,
+      packagesError: null,
+    };
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const button = await screen.findByRole("button", { name: /check for updates/i });
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(screen.getByText("Failed to check for updates")).toBeInTheDocument();
+  });
+
+  it("disables Upgrade All and row upgrades while a check is in flight", async () => {
+    let resolveUpdate: () => void = () => {};
+    mockUpdatePackageLists.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveUpdate = resolve;
+      })
+    );
+    mockAppState = {
+      packages: [
+        {
+          name: "nginx",
+          version: "1.18.0",
+          summary: "Web server",
+          section: "web",
+          installed: true,
+          upgradable: true,
+          installedVersion: "1.17.0",
+          candidateVersion: "1.18.0",
+        },
+      ],
+      packagesLoading: false,
+      packagesError: null,
+    };
+
+    render(<UpdatesView onNavigateToPackage={vi.fn()} />);
+
+    const checkButton = await screen.findByRole("button", { name: /check for updates/i });
+    await act(async () => {
+      fireEvent.click(checkButton);
+    });
+
+    expect(screen.getByRole("button", { name: /upgrade all/i })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    );
+    expect(screen.getByRole("button", { name: /^upgrade$/i })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    );
+
+    await act(async () => {
+      resolveUpdate();
+    });
+  });
 });
 
 describe("UpdatesView - Loading and Error States", () => {

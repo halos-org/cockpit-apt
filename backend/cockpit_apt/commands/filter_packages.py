@@ -20,6 +20,7 @@ Performance Considerations:
     Current performance is acceptable for typical usage patterns.
 """
 
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,22 @@ from cockpit_apt.utils.formatters import format_package
 from cockpit_apt.utils.repository_parser import package_matches_repository
 
 APT_LISTS_DIR = Path("/var/lib/apt/lists")
+
+# apt's Post-Invoke-Success hook touches this on every successful `apt-get update`,
+# including all-Hit runs where no index files change. Fall back to the lists
+# directory mtime when the stamp is absent.
+APT_UPDATE_STAMP = Path("/var/lib/apt/periodic/update-success-stamp")
+
+
+def _apt_lists_updated_at() -> str | None:
+    """Return the last successful apt update time as an ISO 8601 UTC string."""
+    for path in (APT_UPDATE_STAMP, APT_LISTS_DIR):
+        try:
+            mtime = path.stat().st_mtime
+        except OSError:
+            continue
+        return datetime.fromtimestamp(mtime, tz=UTC).isoformat()
+    return None
 
 
 def execute(
@@ -148,6 +165,7 @@ def execute(
             "limit": limit,
             "limited": total_count > limit,
             "apt_lists_populated": apt_lists_populated,
+            "apt_lists_updated_at": _apt_lists_updated_at(),
         }
 
     except Exception as e:
