@@ -1,0 +1,6 @@
+// Record the time of every successful `apt-get update` so cockpit-apt can
+// report when package lists were last refreshed. The command is forced to
+// exit 0 so a failed stamp can never make `apt-get update` itself fail.
+APT::Update::Post-Invoke-Success {
+    "mkdir -p /var/lib/apt/periodic 2>/dev/null || true; touch /var/lib/apt/periodic/update-success-stamp 2>/dev/null || true";
+};
